@@ -1,0 +1,47 @@
+gateways:
+  - name: nsite-gateway
+    desc: TypeScript gateway for static websites
+    url: https://github.com/hzrd149/nsite-gateway
+  - name: nostr-deploy-server
+    desc: Node.js server implementation
+    url: https://github.com/sepehr-safari/nostr-deploy-server
+
+deploymentTools:
+  - name: nsite-cli
+    desc: CLI deployment tool by flox1an
+    url: https://github.com/flox1an/nsite-cli
+  - name: nsyte
+    desc: CLI deployment tool by sandwichfarm
+    url: https://github.com/sandwichfarm/nsyte
+  - name: nous-cli
+    desc: CLI deployment tool by Soapbox
+    url: https://gitlab.com/soapbox-pub/nous-cli
+  - name: nostr-deploy-cli
+    desc: CLI tool by sepehr-safari
+    url: https://github.com/sepehr-safari/nostr-deploy-cli
+
+managementTools:
+  - name: nsite-manager
+    desc: Management dashboard for your nsites
+    url: https://github.com/hzrd149/nsite-manager
+  - name: nsite-action
+    desc: GitHub Action for automatic deployments
+    url: https://github.com/sandwichfarm/nsite-action
+
+nsiteGateways:
+  - name: nsite.lol
+    desc: ""
+    url: https://nsite.lol
+  - name: nostrdeploy.com
+    desc: ""
+    url: https://nostrdeploy.com
+
+blossomServers:
+  - name: Find Blossom Servers
+    desc: Directory of available Blossom servers
+    url: https://blossomservers.com
+
+nostrRelays:
+  - name: Nostr.watch
+    desc: Real-time relay status and directory
+    url: https://nostr.watch
