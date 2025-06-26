@@ -12,7 +12,7 @@
     isVisible = rect.top < innerHeight * 0.8 && rect.bottom > 0;
   }
   
-  const { gateways, deploymentTools, managementTools, nsiteGateways, blossomServers, nostrRelays } = toolsData;
+  const { gateways, deploymentTools, managementTools, nsiteGateways, blossomServers, nostrRelays, informationals } = toolsData;
 </script>
 
 <section bind:this={sectionElement} id="tools" class="min-h-screen py-20 bg-gray-800/50">
@@ -20,10 +20,36 @@
     <h2 class="text-4xl md:text-5xl font-bold text-center mb-16
       {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
       transition-all duration-700 ease-out">
-      Tools & Resources
+      <a  href="https://github.com/nostrver-se/awesome-nsite" 
+          target="_blank"
+          class="text-white/50 hover:text-white/80"
+      >
+        Awesome nsite
+      </a>
     </h2>
     
     <div class="max-w-6xl mx-auto">
+      <!-- Information -->
+      <div class="mb-12">
+        <h3 class="text-2xl font-semibold mb-6 text-purple-400
+          {isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} 
+          transition-all duration-700 delay-200 ease-out">
+          Informational Resources
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4">
+          {#each informationals as tool, i}
+            <a href={tool.url} target="_blank" rel="noreferrer"
+              class="bg-gray-900 p-4 rounded-lg hover:bg-gray-700 transition-colors
+              {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
+              transition-all duration-700 ease-out"
+              style="transition-delay: {300 + i * 100}ms">
+              <h4 class="font-semibold text-lg mb-1">{tool.name}</h4>
+              <p class="text-gray-400 text-sm">{tool.desc}</p>
+            </a>
+          {/each}
+        </div>
+      </div>
+
       <!-- Gateways -->
       <div class="mb-12">
         <h3 class="text-2xl font-semibold mb-6 text-purple-400
@@ -136,7 +162,7 @@
         <h3 class="text-2xl font-semibold mb-6 text-purple-400
           {isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} 
           transition-all duration-700 delay-1100 ease-out">
-          Nostr Relays
+          Relays Optimized for nsite
         </h3>
         <div class="grid md:grid-cols-2 gap-4">
           {#each nostrRelays as relay, i}

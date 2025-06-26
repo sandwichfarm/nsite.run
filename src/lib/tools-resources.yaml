@@ -42,6 +42,14 @@ blossomServers:
     url: https://blossomservers.com
 
 nostrRelays:
-  - name: Nostr.watch
-    desc: Real-time relay status and directory
-    url: https://nostr.watch
+  - name: relay.nsite.lol
+    desc: relay optimized for nsites
+    url: ""
+
+informationals:
+  - name: awesome-nsite
+    desc: A curated list of resources related to nsite
+    url: https://github.com/nostrver-se/awesome-nsite
+  - name: nsite.run
+    desc: the website you are on now.
+    url: https://nsite.run
