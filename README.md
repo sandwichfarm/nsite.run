@@ -1,47 +1,87 @@
-# Svelte + Vite
+# nsite Explainer
 
-This template should help get you started developing with Svelte in Vite.
+An interactive single-page application that explains the nsite protocol - a decentralized static website hosting system built on Nostr and Blossom.
 
-## Recommended IDE Setup
+## 🌟 Overview
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+This Svelte application provides a comprehensive introduction to nsite, featuring:
+- Smooth scroll reveal animations
+- Responsive design with Tailwind CSS
+- Configurable tools and resources section
+- Three user perspectives: Publishers, Sys Admins, and Developers
 
-## Need an official Svelte framework?
+## 📋 Sections
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+1. **Hero** - Introduction with navigation links
+2. **Concept** - What is nsite and how it works
+3. **How It Works** - Step-by-step process explanation
+4. **Technical Details** - Code examples and implementation flow
+5. **Benefits** - Key advantages of using nsite
+6. **Tools & Resources** - Ecosystem of tools, gateways, and services
+7. **Get Started** - Instructions for different user groups
 
-## Technical considerations
+## 🚀 Development
 
-**Why use this over SvelteKit?**
+### Prerequisites
+- Node.js 18+
+- npm
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
-
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
-
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+### Installation
+```bash
+npm install
 ```
+
+### Run Development Server
+```bash
+npm run dev
+```
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Preview Production Build
+```bash
+npm run preview
+```
+
+## 🛠️ Configuration
+
+The tools and resources section is configurable via YAML. Edit `src/lib/tools-resources.yaml` to update:
+- Gateways & Servers
+- Deployment Tools
+- Management & Automation tools
+- nsite Gateways
+- Blossom Servers
+- Nostr Relays
+
+## 📦 Deployment
+
+This project includes automated deployment to Bunny.net via GitHub Actions.
+
+### Required GitHub Secrets
+- `BUNNY_ACCESS_KEY`
+- `BUNNY_STORAGE_ZONE_NAME`
+- `BUNNY_STORAGE_PASSWORD`
+- `BUNNY_PULLZONE_ID`
+
+Deployment triggers automatically on push to the `main` branch.
+
+## 🏗️ Tech Stack
+
+- **Svelte 4** - UI framework
+- **Vite 5** - Build tool
+- **Tailwind CSS 3** - Styling
+- **PostCSS** - CSS processing
+- **YAML** - Configuration format
+
+## 📝 License
+
+This project is part of the nsite ecosystem. See the [nsite specification](https://github.com/hzrd149/nips/blob/nsite/nsite.md) for more information.
+
+## 🔗 Related Links
+
+- [nsite Specification](https://github.com/hzrd149/nips/blob/nsite/nsite.md)
+- [Blossom Specification](https://github.com/hzrd149/blossom)
+- [Nostr Protocol](https://github.com/nostr-protocol/nostr)
