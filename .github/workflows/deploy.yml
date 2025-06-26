@@ -21,10 +21,10 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: cd nsite-explainer && npm ci
+        run: npm ci
         
       - name: Build project
-        run: cd nsite-explainer && npm run build
+        run: npm run build
         
       - name: Deploy to Bunny
         uses: R-J-dev/bunny-deploy@v2.0.3
