@@ -1,0 +1,41 @@
+name: Deploy to Bunny.net
+
+on:
+  push:
+    branches: 
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' 
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: cd nsite-explainer && npm ci
+        
+      - name: Build project
+        run: cd nsite-explainer && npm run build
+        
+      - name: Deploy to Bunny
+        uses: R-J-dev/bunny-deploy@v2.0.3
+        with:
+          access-key: ${{ secrets.BUNNY_ACCESS_KEY }}
+          directory-to-upload: "./nsite-explainer/dist"
+          storage-endpoint: "https://storage.bunnycdn.com"
+          storage-zone-name: ${{ secrets.BUNNY_STORAGE_ZONE_NAME }}
+          storage-zone-password: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
+          concurrency: "50"
+          enable-delete-action: true
+          enable-purge-pull-zone: true
+          pull-zone-id: ${{ secrets.BUNNY_PULLZONE_ID }}
+          replication-timeout: "15000" 
