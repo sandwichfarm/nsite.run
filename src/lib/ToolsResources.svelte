@@ -158,7 +158,7 @@
       </div>
       
       <!-- Nostr Relays -->
-      <div>
+      <div class="mb-12">
         <h3 class="text-2xl font-semibold mb-6 text-purple-400
           {isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} 
           transition-all duration-700 delay-1100 ease-out">
@@ -179,7 +179,7 @@
       </div>
 
       <!-- Reference -->
-      <div class="mb-12">
+      <div class="mb-6">
         <h3 class="text-2xl font-semibold mb-6 text-purple-400
           {isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'} 
           transition-all duration-700 delay-200 ease-out">
@@ -198,7 +198,6 @@
           {/each}
         </div>
       </div>
-
     </div>
   </div>
 </section>
