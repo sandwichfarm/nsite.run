@@ -16,7 +16,7 @@
     <h2 class="text-4xl md:text-5xl font-bold text-center mb-16
       {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
       transition-all duration-700 ease-out">
-      Technical Details
+      tech.
     </h2>
 
     <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">

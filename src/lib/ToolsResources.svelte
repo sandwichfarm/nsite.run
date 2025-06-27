@@ -24,7 +24,7 @@
           target="_blank"
           class="text-white/50 hover:text-white/80"
       >
-        Awesome nsite
+        awesome.
       </a>
     </h2>
     

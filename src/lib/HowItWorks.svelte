@@ -39,7 +39,7 @@
     <h2 class="text-4xl md:text-5xl font-bold text-center mb-16
       {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
       transition-all duration-700 ease-out">
-      How It Works
+      how.
     </h2>
     
     <div class="max-w-4xl mx-auto">

@@ -16,7 +16,7 @@
     <h2 class="text-4xl md:text-5xl font-bold text-center mb-16
       {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
       transition-all duration-700 ease-out">
-      What is nsite?
+      what.
     </h2>
     
     <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -39,7 +39,7 @@
         transition-all duration-700 delay-400 ease-out">
         <div class="bg-gray-800 rounded-lg p-8 shadow-2xl">
           <div class="mb-4">
-            <span class="text-purple-400 font-mono">npub1example.nsite.run</span>
+            <span class="text-purple-400 font-mono">npub1example.nsite.lol</span>
           </div>
           <div class="text-gray-400 text-sm">
             <p class="mb-2">↓ Resolves to public key</p>
