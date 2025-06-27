@@ -1,11 +1,4 @@
-genesis: 
-  - name: NIP Draft 1
-    desc: The original nsite NIP by Lez
-    url: https://github.com/lez/nsite
 
-  - name: NIP Draft 2
-    desc: Open PR, proposed by hzrd149
-    url: https://github.com/nostr-protocol/nips/pull/1538
 
 informationals:
   - name: awesome-nsite
@@ -63,3 +56,21 @@ nostrRelays:
   - name: relay.nsite.lol
     desc: relay optimized for nsites
     url: ""
+
+reference: 
+
+  - name: nostr 
+    desc: Notes and other stuff transmitted over relays. 
+    url: https://github.com/nostr-protocol/nips
+
+  - name: Blossom 
+    desc: Blossom is a specification for a set of HTTP endpoints that allow users to store blobs of data on publicly accessible servers
+    url: https://github.com/hzrd149/blossom
+
+  - name: NIP Draft 1
+    desc: The original nsite NIP by Lez
+    url: https://github.com/lez/nsite
+
+  - name: NIP Draft 2
+    desc: Open PR, proposed by hzrd149
+    url: https://github.com/nostr-protocol/nips/pull/1538
