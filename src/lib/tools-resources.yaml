@@ -1,3 +1,20 @@
+genesis: 
+  - name: NIP Draft 1
+    desc: The original nsite NIP by Lez
+    url: https://github.com/lez/nsite
+
+  - name: NIP Draft 2
+    desc: Open PR, proposed by hzrd149
+    url: https://github.com/nostr-protocol/nips/pull/1538
+
+informationals:
+  - name: awesome-nsite
+    desc: A curated list of resources related to nsite
+    url: https://github.com/nostrver-se/awesome-nsite
+  - name: nsite.run
+    desc: the website you are on now.
+    url: https://nsite.run
+
 gateways:
   - name: nsite-gateway
     desc: TypeScript gateway for static websites
@@ -5,6 +22,7 @@ gateways:
   - name: nostr-deploy-server
     desc: Node.js server implementation
     url: https://github.com/sepehr-safari/nostr-deploy-server
+  
 
 deploymentTools:
   - name: nsite-cli
@@ -45,11 +63,3 @@ nostrRelays:
   - name: relay.nsite.lol
     desc: relay optimized for nsites
     url: ""
-
-informationals:
-  - name: awesome-nsite
-    desc: A curated list of resources related to nsite
-    url: https://github.com/nostrver-se/awesome-nsite
-  - name: nsite.run
-    desc: the website you are on now.
-    url: https://nsite.run

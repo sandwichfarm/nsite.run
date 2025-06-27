@@ -17,7 +17,7 @@
       <h2 class="text-4xl md:text-5xl font-bold mb-8
         {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
         transition-all duration-700 ease-out">
-        Get Started with nsite
+        build.
       </h2>
       
       <p class="text-xl text-gray-300 mb-12
