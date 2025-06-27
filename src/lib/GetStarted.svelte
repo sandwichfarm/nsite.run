@@ -66,11 +66,12 @@
       
       <div class="{isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
         transition-all duration-700 delay-600 ease-out">
-        <a href="https://github.com/nostr-protocol/nips" 
+        <a href="https://following.space/d/5gpy56fm3dga?p=e771af0b05c8e95fcdf6feb3500544d2fb1ccd384788e9f490bb3ee28e8ed66f" 
           class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors">
-          Read the Specification
+          Follow nsite developers
         </a>
       </div>
+      
     </div>
   </div>
 </section>
