@@ -59,7 +59,7 @@
   </div>
 </section>
 
-<div class="py-8 bg-gray-950">
+<div class="py-8 bg-gray-950 relative">
   <div class="container mx-auto px-4 text-center">
     <a href="https://njump.me/bread@sandwich.farm" 
        target="_blank"
@@ -67,4 +67,15 @@
       vibed by npub1uac67zc9er54ln0kl6e4qp2y6ta3enfcg7ywnayshvlw9r5w6ehsqq99rx
     </a>
   </div>
+  
+  <!-- Subtle edit link - looks like a design element -->
+  <a href="https://github.com/sandwichfarm/nsite.run/fork" 
+     target="_blank"
+     title="✎"
+     class="absolute bottom-4 right-4 w-8 h-8 flex items-center justify-center text-gray-800 hover:text-gray-600 transition-all duration-300 hover:rotate-12">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+  </a>
 </div>
