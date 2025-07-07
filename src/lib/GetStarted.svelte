@@ -124,7 +124,8 @@
                     Use <a href={nsiteAction.url} target="_blank" class="text-purple-400 hover:text-purple-300 underline">nsite-action</a> to automatically deploy your nsite when you push to GitHub.
                   </p>
                   <ol class="list-decimal list-inside text-gray-300 space-y-2">
-                    <li>Run <code class="bg-gray-800 px-2 py-1 rounded">nsyte ci</code> locally to generate an <code class="bg-gray-800 px-2 py-1 rounded">nbunksec</code> (Bunker secret key)</li>
+                    <li>Install nsyte locally: <code class="bg-gray-800 px-2 py-1 rounded">npm install -g nsyte</code></li>
+                    <li>Run <code class="bg-gray-800 px-2 py-1 rounded">nsyte ci</code> to generate an <code class="bg-gray-800 px-2 py-1 rounded">nbunksec</code> (Bunker secret key)</li>
                     <li>Add the <code class="bg-gray-800 px-2 py-1 rounded">nbunksec</code> as a GitHub secret in your repository settings</li>
                     <li>Create <code class="bg-gray-800 px-2 py-1 rounded">.github/workflows/deploy.yml</code> with the nsite-action configuration</li>
                     <li>Specify your website directory, relays, and Blossom servers in the workflow</li>
