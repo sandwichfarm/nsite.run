@@ -22,12 +22,12 @@
 
 <main class="bg-gray-900 text-white overflow-x-hidden">
   <Hero />
+  <GetStarted {scrollY} {innerHeight} />
   <Concept {scrollY} {innerHeight} />
   <HowItWorks {scrollY} {innerHeight} />
-  <TechnicalDetails {scrollY} {innerHeight} />
   <Benefits {scrollY} {innerHeight} />
+  <TechnicalDetails {scrollY} {innerHeight} />
   <ToolsResources {scrollY} {innerHeight} />
-  <GetStarted {scrollY} {innerHeight} />
 </main>
 
 <style>

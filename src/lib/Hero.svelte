@@ -27,14 +27,14 @@
     <div class="{visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
       transition-all duration-1000 delay-500 ease-out space-y-4">
       <div class="flex flex-wrap justify-center gap-4 mb-8">
-        <a href="#concept" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors">
+        <a href="#get-started" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors text-lg">
+          Get Started
+        </a>
+        <a href="#concept" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
           Learn More
         </a>
-        <a href="#tools" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
+        <a href="#tools" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
           Tools & Resources
-        </a>
-        <a href="#get-started" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
-          Get Started
         </a>
       </div>
       <a href="#concept" class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors">
