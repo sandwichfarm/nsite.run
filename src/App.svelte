@@ -23,11 +23,11 @@
 <main class="bg-gray-900 text-white overflow-x-hidden">
   <Hero />
   <GetStarted {scrollY} {innerHeight} />
+  <ToolsResources {scrollY} {innerHeight} />
   <Concept {scrollY} {innerHeight} />
   <HowItWorks {scrollY} {innerHeight} />
   <Benefits {scrollY} {innerHeight} />
   <TechnicalDetails {scrollY} {innerHeight} />
-  <ToolsResources {scrollY} {innerHeight} />
 </main>
 
 <style>
