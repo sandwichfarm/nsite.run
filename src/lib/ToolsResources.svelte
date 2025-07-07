@@ -198,6 +198,17 @@
           {/each}
         </div>
       </div>
+      
+      <!-- Follow nsite developers button -->
+      <div class="text-center mt-12">
+        <a href="https://following.space/d/5gpy56fm3dga?p=e771af0b05c8e95fcdf6feb3500544d2fb1ccd384788e9f490bb3ee28e8ed66f" 
+          target="_blank"
+          class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all
+          {isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} 
+          duration-700 delay-1300 ease-out">
+          Follow nsite developers
+        </a>
+      </div>
     </div>
   </div>
 </section>
