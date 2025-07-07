@@ -74,11 +74,6 @@
             <!-- Step 1: Pick a deploy tool -->
             <div>
               <h4 class="text-xl font-semibold mb-4">Step 1: Pick a deployment tool</h4>
-              <p class="text-gray-400 mb-4">
-                Choose a tool based on your preferred signing method. 
-                <span class="text-purple-400">nsyte</span> supports both Bunker (remote signing) and private key methods, 
-                while other tools currently only support private keys.
-              </p>
               <div class="grid md:grid-cols-2 gap-4 mb-6">
                 {#each deploymentTools as tool}
                   <label class="cursor-pointer">
