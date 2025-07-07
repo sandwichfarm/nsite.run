@@ -1,4 +1,4 @@
-# nsite Explainer
+# nsite.run
 
 An interactive single-page application that explains the nsite protocol - a decentralized static website hosting system built on Nostr and Blossom.
 
