@@ -37,7 +37,7 @@
           Tools & Resources
         </a>
       </div>
-      <a href="#concept" class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors">
+      <a href="#get-started" class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors">
         <span class="mr-2">Scroll to explore</span>
         <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
