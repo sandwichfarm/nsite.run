@@ -24,9 +24,9 @@
   <Hero />
   <GetStarted {scrollY} {innerHeight} />
   <ToolsResources {scrollY} {innerHeight} />
+  <Benefits {scrollY} {innerHeight} />
   <Concept {scrollY} {innerHeight} />
   <HowItWorks {scrollY} {innerHeight} />
-  <Benefits {scrollY} {innerHeight} />
   <TechnicalDetails {scrollY} {innerHeight} />
 </main>
 
