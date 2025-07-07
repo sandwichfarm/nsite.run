@@ -42,7 +42,7 @@ managementTools:
     url: https://github.com/hzrd149/nsite-manager
   - name: nsite-action
     desc: GitHub Action for automatic deployments
-    url: https://github.com/sandwichfarm/nsite-action
+    url: https://github.com/marketplace/actions/nsite-action
 
 nsiteGateways:
   - name: nsite.lol
