@@ -30,11 +30,11 @@
         <a href="#get-started" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors text-lg">
           Get Started
         </a>
-        <a href="#concept" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
-          Learn More
-        </a>
         <a href="#tools" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
           Tools & Resources
+        </a>
+        <a href="#concept" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-colors">
+          Learn
         </a>
       </div>
       <a href="#get-started" class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors">
