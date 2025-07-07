@@ -7,6 +7,7 @@
   import Benefits from './lib/Benefits.svelte';
   import ToolsResources from './lib/ToolsResources.svelte';
   import GetStarted from './lib/GetStarted.svelte';
+  import Footer from './lib/Footer.svelte';
 
   let scrollY = 0;
   let innerHeight = 0;
@@ -28,6 +29,7 @@
   <Concept {scrollY} {innerHeight} />
   <HowItWorks {scrollY} {innerHeight} />
   <TechnicalDetails {scrollY} {innerHeight} />
+  <Footer {scrollY} {innerHeight} />
 </main>
 
 <style>
