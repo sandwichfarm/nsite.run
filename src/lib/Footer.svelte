@@ -72,7 +72,7 @@
   <a href="https://github.com/sandwichfarm/nsite.run/fork" 
      target="_blank"
      title="✎"
-     class="absolute bottom-4 right-4 w-8 h-8 flex items-center justify-center text-gray-800 hover:text-gray-600 transition-all duration-300 hover:rotate-12">
+     class="fixed bottom-4 right-4 w-8 h-8 flex items-center justify-center text-gray-800 hover:text-gray-600 transition-all duration-300 hover:rotate-12 z-50">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
