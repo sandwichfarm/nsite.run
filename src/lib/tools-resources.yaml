@@ -26,6 +26,7 @@ deploymentTools:
   - name: nsyte
     desc: CLI deployment tool by sandwichfarm
     url: https://github.com/sandwichfarm/nsyte
+    docsUrl: https://nsyte.run/docs/
     signerCapability: ["bunker", "private-key"]
   - name: nous-cli
     desc: CLI deployment tool by Soapbox

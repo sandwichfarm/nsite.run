@@ -156,7 +156,7 @@
                   <h4 class="text-xl font-semibold mb-4 text-purple-400">Local Deployment with {selectedDeployTool}</h4>
                   {@const selectedTool = deploymentTools.find(t => t.name === selectedDeployTool)}
                   <p class="text-gray-300 mb-4">
-                    Deploy your nsite locally using <a href={selectedTool.url} target="_blank" class="text-purple-400 hover:text-purple-300 underline">{selectedDeployTool}</a>.
+                    Deploy your nsite locally using <a href={selectedTool.docsUrl || selectedTool.url} target="_blank" class="text-purple-400 hover:text-purple-300 underline">{selectedDeployTool}</a>.
                   </p>
                   <ol class="list-decimal list-inside text-gray-300 space-y-2">
                     <li>Install {selectedDeployTool} following the documentation</li>
@@ -180,7 +180,7 @@
                     </p>
                   {/if}
                   <div class="mt-4">
-                    <a href={selectedTool.url} target="_blank" 
+                    <a href={selectedTool.docsUrl || selectedTool.url} target="_blank" 
                       class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
                       View {selectedDeployTool} Documentation
                     </a>
