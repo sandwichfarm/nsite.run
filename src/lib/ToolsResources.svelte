@@ -1,5 +1,6 @@
 <script>
   import toolsData from './tools-resources.yaml';
+  import SignerBadge from './SignerBadge.svelte';
   
   export let scrollY = 0;
   export let innerHeight = 0;
@@ -85,7 +86,16 @@
               {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
               transition-all duration-700 ease-out"
               style="transition-delay: {500 + i * 100}ms">
-              <h4 class="font-semibold text-lg mb-1">{tool.name}</h4>
+              <div class="flex items-start justify-between mb-2">
+                <h4 class="font-semibold text-lg">{tool.name}</h4>
+                {#if tool.signerCapability}
+                  <div class="flex gap-1">
+                    {#each tool.signerCapability as capability}
+                      <SignerBadge {capability} />
+                    {/each}
+                  </div>
+                {/if}
+              </div>
               <p class="text-gray-400 text-sm">{tool.desc}</p>
             </a>
           {/each}

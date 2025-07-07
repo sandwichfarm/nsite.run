@@ -1,5 +1,6 @@
 <script>
   import toolsData from './tools-resources.yaml';
+  import SignerBadge from './SignerBadge.svelte';
   
   export let scrollY = 0;
   export let innerHeight = 0;
@@ -73,6 +74,11 @@
             <!-- Step 1: Pick a deploy tool -->
             <div>
               <h4 class="text-xl font-semibold mb-4">Step 1: Pick a deployment tool</h4>
+              <p class="text-gray-400 mb-4">
+                Choose a tool based on your preferred signing method. 
+                <span class="text-purple-400">nsyte</span> supports both Bunker (remote signing) and private key methods, 
+                while other tools currently only support private keys.
+              </p>
               <div class="grid md:grid-cols-2 gap-4 mb-6">
                 {#each deploymentTools as tool}
                   <label class="cursor-pointer">
@@ -86,7 +92,16 @@
                     <div class="bg-gray-900 p-4 rounded-lg border-2 border-gray-700 
                       peer-checked:border-purple-600 peer-checked:bg-purple-900/20
                       hover:border-gray-600 transition-all">
-                      <h5 class="font-semibold text-lg mb-1">{tool.name}</h5>
+                      <div class="flex items-start justify-between mb-1">
+                        <h5 class="font-semibold text-lg">{tool.name}</h5>
+                        {#if tool.signerCapability}
+                          <div class="flex gap-1">
+                            {#each tool.signerCapability as capability}
+                              <SignerBadge {capability} />
+                            {/each}
+                          </div>
+                        {/if}
+                      </div>
                       <p class="text-gray-400 text-sm">{tool.desc}</p>
                     </div>
                   </label>
@@ -146,7 +161,17 @@
                   <ol class="list-decimal list-inside text-gray-300 space-y-2">
                     <li>Install {selectedDeployTool} following the documentation</li>
                     <li>Build your static website files</li>
-                    <li>Run the deployment command with your Nostr private key</li>
+                    <li>Configure your signing method:
+                      {#if selectedTool.signerCapability.includes('bunker')}
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                          <li>Use Bunker for remote signing (more secure)</li>
+                          <li>Or use your Nostr private key directly</li>
+                        </ul>
+                      {:else}
+                        <span class="text-gray-400"> - Requires your Nostr private key</span>
+                      {/if}
+                    </li>
+                    <li>Run the deployment command</li>
                     <li>Your site will be published to the nsite network</li>
                   </ol>
                   {#if selectedDeployTool !== 'nsyte'}

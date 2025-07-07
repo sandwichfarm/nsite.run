@@ -22,15 +22,19 @@ deploymentTools:
   - name: nsite-cli
     desc: CLI deployment tool by flox1an
     url: https://github.com/flox1an/nsite-cli
+    signerCapability: ["private-key"]
   - name: nsyte
     desc: CLI deployment tool by sandwichfarm
     url: https://github.com/sandwichfarm/nsyte
+    signerCapability: ["bunker", "private-key"]
   - name: nous-cli
     desc: CLI deployment tool by Soapbox
     url: https://gitlab.com/soapbox-pub/nous-cli
+    signerCapability: ["private-key"]
   - name: nostr-deploy-cli
     desc: CLI tool by sepehr-safari
     url: https://github.com/sepehr-safari/nostr-deploy-cli
+    signerCapability: ["private-key"]
 
 managementTools:
   - name: nsite-manager
