@@ -12,6 +12,7 @@
   let automateDeployment = null;
   let npubInput = '';
   let npubError = '';
+  let selectedGateway = '';
   
   // Validate npub
   function validateNpub(npub) {
@@ -47,7 +48,11 @@
   
   function viewNsite(npub) {
     if (validateNpub(npub)) {
-      window.open(`https://nsite.lol/${npub}`, '_blank');
+      const gateway = nsiteGateways.find(g => g.name === selectedGateway);
+      if (gateway && gateway.url) {
+        const gatewayUrl = gateway.url.endsWith('/') ? gateway.url.slice(0, -1) : gateway.url;
+        window.open(`${gatewayUrl}/${npub}`, '_blank');
+      }
     }
   }
   
@@ -58,8 +63,13 @@
     isVisible = rect.top < innerHeight * 0.8 && rect.bottom > 0;
   }
   
-  const { deploymentTools, gateways, reference, managementTools } = toolsData;
+  const { deploymentTools, gateways, reference, managementTools, nsiteGateways } = toolsData;
   const nsiteAction = managementTools.find(tool => tool.name === 'nsite-action');
+  
+  // Set default gateway after data loads
+  $: if (!selectedGateway && nsiteGateways && nsiteGateways.length > 0) {
+    selectedGateway = nsiteGateways[0].name;
+  }
 </script>
 
 <section bind:this={sectionElement} id="get-started" class="min-h-screen py-20 flex items-center">
@@ -120,6 +130,32 @@
             <h3 class="text-2xl font-semibold mb-6 text-purple-400">View an nsite</h3>
             
             <div class="space-y-6">
+              <!-- Gateway selector -->
+              <div>
+                <label class="block text-sm font-medium mb-2">Select a gateway:</label>
+                <div class="grid md:grid-cols-2 gap-2">
+                  {#each nsiteGateways as gateway}
+                    <label class="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="gateway"
+                        value={gateway.name}
+                        bind:group={selectedGateway}
+                        class="sr-only peer"
+                      />
+                      <div class="bg-gray-900 p-3 rounded-lg border-2 border-gray-700 
+                        peer-checked:border-purple-600 peer-checked:bg-purple-900/20
+                        hover:border-gray-600 transition-all">
+                        <span class="font-semibold">{gateway.name}</span>
+                        {#if gateway.desc}
+                          <span class="text-gray-400 text-sm ml-2">{gateway.desc}</span>
+                        {/if}
+                      </div>
+                    </label>
+                  {/each}
+                </div>
+              </div>
+
               <!-- npub input -->
               <div>
                 <label for="npub-input" class="block text-sm font-medium mb-2">Enter an npub to view their nsite:</label>
