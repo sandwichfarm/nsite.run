@@ -187,19 +187,19 @@
                     on:click={() => viewNsite('npub1zz6g0z3r2xaqwf4k4u5f6cqsstc0qx9hjxkd5flxaazq3wnx03xqppq4fv')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">applesauce</h4>
-                    <p class="text-gray-400 text-sm">Example nsite</p>
+                    <p class="text-gray-400 text-sm">Build reactive nostr UI with less code</p>
                   </button>
                   <button
                     on:click={() => viewNsite('npub1uch500jz4kknlzg4h9y3yv3d42us792ru52actv7kt8rhxg0xnlscctm5r')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">bouquet</h4>
-                    <p class="text-gray-400 text-sm">Example nsite</p>
+                    <p class="text-gray-400 text-sm">Organize assets your way</p>
                   </button>
                   <button
                     on:click={() => viewNsite('npub1wyuh3scfgzqmxn709a2fzuemps389rxnk7nfgege6s847zze3tuqfl87ez')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">nostrudel</h4>
-                    <p class="text-gray-400 text-sm">Example nsite</p>
+                    <p class="text-gray-400 text-sm">Do anything nostr app</p>
                   </button>
                   <button
                     on:click={() => viewNsite('npub1uac67zc9er54ln0kl6e4qp2y6ta3enfcg7ywnayshvlw9r5w6ehsqq99rx')}
