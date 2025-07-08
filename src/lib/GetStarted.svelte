@@ -7,9 +7,51 @@
   
   let sectionElement;
   let isVisible = false;
-  let activeTab = 'deploy';
+  let activeTab = 'view';
   let selectedDeployTool = '';
   let automateDeployment = null;
+  let npubInput = '';
+  let npubError = '';
+  
+  // Validate npub
+  function validateNpub(npub) {
+    if (!npub) {
+      npubError = '';
+      return false;
+    }
+    
+    // Basic npub validation - starts with npub1 and has correct length
+    if (!npub.startsWith('npub1') || npub.length !== 63) {
+      npubError = 'Invalid npub format';
+      return false;
+    }
+    
+    // Check if it's valid bech32
+    try {
+      // Basic character validation for bech32
+      const validChars = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+      const npubBody = npub.slice(5); // Remove 'npub1' prefix
+      for (let char of npubBody) {
+        if (!validChars.includes(char)) {
+          npubError = 'Invalid characters in npub';
+          return false;
+        }
+      }
+      npubError = '';
+      return true;
+    } catch (e) {
+      npubError = 'Invalid npub encoding';
+      return false;
+    }
+  }
+  
+  function viewNsite(npub) {
+    if (validateNpub(npub)) {
+      window.open(`https://nsite.lol/${npub}`, '_blank');
+    }
+  }
+  
+  $: validateNpub(npubInput);
   
   $: if (sectionElement && scrollY >= 0) {
     const rect = sectionElement.getBoundingClientRect();
@@ -41,6 +83,12 @@
           {isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} 
           transition-all duration-700 delay-300 ease-out">
           <button 
+            on:click={() => activeTab = 'view'}
+            class="px-6 py-3 rounded-md font-semibold transition-all duration-200
+              {activeTab === 'view' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}">
+            View nsite
+          </button>
+          <button 
             on:click={() => activeTab = 'deploy'}
             class="px-6 py-3 rounded-md font-semibold transition-all duration-200
               {activeTab === 'deploy' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}">
@@ -65,6 +113,77 @@
       <div class="bg-gray-800 rounded-lg p-8
         {isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} 
         transition-all duration-700 delay-400 ease-out">
+        
+        <!-- View nsite Tab -->
+        {#if activeTab === 'view'}
+          <div class="space-y-8">
+            <h3 class="text-2xl font-semibold mb-6 text-purple-400">View an nsite</h3>
+            
+            <div class="space-y-6">
+              <!-- npub input -->
+              <div>
+                <label for="npub-input" class="block text-sm font-medium mb-2">Enter an npub to view their nsite:</label>
+                <div class="flex gap-2">
+                  <input
+                    id="npub-input"
+                    type="text"
+                    bind:value={npubInput}
+                    placeholder="npub1..."
+                    class="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  />
+                  <button
+                    on:click={() => viewNsite(npubInput)}
+                    disabled={!npubInput || !!npubError}
+                    class="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors">
+                    View
+                  </button>
+                </div>
+                {#if npubError}
+                  <p class="text-red-400 text-sm mt-2">{npubError}</p>
+                {/if}
+              </div>
+              
+              <!-- Example nsites -->
+              <div>
+                <p class="text-gray-400 mb-4">Or check out these example nsites:</p>
+                <div class="grid md:grid-cols-2 gap-3">
+                  <button
+                    on:click={() => viewNsite('npub1uac67zc9er54ln0kl6e4qp2y6ta3enfcg7ywnayshvlw9r5w6ehsqq99rx')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">bread (sandwich.farm)</h4>
+                    <p class="text-gray-400 text-sm">Creator of nsyte</p>
+                  </button>
+                  <button
+                    on:click={() => viewNsite('npub1zel93ag8c3jx24nzlqtq24q56y4zqzxqr3ht4grrpf2y8p5p9jqqlmpu7')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">hzrd149</h4>
+                    <p class="text-gray-400 text-sm">Creator of nsite-gateway</p>
+                  </button>
+                  <button
+                    on:click={() => viewNsite('npub1nf9vm6uhs4j7yayqrxdlqvw8euh49rh3tc3p524t8ewkgtae8zcqpfq7sx')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">flox1an</h4>
+                    <p class="text-gray-400 text-sm">Creator of nsite-cli</p>
+                  </button>
+                  <button
+                    on:click={() => viewNsite('npub19ejgkuqv94s7seh936l97zy0pj77ym36yc9caqkkz5xfzld5l08qp8uctf')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">sepehr-safari</h4>
+                    <p class="text-gray-400 text-sm">Creator of nostr-deploy</p>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-gray-900 p-6 rounded-lg">
+                <h4 class="text-lg font-semibold mb-2">How it works:</h4>
+                <p class="text-gray-300">
+                  nsites are static websites hosted on the Nostr network. Each site is tied to a user's npub (Nostr public key). 
+                  When you enter an npub, the gateway fetches and displays their published website content.
+                </p>
+              </div>
+            </div>
+          </div>
+        {/if}
         
         <!-- Deploy an nsite Tab -->
         {#if activeTab === 'deploy'}
