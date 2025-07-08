@@ -184,28 +184,28 @@
                 <p class="text-gray-400 mb-4">Or check out these example nsites:</p>
                 <div class="grid md:grid-cols-2 gap-3">
                   <button
+                    on:click={() => viewNsite('npub1zz6g0z3r2xaqwf4k4u5f6cqsstc0qx9hjxkd5flxaazq3wnx03xqppq4fv')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">applesauce</h4>
+                    <p class="text-gray-400 text-sm">Example nsite</p>
+                  </button>
+                  <button
+                    on:click={() => viewNsite('npub1uch500jz4kknlzg4h9y3yv3d42us792ru52actv7kt8rhxg0xnlscctm5r')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">bouquet</h4>
+                    <p class="text-gray-400 text-sm">Example nsite</p>
+                  </button>
+                  <button
+                    on:click={() => viewNsite('npub1wyuh3scfgzqmxn709a2fzuemps389rxnk7nfgege6s847zze3tuqfl87ez')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">nostrudel</h4>
+                    <p class="text-gray-400 text-sm">Example nsite</p>
+                  </button>
+                  <button
                     on:click={() => viewNsite('npub1uac67zc9er54ln0kl6e4qp2y6ta3enfcg7ywnayshvlw9r5w6ehsqq99rx')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">bread (sandwich.farm)</h4>
+                    <h4 class="font-semibold mb-1">bread</h4>
                     <p class="text-gray-400 text-sm">Creator of nsyte</p>
-                  </button>
-                  <button
-                    on:click={() => viewNsite('npub1zel93ag8c3jx24nzlqtq24q56y4zqzxqr3ht4grrpf2y8p5p9jqqlmpu7')}
-                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">hzrd149</h4>
-                    <p class="text-gray-400 text-sm">Creator of nsite-gateway</p>
-                  </button>
-                  <button
-                    on:click={() => viewNsite('npub1nf9vm6uhs4j7yayqrxdlqvw8euh49rh3tc3p524t8ewkgtae8zcqpfq7sx')}
-                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">flox1an</h4>
-                    <p class="text-gray-400 text-sm">Creator of nsite-cli</p>
-                  </button>
-                  <button
-                    on:click={() => viewNsite('npub19ejgkuqv94s7seh936l97zy0pj77ym36yc9caqkkz5xfzld5l08qp8uctf')}
-                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">sepehr-safari</h4>
-                    <p class="text-gray-400 text-sm">Creator of nostr-deploy</p>
                   </button>
                 </div>
               </div>
