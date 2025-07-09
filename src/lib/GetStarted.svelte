@@ -96,7 +96,7 @@
             on:click={() => activeTab = 'view'}
             class="px-6 py-3 rounded-md font-semibold transition-all duration-200
               {activeTab === 'view' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}">
-            View nsite
+            Resolve nsite
           </button>
           <button 
             on:click={() => activeTab = 'deploy'}
@@ -201,12 +201,7 @@
                     <h4 class="font-semibold mb-1">nostrudel</h4>
                     <p class="text-gray-400 text-sm">Do anything nostr app</p>
                   </button>
-                  <button
-                    on:click={() => viewNsite('npub1uac67zc9er54ln0kl6e4qp2y6ta3enfcg7ywnayshvlw9r5w6ehsqq99rx')}
-                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">bread</h4>
-                    <p class="text-gray-400 text-sm">Creator of nsyte</p>
-                  </button>
+            
                 </div>
               </div>
               

@@ -1,0 +1,22 @@
+{
+  "relays": [
+    "wss://relay.primal.net",
+    "wss://relay.wellorder.net",
+    "wss://relay.nostr.band",
+    "wss://relay.damus.io",
+    "wss://nos.lol"
+  ],
+  "servers": [
+    "https://cdn.hzrd149.com",
+    "https://cdn.sovbit.host"
+  ],
+  "profile": {
+    "name": "nsite.run",
+    "display_name": "nsite.run",
+    "about": "information about nsites"
+  },
+  "publishProfile": true,
+  "publishRelayList": true,
+  "publishServerList": true,
+  "bunkerPubkey": "d18f5bcbcdaded785230b99b581c3bfd41249fb57209bfd1656e2098ca8d085d"
+}
