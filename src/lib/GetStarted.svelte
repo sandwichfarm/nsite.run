@@ -50,8 +50,11 @@
     if (validateNpub(npub)) {
       const gateway = nsiteGateways.find(g => g.name === selectedGateway);
       if (gateway && gateway.url) {
-        const gatewayUrl = gateway.url.endsWith('/') ? gateway.url.slice(0, -1) : gateway.url;
-        window.open(`${gatewayUrl}/${npub}`, '_blank');
+        // Extract the domain from the URL
+        const url = new URL(gateway.url);
+        const domain = url.hostname;
+        // Construct subdomain URL
+        window.open(`${url.protocol}//${npub}.${domain}`, '_blank');
       }
     }
   }
