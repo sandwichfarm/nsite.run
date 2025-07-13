@@ -1,13 +1,10 @@
-
-
 informationals:
   - name: awesome-nsite
     desc: A curated list of resources related to nsite
     url: https://github.com/nostrver-se/awesome-nsite
-
   - name: nsite.run
     desc: the website you are on now.
-    url: https://nsite.run
+    url: https://github.com/sandwichfarm/nsite.run
 
 gateways:
   - name: nsite-gateway
@@ -16,7 +13,6 @@ gateways:
   - name: nostr-deploy-server
     desc: Node.js server implementation
     url: https://github.com/sepehr-safari/nostr-deploy-server
-  
 
 deploymentTools:
   - name: nsite-cli
@@ -69,19 +65,15 @@ other:
     url: https://following.space/d/5gpy56fm3dga?p=e771af0b05c8e95fcdf6feb3500544d2fb1ccd384788e9f490bb3ee28e8ed66f
 
 reference: 
-
   - name: nostr 
     desc: Notes and other stuff transmitted over relays. 
     url: https://github.com/nostr-protocol/nips
-
   - name: Blossom 
     desc: Blossom is a specification for a set of HTTP endpoints that allow users to store blobs of data on publicly accessible servers
     url: https://github.com/hzrd149/blossom
-
   - name: NIP Draft 1
     desc: The original nsite NIP by Lez
     url: https://github.com/lez/nsite
-
   - name: NIP Draft 2
     desc: Open PR, proposed by hzrd149
     url: https://github.com/nostr-protocol/nips/pull/1538
