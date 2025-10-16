@@ -50,7 +50,7 @@ nsiteGateways:
     url: https://nostrdeploy.com
   - name: nosto.re
     desc: ""
-    url: https://nsite.nosto.re
+    url: https://nosto.re
 
 blossomServers:
   - name: Find Blossom Servers
