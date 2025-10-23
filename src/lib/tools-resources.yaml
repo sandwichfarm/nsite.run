@@ -45,9 +45,6 @@ nsiteGateways:
   - name: nsite.lol
     desc: ""
     url: https://nsite.lol
-  - name: nostrdeploy.com
-    desc: ""
-    url: https://nostrdeploy.com
   - name: nosto.re
     desc: ""
     url: https://nosto.re
