@@ -187,22 +187,22 @@
                 <p class="text-gray-400 mb-4">Or check out these example nsites:</p>
                 <div class="grid md:grid-cols-2 gap-3"> 
                    <button
-                    on:click={() => viewNsite('npub1rqznq898cxkjly6fqak09qheqkeure2qazr8tc2tjkzkcs9htces9rzvta')}
+                    on:click={() => viewNsite('npub1s0veng2gvfwr62acrxhnqexq76sj6ldg3a5t935jy8e6w3shr5vsnwrmq5')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">Sovereign Engineering</h4>
                     <p class="text-gray-400 text-sm">Ship the future</p>
+                  </button>
+                   <button
+                    on:click={() => viewNsite('npub1rqznq898cxkjly6fqak09qheqkeure2qazr8tc2tjkzkcs9htces9rzvta')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">nsite.lol</h4>
+                    <p class="text-gray-400 text-sm">nsite directory</p>
                   </button>
                   <button
                     on:click={() => viewNsite('npub1zz6g0z3r2xaqwf4k4u5f6cqsstc0qx9hjxkd5flxaazq3wnx03xqppq4fv')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">applesauce</h4>
                     <p class="text-gray-400 text-sm">Build reactive nostr UI with less code</p>
-                  </button>
-                  <button
-                    on:click={() => viewNsite('npub1uch500jz4kknlzg4h9y3yv3d42us792ru52actv7kt8rhxg0xnlscctm5r')}
-                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
-                    <h4 class="font-semibold mb-1">bouquet</h4>
-                    <p class="text-gray-400 text-sm">Organize assets your way</p>
                   </button>
                   <button
                     on:click={() => viewNsite('npub1wyuh3scfgzqmxn709a2fzuemps389rxnk7nfgege6s847zze3tuqfl87ez')}
