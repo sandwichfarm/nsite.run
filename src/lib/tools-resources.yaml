@@ -42,9 +42,6 @@ managementTools:
     url: https://github.com/marketplace/actions/nsite-action
 
 nsiteGateways:
-  - name: nsite.lol
-    desc: ""
-    url: https://nsite.lol
   - name: nosto.re
     desc: ""
     url: https://nosto.re
