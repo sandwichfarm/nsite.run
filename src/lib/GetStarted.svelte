@@ -185,7 +185,13 @@
               <!-- Example nsites -->
               <div>
                 <p class="text-gray-400 mb-4">Or check out these example nsites:</p>
-                <div class="grid md:grid-cols-2 gap-3">
+                <div class="grid md:grid-cols-2 gap-3"> 
+                   <button
+                    on:click={() => viewNsite('npub1rqznq898cxkjly6fqak09qheqkeure2qazr8tc2tjkzkcs9htces9rzvta')}
+                    class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
+                    <h4 class="font-semibold mb-1">Sovereign Engineering</h4>
+                    <p class="text-gray-400 text-sm">Ship the future</p>
+                  </button>
                   <button
                     on:click={() => viewNsite('npub1zz6g0z3r2xaqwf4k4u5f6cqsstc0qx9hjxkd5flxaazq3wnx03xqppq4fv')}
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
@@ -203,8 +209,7 @@
                     class="bg-gray-900 hover:bg-gray-700 p-4 rounded-lg text-left transition-colors">
                     <h4 class="font-semibold mb-1">nostrudel</h4>
                     <p class="text-gray-400 text-sm">Do anything nostr app</p>
-                  </button>
-            
+                  </button>            
                 </div>
               </div>
               
