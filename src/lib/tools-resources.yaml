@@ -61,10 +61,11 @@ nostrRelays:
   - name: relay.nosto.re
     desc: relay optimized for nsites
     url: ""
+    
 other:
   - name: follow-pack
     desc: A follow pack of nsite developers
-    url: https://following.space/d/5gpy56fm3dga?p=e771af0b05c8e95fcdf6feb3500544d2fb1ccd384788e9f490bb3ee28e8ed66f
+    url: nostr:nevent1qvzqqqr4xypzpem34u9stj8ftlxldl4n2qz5f5hmrnxns3uga86fpwe7u28ga4n0qy28wumn8ghj7un9d3shjtnyv9kh2uewd9hsz9nhwden5te0wfjkccte9ehx7um5wghxyctwvsq3gamnwvaz7tmwdaehgu3wdau8gu3wv3jhvqgawaehxw309ahx7um5wgkhqatz9emk2mrvdaexgetj9ehx2aqpp4mhxue69uhkummn9ekx7mqpzemhxue69uhhyetvv9ujuurjd9kkzmpwdejhgqghwaehxw309aex2mrp0yhxummnw3ezucnpdejz7qgwwaehxw309ahx7uewd3hkctcpzamhxue69uhhyetvv9ujuurjd9kkzmpwdejhgtcpz4mhxue69uhhyetvv9ujuerpd46hxtnfduhsz8thwden5te0d36kucmgvfhhstnnv9hxgamfvd5zuenpwfkj7qg6waehxw309ac8junpd45kgtnxd9shg6npvchxxmmd9uqzplaz3dk80c6k7l23sfs6w6hfq48fmu33yyz9d2klcq8d9wcrzgg076hwgx
 
 reference: 
   - name: nostr 
