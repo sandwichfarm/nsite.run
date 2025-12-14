@@ -13,6 +13,9 @@ gateways:
   - name: nostr-deploy-server
     desc: Node.js server implementation
     url: https://github.com/sepehr-safari/nostr-deploy-server
+  - name: nwb.tf
+    desc: nsite directory and gateway
+    url: https://nwb.tf/
 
 deploymentTools:
   - name: nsite-cli
