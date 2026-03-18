@@ -1,41 +1,71 @@
-name: Deploy to Bunny.net
+name: Deploy
 
 on:
   push:
-    branches: 
-      - main
-  workflow_dispatch:
+    branches:
+      - master
 
 jobs:
-  build-and-deploy:
+  deploy:
+    name: Build and deploy to Bunny Edge Scripting
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
         with:
-          node-version: '18' 
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build project
-        run: npm run build
-        
-      - name: Deploy to Bunny
-        uses: R-J-dev/bunny-deploy@v2.0.3
+          deno-version: v2.7.4
+
+      - uses: actions/setup-node@v4
         with:
-          access-key: ${{ secrets.BUNNY_ACCESS_KEY }}
-          directory-to-upload: "./dist"
-          storage-endpoint: "https://storage.bunnycdn.com"
-          storage-zone-name: ${{ secrets.BUNNY_STORAGE_ZONE_NAME }}
-          storage-zone-password: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
-          concurrency: "50"
-          enable-delete-action: true
-          enable-purge-pull-zone: true
-          pull-zone-id: ${{ secrets.BUNNY_PULLZONE_ID }}
-          replication-timeout: "15000" 
+          node-version: '20'
+
+      - name: Build all bundles
+        run: deno task build
+
+      - name: Enforce bundle size limits (safety check before deploy)
+        run: deno run --allow-read scripts/check-bundle-sizes.ts
+
+      - name: Build SPA
+        run: |
+          cd apps/spa
+          npm ci
+          npm run build
+
+      - name: Deploy SPA to Bunny Storage
+        run: |
+          cd apps/spa/dist
+          for file in $(find . -type f); do
+            path="${file#./}"
+            curl -s -X PUT \
+              -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
+              -H "Content-Type: $(file --mime-type -b "$file")" \
+              --data-binary "@$file" \
+              "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/$path"
+          done
+
+      - name: Purge CDN cache
+        run: |
+          curl -s -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_GATEWAY_PULLZONE_ID }}/purgeCache" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      - name: Deploy relay
+        uses: BunnyWay/actions/deploy-script@main
+        with:
+          script_id: ${{ secrets.BUNNY_RELAY_SCRIPT_ID }}
+          deploy_key: ${{ secrets.BUNNY_RELAY_DEPLOY_KEY }}
+          file: apps/relay/dist/relay.bundle.js
+
+      - name: Deploy blossom
+        uses: BunnyWay/actions/deploy-script@main
+        with:
+          script_id: ${{ secrets.BUNNY_BLOSSOM_SCRIPT_ID }}
+          deploy_key: ${{ secrets.BUNNY_BLOSSOM_DEPLOY_KEY }}
+          file: apps/blossom/dist/blossom.bundle.js
+
+      - name: Deploy gateway
+        uses: BunnyWay/actions/deploy-script@main
+        with:
+          script_id: ${{ secrets.BUNNY_GATEWAY_SCRIPT_ID }}
+          deploy_key: ${{ secrets.BUNNY_GATEWAY_DEPLOY_KEY }}
+          file: apps/gateway/dist/gateway.bundle.js
