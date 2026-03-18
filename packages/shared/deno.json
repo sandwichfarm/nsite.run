@@ -1,0 +1,17 @@
+{
+  "name": "@nsite/shared",
+  "version": "0.1.0",
+  "imports": {
+    "@noble/curves/": "npm:/@noble/curves@1.8.1/",
+    "@noble/hashes/": "npm:/@noble/hashes@1.6.1/"
+  },
+  "exports": {
+    ".": "./src/mod.ts",
+    "./types": "./src/types.ts",
+    "./sha256": "./src/sha256.ts",
+    "./validation": "./src/validation.ts",
+    "./constants": "./src/constants.ts",
+    "./libsql": "./src/libsql.ts",
+    "./nostr-verify": "./src/nostr-verify.ts"
+  }
+}

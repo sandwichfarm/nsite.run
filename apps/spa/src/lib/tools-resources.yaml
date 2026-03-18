@@ -1,0 +1,103 @@
+categories:
+  - name: "Gateways"
+    items:
+      - name: "nsite.run"
+        url: "https://nsite.run"
+        description: "reference implementation for nsite V2"
+        versions: [v2]
+      - name: "nosto.re"
+        url: "https://nosto.re"
+        description: "Public nsite gateway by nosto.re"
+        versions: [v1]
+      - name: "nwb.tf"
+        url: "https://nwb.tf/"
+        description: "Public nsite gateway"
+        versions: [v1]
+      - name: "nsite-gateway"
+        url: "https://github.com/hzrd149/nsite-gateway"
+        description: "TypeScript gateway for static websites — self-hostable"
+        versions: [v1]
+      - name: "nostr-deploy-server"
+        url: "https://github.com/sepehr-safari/nostr-deploy-server"
+        description: "Node.js server implementation for serving nsites"
+        versions: [v1]
+
+  - name: "Deploy Tools"
+    items:
+    
+      - name: "nsite-cli"
+        url: "https://github.com/flox1an/nsite-cli"
+        description: "CLI deployment tool by flox1an — supports private key signing"
+        versions: [v1]
+      - name: "nsyte"
+        url: "https://github.com/sandwichfarm/nsyte"
+        description: "CLI deployment tool with bunker and private key support"
+        versions: [v2]
+      - name: "nous-cli"
+        url: "https://gitlab.com/soapbox-pub/nous-cli"
+        description: "CLI deployment tool by Soapbox"
+        versions: [v1]
+      - name: "nostr-deploy-cli"
+        url: "https://github.com/sepehr-safari/nostr-deploy-cli"
+        description: "CLI deployment tool by sepehr-safari"
+        versions: [v1]
+      - name: "nsite-action"
+        url: "https://github.com/marketplace/actions/nsite-action"
+        description: "GitHub Action for automated nsite deployments on push"
+        versions: [v1]
+      - name: "nsite.run"
+        url: "https://nsite.run"
+        description: "deploy nsites from the web"
+        versions: [v2]
+
+  - name: "Management Tools"
+    items:
+      - name: "nsite-manager"
+        url: "https://github.com/hzrd149/nsite-manager"
+        description: "Web-based management dashboard for your nsites"
+        versions: [v1]
+
+  - name: "Blossom Servers"
+    items:
+      - name: "Find Blossom Servers"
+        url: "https://blossomservers.com"
+        description: "Directory of publicly available Blossom servers"
+
+  - name: "Nsite Dedicated Relays"
+    items:
+      - name: "relay.nsite.lol"
+        url: "https://relay.nsite.lol"
+        description: "Relay optimized for nsite manifests"
+        versions: [v1]
+      - name: "relay.nosto.re"
+        url: "https://relay.nosto.re"
+        description: "Relay optimized for nsite manifests by nosto.re"
+        versions: [v1]
+      - name: "nsite.run"
+        url: "https://nsite.run"
+        description: "relay for nsites"
+        versions: [v2]
+
+  - name: "Reference"
+    items:
+      - name: "nostr Protocol (NIPs)"
+        url: "https://github.com/nostr-protocol/nips"
+        description: "nostr implementation possibilities — the protocol specification"
+      - name: "Blossom Specification"
+        url: "https://github.com/hzrd149/blossom"
+        description: "HTTP endpoints for storing blobs on publicly accessible servers"
+      - name: "nsite v0 original proposal by Lez"
+        url: "https://github.com/lez/nsite"
+        description: "Original nsite NIP draft by Lez"
+      - name: "nsite v1 by hzrd149"
+        url: "https://github.com/hzrd149/nips/commit/41e77b45a1e8a8d170097e363f7d7254797cc5c5"
+        description: "First attempt"
+      - name: 'nsite v2 "Site Manifest" by hzrd149'
+        url: "https://github.com/hzrd149/nips/blob/cbe90dbcf7e492c7bc7bf04cd64c84598b435421/nsite.md"
+        description: "Second attempt simplifies and speeds up nsite resolution"
+
+  - name: "Informational"
+    items:
+      - name: "awesome-nsite"
+        url: "https://github.com/nostrver-se/awesome-nsite"
+        description: "A curated list of resources related to nsites"

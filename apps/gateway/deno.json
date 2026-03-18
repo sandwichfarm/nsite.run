@@ -1,0 +1,16 @@
+{
+  "name": "@nsite/gateway",
+  "version": "0.1.0",
+  "exports": "./src/main.ts",
+  "imports": {
+    "@nsite/shared": "@nsite/shared",
+    "@nsite/blossom": "../blossom/src/main.ts",
+    "@noble/curves/": "npm:/@noble/curves@1.8.1/",
+    "@noble/hashes/": "npm:/@noble/hashes@1.6.1/",
+    "@nostr/tools/pure": "jsr:@nostr/tools@^2.23.3/pure",
+    "@std/toml": "jsr:@std/toml@^1.0.0",
+  },
+  "tasks": {
+    "build": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env build.ts"
+  }
+}
