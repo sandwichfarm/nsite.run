@@ -86,6 +86,9 @@ categories:
       - name: "Blossom Specification"
         url: "https://github.com/hzrd149/blossom"
         description: "HTTP endpoints for storing blobs on publicly accessible servers"
+      - name: '"Static Websites" NIP PR'
+        url: "github.com/nostr-protocol/nips/pull/1538"
+        description: "Static Website (nsite) pull request to nostrprotocol/nips"
       - name: "nsite v0 original proposal by Lez"
         url: "https://github.com/lez/nsite"
         description: "Original nsite NIP draft by Lez"

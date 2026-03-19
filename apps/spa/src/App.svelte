@@ -357,7 +357,7 @@
             Deploy to the <span class="text-purple-400">decentralized web</span>
           </h1>
           <p class="text-slate-400 text-xl max-w-xl mx-auto">
-            Drop your site files below. No account needed.
+            Drop your <span class="font-semibold">static website</span> files below. No account needed.
           </p>
         </div>
 
@@ -387,10 +387,10 @@
 
         <!-- Scroll nudge -->
         <button
-          on:click={() => document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' })}
+          on:click={() => document.getElementById('what')?.scrollIntoView({ behavior: 'smooth' })}
           class="mt-10 flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors animate-bounce-subtle"
         >
-          <span class="text-sm">How to contribute</span>
+          <span class="text-sm">What is an nsite?</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
@@ -398,7 +398,7 @@
       </section>
 
       <!-- Educational content (only in idle) -->
-      <div class="max-w-3xl mx-auto px-4 space-y-16 py-16">
+      <div class="max-w-3xl mx-auto px-4 space-y-16 py-16" id="what">
         <!-- What are nsites? -->
         <section>
           <h2 class="text-2xl font-semibold text-white mb-4">What are nsites?</h2>
