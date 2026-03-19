@@ -51,7 +51,7 @@ import {
 } from "./cache.ts";
 import type { NostrEvent } from "@nsite/shared/types";
 import { NsiteKind } from "@nsite/shared/types";
-import { sha256Hex, EMPTY_SHA256 } from "@nsite/shared/sha256";
+import { EMPTY_SHA256, sha256Hex } from "@nsite/shared/sha256";
 
 // --- Module-level initialization (lazy — runs once per edge worker on first request) ---
 // Lazy initialization avoids createDb() throwing at import time when env vars are not set
@@ -214,7 +214,9 @@ async function handleColdCache(
   // Asset requests that arrive during resolution will await this promise
   // instead of returning 404 — eliminates the CDN-caching-404 bug entirely.
   let resolveReady!: () => void;
-  const ready = new Promise<void>((resolve) => { resolveReady = resolve; });
+  const ready = new Promise<void>((resolve) => {
+    resolveReady = resolve;
+  });
 
   const loadingEntry: CacheEntry = {
     pubkey: pubkeyHex,
@@ -655,8 +657,8 @@ async function serveFile(
   const cacheControl = contentType.startsWith("text/html")
     ? "public, max-age=300"
     : isImmutable
-      ? "public, max-age=31536000, immutable"
-      : "public, max-age=3600";
+    ? "public, max-age=31536000, immutable"
+    : "public, max-age=3600";
 
   const responseHeaders: Record<string, string> = {
     "Content-Type": contentType,

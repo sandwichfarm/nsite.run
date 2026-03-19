@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
 import { assertEquals } from "@std/assert";
-import { generateSecretKey, getPublicKey, finalizeEvent } from "@nostr/tools/pure";
+import { finalizeEvent, generateSecretKey, getPublicKey } from "@nostr/tools/pure";
 import { handleBlobUpload } from "./blob-upload.ts";
 import type { StorageClient } from "../storage/client.ts";
 import type { Config } from "../types.ts";

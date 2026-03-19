@@ -1,8 +1,8 @@
-import type { Config, BlobDescriptor } from "../types.ts";
+import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { validateAuth } from "../auth/nostr.ts";
-import { getMeta, removeOwner, removeFromIndex } from "../storage/metadata.ts";
-import { errorResponse, jsonResponse, isValidSha256 } from "../util.ts";
+import { getMeta, removeFromIndex, removeOwner } from "../storage/metadata.ts";
+import { errorResponse, isValidSha256, jsonResponse } from "../util.ts";
 
 /**
  * BUD-02: DELETE /<sha256> — Delete a blob

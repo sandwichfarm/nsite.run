@@ -60,11 +60,18 @@ export async function route(request: Request): Promise<Response> {
   if (url.pathname === "/_debug/ws-check") {
     // deno-lint-ignore no-explicit-any
     const d = Deno as any;
-    return new Response(JSON.stringify({
-      hasUpgradeWebSocket: typeof d.upgradeWebSocket === "function",
-      denoVersion: typeof Deno.version === "object" ? Deno.version : "unknown",
-      requestHeaders: Object.fromEntries(request.headers.entries()),
-    }, null, 2), { headers: { "Content-Type": "application/json" } });
+    return new Response(
+      JSON.stringify(
+        {
+          hasUpgradeWebSocket: typeof d.upgradeWebSocket === "function",
+          denoVersion: typeof Deno.version === "object" ? Deno.version : "unknown",
+          requestHeaders: Object.fromEntries(request.headers.entries()),
+        },
+        null,
+        2,
+      ),
+      { headers: { "Content-Type": "application/json" } },
+    );
   }
 
   // Debug: /_debug/blob?sha=<hash> — test blob fetch path from edge
@@ -85,7 +92,11 @@ export async function route(request: Request): Promise<Response> {
           const pre = sha.substring(0, 2);
           const storageUrl = `https://${storageHost}/${storageUser}/blobs/${pre}/${sha}`;
           const r = await fetch(storageUrl, { headers: { AccessKey: storagePass } });
-          results.ownStorage = { url: storageUrl, status: r.status, size: (await r.arrayBuffer()).byteLength };
+          results.ownStorage = {
+            url: storageUrl,
+            status: r.status,
+            size: (await r.arrayBuffer()).byteLength,
+          };
         } else {
           results.ownStorage = "not configured";
         }
@@ -97,12 +108,18 @@ export async function route(request: Request): Promise<Response> {
       try {
         const blobUrl = `${blossomBackend}/${sha}`;
         const r = await fetch(blobUrl);
-        results.blossomBackend = { url: blobUrl, status: r.status, size: (await r.arrayBuffer()).byteLength };
+        results.blossomBackend = {
+          url: blobUrl,
+          status: r.status,
+          size: (await r.arrayBuffer()).byteLength,
+        };
       } catch (e) {
         results.blossomBackend = { error: String(e) };
       }
     }
-    return new Response(JSON.stringify(results, null, 2), { headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify(results, null, 2), {
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // 3. Blossom endpoints

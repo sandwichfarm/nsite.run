@@ -401,7 +401,10 @@ Deno.test("SPA fallback: missing path with no /404.html in manifest returns gate
     pubkey,
     manifestEvent: makeEvent({ pubkey }),
     // /index.html exists, but /other-stuff and /404.html do NOT
-    files: new Map([["/index.html", "aaaa1234bbbb5678aaaa1234bbbb5678aaaa1234bbbb5678aaaa1234bbbb5678"]]),
+    files: new Map([[
+      "/index.html",
+      "aaaa1234bbbb5678aaaa1234bbbb5678aaaa1234bbbb5678aaaa1234bbbb5678",
+    ]]),
     blossomServers: [],
     cachedAt: Date.now(),
     state: "ready",

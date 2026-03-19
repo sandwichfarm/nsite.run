@@ -1,4 +1,4 @@
-import type { Config, BlobDescriptor } from "../types.ts";
+import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { validateAuth } from "../auth/nostr.ts";
 import { addOwner, addToIndex, isBlocked } from "../storage/metadata.ts";
@@ -84,8 +84,7 @@ export async function handleMirror(
   }
 
   // Determine content type from remote response
-  const contentType =
-    remoteResp.headers.get("Content-Type") || "application/octet-stream";
+  const contentType = remoteResp.headers.get("Content-Type") || "application/octet-stream";
 
   // Store blob
   await storage.put(storage.blobPath(hash), remoteData, contentType);

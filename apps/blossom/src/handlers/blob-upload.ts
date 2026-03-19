@@ -1,4 +1,4 @@
-import type { Config, BlobDescriptor } from "../types.ts";
+import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { validateAuth } from "../auth/nostr.ts";
 import { addOwner, addToIndex, isBlocked } from "../storage/metadata.ts";
@@ -6,9 +6,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { errorResponse, jsonResponse } from "../util.ts";
 
 /** Convert bytes to hex string using pre-computed lookup */
-const HEX_TABLE: string[] = Array.from({ length: 256 }, (_, i) =>
-  i.toString(16).padStart(2, "0"),
-);
+const HEX_TABLE: string[] = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
 function bytesToHex(bytes: Uint8Array): string {
   let hex = "";
   for (let i = 0; i < bytes.length; i++) hex += HEX_TABLE[bytes[i]];
@@ -43,7 +41,10 @@ export async function handleBlobUpload(
   // Require x tags so we know the target hash for streaming storage
   const xTags = auth.event?.tags.filter((t) => t[0] === "x") ?? [];
   if (xTags.length === 0) {
-    return errorResponse("Auth event must include at least one 'x' tag with expected blob hash", 400);
+    return errorResponse(
+      "Auth event must include at least one 'x' tag with expected blob hash",
+      400,
+    );
   }
 
   // Use the first x tag as the expected hash (for storage path)
@@ -69,8 +70,7 @@ export async function handleBlobUpload(
   }
 
   // Determine content type
-  const contentType =
-    request.headers.get("X-Content-Type") ||
+  const contentType = request.headers.get("X-Content-Type") ||
     request.headers.get("Content-Type") ||
     "application/octet-stream";
 

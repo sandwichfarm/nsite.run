@@ -26,11 +26,11 @@ function getConfig(): Config {
   const env = (key: string): string => {
     const v = (globalThis as Record<string, unknown>).process
       ? (
-          (globalThis as Record<string, unknown>).process as Record<
-            string,
-            Record<string, string>
-          >
-        ).env[key]
+        (globalThis as Record<string, unknown>).process as Record<
+          string,
+          Record<string, string>
+        >
+      ).env[key]
       : Deno.env.get(key);
     return v ?? "";
   };

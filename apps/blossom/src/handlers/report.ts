@@ -2,7 +2,7 @@ import type { Config, NostrEvent } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { addReport } from "../storage/metadata.ts";
 import { computeEventId, verifySignature } from "../auth/schnorr.ts";
-import { errorResponse, jsonResponse, isValidSha256 } from "../util.ts";
+import { errorResponse, isValidSha256, jsonResponse } from "../util.ts";
 
 /**
  * BUD-09: PUT /report — Report content

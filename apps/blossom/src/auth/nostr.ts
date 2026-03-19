@@ -1,4 +1,4 @@
-import type { NostrEvent, AuthResult } from "../types.ts";
+import type { AuthResult, NostrEvent } from "../types.ts";
 import { fromBase64 } from "../util.ts";
 import { computeEventId, verifySignature } from "./schnorr.ts";
 

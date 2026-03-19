@@ -24,7 +24,6 @@ export function handleWebSocketUpgrade(
   db: Client,
   schemaReady?: Promise<void> | null,
 ): void {
-
   const state: ConnectionState = {
     subscriptions: new Map(),
     rateLimitBucket: createRateLimitBucket(),
@@ -36,88 +35,88 @@ export function handleWebSocketUpgrade(
   socket.addEventListener("message", (event: MessageEvent) => {
     // Wrap in async IIFE — Bunny may not support async event listeners
     (async () => {
-    // Ensure DB schema is ready before processing any message
-    if (schemaReady) await schemaReady;
+      // Ensure DB schema is ready before processing any message
+      if (schemaReady) await schemaReady;
 
-    // Parse JSON
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(event.data as string);
-    } catch {
-      send(socket, ["NOTICE", "error: invalid JSON"]);
-      socket.close();
-      return;
-    }
-
-    // Must be a non-empty array
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      send(socket, ["NOTICE", "error: expected JSON array"]);
-      socket.close();
-      return;
-    }
-
-    const [type, ...args] = parsed as [string, ...unknown[]];
-
-    try {
-      switch (type) {
-        case "EVENT": {
-          // Rate-limit check
-          if (!checkRateLimit(state.rateLimitBucket, "event")) {
-            const eventArg = args[0] as Record<string, unknown> | undefined;
-            const eventId = typeof eventArg?.id === "string" ? eventArg.id : "";
-            send(socket, [
-              "OK",
-              eventId,
-              false,
-              "rate-limited: too many events",
-            ]);
-            return;
-          }
-          if (typeof args[0] !== "object" || args[0] === null || Array.isArray(args[0])) {
-            send(socket, ["NOTICE", "error: EVENT payload must be an object"]);
-            return;
-          }
-          await handleEvent(socket, db, args[0] as NostrEvent, state);
-          break;
-        }
-
-        case "REQ": {
-          // Rate-limit check
-          if (!checkRateLimit(state.rateLimitBucket, "req")) {
-            send(socket, ["NOTICE", "rate-limited: too many subscriptions"]);
-            return;
-          }
-          if (typeof args[0] !== "string") {
-            send(socket, ["NOTICE", "error: REQ subscription id must be a string"]);
-            return;
-          }
-          await handleReq(
-            socket,
-            db,
-            args[0],
-            args.slice(1) as NostrFilter[],
-            state,
-          );
-          break;
-        }
-
-        case "CLOSE": {
-          if (typeof args[0] !== "string") {
-            send(socket, ["NOTICE", "error: CLOSE subscription id must be a string"]);
-            return;
-          }
-          handleClose(socket, state, args[0]);
-          break;
-        }
-
-        default:
-          send(socket, ["NOTICE", `error: unknown message type ${type}`]);
-          break;
+      // Parse JSON
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(event.data as string);
+      } catch {
+        send(socket, ["NOTICE", "error: invalid JSON"]);
+        socket.close();
+        return;
       }
-    } catch (err) {
-      console.error("[relay] error handling message:", err);
-      send(socket, ["NOTICE", "error: " + String(err)]);
-    }
+
+      // Must be a non-empty array
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        send(socket, ["NOTICE", "error: expected JSON array"]);
+        socket.close();
+        return;
+      }
+
+      const [type, ...args] = parsed as [string, ...unknown[]];
+
+      try {
+        switch (type) {
+          case "EVENT": {
+            // Rate-limit check
+            if (!checkRateLimit(state.rateLimitBucket, "event")) {
+              const eventArg = args[0] as Record<string, unknown> | undefined;
+              const eventId = typeof eventArg?.id === "string" ? eventArg.id : "";
+              send(socket, [
+                "OK",
+                eventId,
+                false,
+                "rate-limited: too many events",
+              ]);
+              return;
+            }
+            if (typeof args[0] !== "object" || args[0] === null || Array.isArray(args[0])) {
+              send(socket, ["NOTICE", "error: EVENT payload must be an object"]);
+              return;
+            }
+            await handleEvent(socket, db, args[0] as NostrEvent, state);
+            break;
+          }
+
+          case "REQ": {
+            // Rate-limit check
+            if (!checkRateLimit(state.rateLimitBucket, "req")) {
+              send(socket, ["NOTICE", "rate-limited: too many subscriptions"]);
+              return;
+            }
+            if (typeof args[0] !== "string") {
+              send(socket, ["NOTICE", "error: REQ subscription id must be a string"]);
+              return;
+            }
+            await handleReq(
+              socket,
+              db,
+              args[0],
+              args.slice(1) as NostrFilter[],
+              state,
+            );
+            break;
+          }
+
+          case "CLOSE": {
+            if (typeof args[0] !== "string") {
+              send(socket, ["NOTICE", "error: CLOSE subscription id must be a string"]);
+              return;
+            }
+            handleClose(socket, state, args[0]);
+            break;
+          }
+
+          default:
+            send(socket, ["NOTICE", `error: unknown message type ${type}`]);
+            break;
+        }
+      } catch (err) {
+        console.error("[relay] error handling message:", err);
+        send(socket, ["NOTICE", "error: " + String(err)]);
+      }
     })();
   });
 
@@ -126,6 +125,9 @@ export function handleWebSocketUpgrade(
   });
 
   socket.addEventListener("error", (err: Event) => {
-    console.error("[relay] WebSocket error:", err);
+    const msg = (err as ErrorEvent).message ?? "";
+    if (msg !== "Unexpected EOF") {
+      console.error("[relay] WebSocket error:", msg);
+    }
   });
 }

@@ -1,4 +1,10 @@
-import type { BlobMeta, BlobIndexEntry, StoredReport, BlockedConfig, NostrEvent } from "../types.ts";
+import type {
+  BlobIndexEntry,
+  BlobMeta,
+  BlockedConfig,
+  NostrEvent,
+  StoredReport,
+} from "../types.ts";
 import type { StorageClient } from "./client.ts";
 
 /** Read blob metadata, returns null if not found */

@@ -22,7 +22,7 @@ export function buildManifest(files, servers, spaFallback) {
   return {
     kind: 15128,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [...pathTags, ...serverTags],
+    tags: [...pathTags, ...serverTags, ['client', 'nsite.run']],
     content: '',
   };
 }
@@ -108,7 +108,7 @@ export async function publishManifest(signer, files, servers, relays, spaFallbac
   const relayListTemplate = {
     kind: 10002,
     created_at: Math.floor(Date.now() / 1000),
-    tags: relays.map(r => ['r', r]),
+    tags: [...relays.map(r => ['r', r]), ['client', 'nsite.run']],
     content: '',
   };
   const relayListEvent = await signer.signEvent(relayListTemplate);

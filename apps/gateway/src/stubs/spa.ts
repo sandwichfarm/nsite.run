@@ -69,9 +69,7 @@ export async function handleSpa(request: Request): Promise<Response> {
     // Determine cache-control based on asset type
     const isHtml = pathname === "/index.html" ||
       pathname.endsWith(".html");
-    const cacheControl = isHtml
-      ? "no-cache"
-      : "public, max-age=3600";
+    const cacheControl = isHtml ? "no-cache" : "public, max-age=3600";
 
     const contentType = cdnResponse.headers.get("Content-Type") ??
       "application/octet-stream";

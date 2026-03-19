@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
 import { assertEquals } from "@std/assert";
-import { generateSecretKey, getPublicKey, finalizeEvent } from "@nostr/tools/pure";
+import { finalizeEvent, generateSecretKey, getPublicKey } from "@nostr/tools/pure";
 import { validateAuth } from "./nostr.ts";
 
 // Helper to create Authorization header from any event object

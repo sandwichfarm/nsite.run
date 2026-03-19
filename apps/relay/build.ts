@@ -22,7 +22,8 @@ const result = await esbuild.build({
   define: { "process.env.NODE_ENV": '"production"' },
   target: "esnext",
   banner: {
-    js: 'import process from "node:process";import { Buffer } from "node:buffer";globalThis.process ??= process;globalThis.Buffer ??= Buffer;globalThis.global ??= globalThis;',
+    js:
+      'import process from "node:process";import { Buffer } from "node:buffer";globalThis.process ??= process;globalThis.Buffer ??= Buffer;globalThis.global ??= globalThis;',
   },
 });
 

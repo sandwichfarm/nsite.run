@@ -1,8 +1,8 @@
-import type { Config, BlobDescriptor } from "../types.ts";
+import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { getMeta } from "../storage/metadata.ts";
 import { isBlocked } from "../storage/metadata.ts";
-import { errorResponse, jsonResponse, isValidSha256 } from "../util.ts";
+import { errorResponse, isValidSha256, jsonResponse } from "../util.ts";
 
 /**
  * BUD-01: GET/HEAD /<sha256> — Retrieve a blob
@@ -98,8 +98,8 @@ export async function handleBlobGet(
 
   // Build response headers — prefer metadata content type if available
   const meta = await getMeta(storage, sha256);
-  const contentType =
-    meta?.type || headResp.headers.get("Content-Type") || "application/octet-stream";
+  const contentType = meta?.type || headResp.headers.get("Content-Type") ||
+    "application/octet-stream";
 
   const headers = new Headers();
   headers.set("Content-Type", contentType);

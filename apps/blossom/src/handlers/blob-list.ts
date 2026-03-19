@@ -1,7 +1,7 @@
-import type { Config, BlobDescriptor } from "../types.ts";
+import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { getIndex } from "../storage/metadata.ts";
-import { errorResponse, jsonResponse, isValidPubkey } from "../util.ts";
+import { errorResponse, isValidPubkey, jsonResponse } from "../util.ts";
 
 /**
  * BUD-02: GET /list/<pubkey> — List blobs owned by a pubkey

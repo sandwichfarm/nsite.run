@@ -82,11 +82,13 @@ export function createClient(config: {
       throw new Error(`libsql HTTP ${resp.status}: ${text}`);
     }
 
-    const data = (await resp.json()) as { results: Array<{
-      type: string;
-      response?: { type: string; result?: { rows: HranaValue[][] } };
-      error?: { message: string };
-    }> };
+    const data = (await resp.json()) as {
+      results: Array<{
+        type: string;
+        response?: { type: string; result?: { rows: HranaValue[][] } };
+        error?: { message: string };
+      }>;
+    };
     return data.results;
   }
 

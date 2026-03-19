@@ -37,36 +37,28 @@ export async function route(
     // PUT /upload — BUD-02: Upload blob
     if (path === "/upload" && method === "PUT") {
       response = await handleBlobUpload(request, storage, config);
-    }
-    // HEAD /upload — BUD-06: Upload pre-flight check
+    } // HEAD /upload — BUD-06: Upload pre-flight check
     else if (path === "/upload" && method === "HEAD") {
       response = await handleUploadCheck(request, storage, config);
-    }
-    // PUT /mirror — BUD-04: Mirror a blob from URL
+    } // PUT /mirror — BUD-04: Mirror a blob from URL
     else if (path === "/mirror" && method === "PUT") {
       response = await handleMirror(request, storage, config);
-    }
-    // PUT /report — BUD-09: Content reporting
+    } // PUT /report — BUD-09: Content reporting
     else if (path === "/report" && method === "PUT") {
       response = await handleReport(request, storage, config);
-    }
-    // GET /list/<pubkey> — BUD-02: List blobs by pubkey
+    } // GET /list/<pubkey> — BUD-02: List blobs by pubkey
     else if (path.startsWith("/list/") && method === "GET") {
       response = await handleBlobList(request, url, storage, config);
-    }
-    // GET or HEAD /<sha256> — BUD-01: Retrieve blob
+    } // GET or HEAD /<sha256> — BUD-01: Retrieve blob
     else if ((method === "GET" || method === "HEAD") && BLOB_PATH_RE.test(path)) {
       response = await handleBlobGet(request, storage, config);
-    }
-    // DELETE /<sha256> — BUD-02: Delete blob
+    } // DELETE /<sha256> — BUD-02: Delete blob
     else if (method === "DELETE" && BLOB_PATH_EXACT_RE.test(path)) {
       response = await handleBlobDelete(request, storage, config);
-    }
-    // GET /server-info — public server configuration
+    } // GET /server-info — public server configuration
     else if (path === "/server-info" && method === "GET") {
       response = await handleServerInfo(storage, config);
-    }
-    // 404 for everything else
+    } // 404 for everything else
     else {
       response = errorResponse("Not Found", 404);
     }
