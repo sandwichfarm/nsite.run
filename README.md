@@ -117,7 +117,7 @@ A Svelte 5 web application at the root domain for deploying nsites. Supports NIP
 ## Project Structure
 
 ```
-nsite-gateway/
+nsite.run/
 ├── apps/
 │   ├── relay/          # NIP-01 relay edge script
 │   ├── blossom/        # BUD blob server edge script

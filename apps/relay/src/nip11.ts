@@ -41,7 +41,7 @@ export function buildNip11Response(): Response {
     pubkey: "PLACEHOLDER_NPUB",
     contact: "mailto:operator@nsite.run",
     supported_nips: [1, 9, 11, 33],
-    software: "https://github.com/sandwichfarm/nsite-gateway",
+    software: "https://github.com/sandwichfarm/nsite.run",
     version: "0.1.0",
     limitation: {
       max_message_length: 65536, // 64KB per WebSocket message
