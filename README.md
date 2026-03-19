@@ -42,7 +42,7 @@ Each item can optionally declare which nsite protocol version(s) it supports:
 
 ```yaml
 versions: [v1]       # supports nsite v1 only (kind 34128)
-versions: [v2]       # supports nsite v2 only (kinds 15128/35128)
+versions: [v2]       # supports nsite v2 only (kind 15128)
 versions: [v1, v2]   # supports both
                       # omit for version-agnostic entries (specs, guides, etc.)
 ```
@@ -81,8 +81,7 @@ nsite.run
 
 A NIP-01 WebSocket relay that accepts only nsite-related event kinds:
 
-- **15128** — root site manifest (v2)
-- **35128** — named site manifest (v2)
+- **15128** — site manifest (v2)
 - **10002** — relay list (NIP-65)
 - **10063** — blossom server list
 - **5** — event deletion
@@ -103,7 +102,7 @@ Backed by Bunny Storage. Files are addressed by SHA-256 hash.
 
 ### Gateway
 
-The primary router and nsite resolver. Routes incoming traffic to the relay, blossom, or SPA based on headers and path. For nsite subdomains (`npub1xxx.nsite.run` or `blog.npub1xxx.nsite.run`), it resolves and serves site content using a progressive caching strategy:
+The primary router and nsite resolver. Routes incoming traffic to the relay, blossom, or SPA based on headers and path. For nsite subdomains (`npub1xxx.nsite.run`), it resolves and serves site content using a progressive caching strategy:
 
 1. **Cold cache** — shows a loading page with the user's nostr profile while resolving the manifest in the background
 2. **Warm-outdated** — serves cached content immediately, checks for updates in the background, injects an update banner if a newer manifest is found
