@@ -1,4 +1,4 @@
-# nsite-gateway
+# nsite.run
 
 The nsite ecosystem directory and reference gateway implementation for [nsite v2](https://github.com/hzrd149/nips/blob/cbe90dbcf7e492c7bc7bf04cd64c84598b435421/nsite.md).
 
