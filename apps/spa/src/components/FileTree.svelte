@@ -5,11 +5,13 @@
    *   warnings         - [{path, type, details}] from scanFiles
    *   onToggleExclude  - function(path) called when user toggles exclude checkbox
    *   fileDataMap      - Map<path, ArrayBuffer> for inline file preview
+   *   excludedFiles    - Set<path> externally managed by App.svelte
    */
   export let tree = null;
   export let warnings = [];
   export let onToggleExclude = () => {};
   export let fileDataMap = new Map(); // Map<path, ArrayBuffer>
+  export let excludedFiles = new Set(); // externally-managed excluded paths from App.svelte
 
   // Text file extensions for inline preview
   const TEXT_EXTENSIONS = new Set([
@@ -26,9 +28,6 @@
   let previewLines = [];      // array of text lines for current preview
   let previewLinesShown = 100; // how many lines to show (grows by 100 on "Show more")
   let previewIsBinary = false; // true if file extension matches binary pattern
-
-  // Track which paths are user-excluded (checked for exclusion)
-  let excludedPaths = new Set();
 
   // Track which directories are expanded/collapsed
   let collapsedDirs = new Set();
@@ -56,12 +55,32 @@
     collapsedDirs = next;
   }
 
-  function toggleExclude(path) {
-    const next = new Set(excludedPaths);
-    if (next.has(path)) next.delete(path);
-    else next.add(path);
-    excludedPaths = next;
-    onToggleExclude(path);
+  function collectFilePaths(node) {
+    if (!node.isDir) return [node.path];
+    const paths = [];
+    for (const child of node.children ?? []) {
+      paths.push(...collectFilePaths(child));
+    }
+    return paths;
+  }
+
+  function toggleExclude(path, node) {
+    if (node && node.isDir) {
+      // Recursive: collect all child file paths
+      const childPaths = collectFilePaths(node);
+      const allExcluded = childPaths.every(p => excludedFiles.has(p));
+      for (const p of childPaths) {
+        if (allExcluded) {
+          onToggleExclude(p); // re-include all
+        } else {
+          if (!excludedFiles.has(p)) {
+            onToggleExclude(p); // exclude those not yet excluded
+          }
+        }
+      }
+    } else {
+      onToggleExclude(path);
+    }
   }
 
   function humanSize(bytes) {
@@ -130,9 +149,11 @@
   {#each nodes as node}
     {#if node.isDir}
       <!-- Directory node -->
+      {@const dirChildPaths = collectFilePaths(node)}
+      {@const dirAllExcluded = dirChildPaths.length > 0 && dirChildPaths.every(p => excludedFiles.has(p))}
       <div class="my-0.5">
         <button
-          class="flex items-center gap-1.5 py-0.5 w-full text-left hover:bg-slate-700/40 rounded px-1 -mx-1 group"
+          class="flex items-center gap-1.5 py-0.5 w-full text-left hover:bg-slate-700/40 rounded px-1 -mx-1 group {dirAllExcluded ? 'opacity-40' : ''}"
           on:click={() => toggleDir(node.path)}
         >
           <svg
@@ -146,6 +167,17 @@
           </svg>
           <span class="text-indigo-300 font-medium flex-1 truncate">{node.name}/</span>
           <span class="text-xs text-slate-500 flex-shrink-0">{humanSize(dirSize(node))}</span>
+
+          <!-- Hover-reveal exclude toggle for directories -->
+          <button
+            class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-slate-600"
+            on:click|stopPropagation={() => toggleExclude(node.path, node)}
+            title="Exclude directory"
+          >
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </button>
 
         {#if !collapsedDirs.has(node.path) && node.children}
@@ -155,6 +187,7 @@
               {warnings}
               {onToggleExclude}
               {fileDataMap}
+              {excludedFiles}
             />
           </div>
         {/if}
@@ -162,7 +195,7 @@
     {:else}
       <!-- File node -->
       {@const nodeWarnings = warningMap.get(node.path) ?? []}
-      {@const isExcluded = excludedPaths.has(node.path)}
+      {@const isExcluded = excludedFiles.has(node.path)}
       <div class="my-0.5">
         <div class="flex items-center gap-1.5 py-0.5 group hover:bg-slate-700/40 rounded px-1 -mx-1">
           <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +204,7 @@
 
           <!-- clickable filename for preview -->
           <button
-            class="flex-1 truncate text-left {isExcluded ? 'line-through text-slate-500' : 'text-slate-300 hover:text-purple-300'}"
+            class="flex-1 truncate text-left {isExcluded ? 'line-through text-slate-500 opacity-50' : 'text-slate-300 hover:text-purple-300'}"
             on:click={() => togglePreview(node)}
             title="Click to preview"
           >
@@ -180,6 +213,25 @@
 
           {#if node.size != null}
             <span class="text-xs text-slate-500 flex-shrink-0">{humanSize(node.size)}</span>
+          {/if}
+
+          <!-- Hover-reveal exclude toggle (all non-warned files) -->
+          {#if nodeWarnings.length === 0}
+            <button
+              class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-slate-600"
+              on:click|stopPropagation={() => toggleExclude(node.path, node)}
+              title={isExcluded ? 'Re-include file' : 'Exclude file'}
+            >
+              {#if isExcluded}
+                <svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              {:else}
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              {/if}
+            </button>
           {/if}
 
           {#if nodeWarnings.length > 0}
@@ -191,7 +243,7 @@
                 <input
                   type="checkbox"
                   checked={isExcluded}
-                  on:change={() => toggleExclude(node.path)}
+                  on:change={() => toggleExclude(node.path, node)}
                   class="w-3 h-3 rounded border-amber-600 bg-slate-700 accent-amber-500"
                 />
                 Exclude
