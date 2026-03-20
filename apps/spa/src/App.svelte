@@ -17,8 +17,8 @@
   } from './lib/nostr.js';
   import { npubEncode } from 'nostr-tools/nip19';
   import { hashFile } from './lib/crypto.js';
-  import { checkExistence, uploadBlobs } from './lib/upload.js';
-  import { publishManifest } from './lib/publish.js';
+  import { checkExistence, uploadBlobs, deleteBlobs } from './lib/upload.js';
+  import { publishManifest, publishEmptyManifest, publishDeletionEvent } from './lib/publish.js';
 
   import Navbar from './components/Navbar.svelte';
   import DeployZone from './components/DeployZone.svelte';
@@ -29,6 +29,7 @@
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
   import SiteInfoCard from './components/SiteInfoCard.svelte';
+  import DeleteConfirmModal from './components/DeleteConfirmModal.svelte';
 
   // ---------------------------------------------------------------------------
   // State
@@ -78,6 +79,11 @@
   // Existing site info (for returning users)
   let existingManifest = null;
   let siteInfoLoading = false;
+
+  // Deletion state
+  let showDeleteConfirm = false;
+  let deleteInProgress = false;
+  let deleteResults = null;
 
   function giveUpServer(url) {
     givenUpServers.add(url);
@@ -165,6 +171,13 @@
   })();
   $: existingPublishDate = existingManifest ? new Date(existingManifest.created_at * 1000) : null;
   $: existingFileCount = existingManifest ? existingManifest.tags.filter(t => t[0] === 'path').length : 0;
+
+  // Derived values for deletion scope
+  $: deleteRelayUrls = [...new Set([NSITE_RELAY, ...userRelays])];
+  $: deleteBlossomUrls_list = [...new Set([NSITE_BLOSSOM, ...userBlossoms])];
+  $: deleteBlobCount = existingManifest
+    ? [...new Set(existingManifest.tags.filter(t => t[0] === 'path').map(t => t[2]))].length
+    : 0;
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -255,6 +268,62 @@
       existingManifest = null;
     } finally {
       siteInfoLoading = false;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Delete handler
+  // ---------------------------------------------------------------------------
+
+  async function handleDeleteSite() {
+    if (!currentSigner || !existingManifest) return;
+    deleteInProgress = true;
+    deleteResults = null;
+
+    try {
+      const relays = deleteRelayUrls;
+      const blossoms = deleteBlossomUrls_list;
+
+      // 1. Publish empty manifest to all relays
+      const emptyResult = await publishEmptyManifest(currentSigner, relays);
+
+      // 2. Publish kind 5 deletion event referencing the manifest event ID
+      const deletionResult = await publishDeletionEvent(currentSigner, existingManifest.id, relays);
+
+      // Merge relay results (combine empty manifest + deletion event results)
+      const relayResults = emptyResult.results.map((r, i) => ({
+        relay: r.relay,
+        success: r.success,
+        message: r.success
+          ? (deletionResult.results[i]?.success ? 'manifest cleared + deletion event sent' : 'manifest cleared (deletion event failed)')
+          : r.message ?? 'failed',
+      }));
+
+      // 3. Delete blobs from blossom servers
+      const sha256List = [...new Set(
+        existingManifest.tags
+          .filter(t => t[0] === 'path' && t[2])
+          .map(t => t[2])
+      )];
+
+      let blossomResults = [];
+      if (sha256List.length > 0) {
+        const blobResult = await deleteBlobs(currentSigner, sha256List, blossoms);
+        blossomResults = blobResult.results;
+      }
+
+      deleteResults = { relayResults, blossomResults };
+
+      // Clear existing manifest — site is deleted
+      existingManifest = null;
+
+    } catch (err) {
+      deleteResults = {
+        relayResults: [{ relay: 'error', success: false, message: err?.message ?? 'Unexpected error' }],
+        blossomResults: [],
+      };
+    } finally {
+      deleteInProgress = false;
     }
   }
 
@@ -447,7 +516,7 @@
             fileCount={existingFileCount}
             loading={siteInfoLoading}
             on:update={resetForUpdate}
-            on:delete={() => { /* wired in Plan 02 */ }}
+            on:delete={() => { showDeleteConfirm = true; deleteResults = null; }}
           />
         </section>
       {/if}
@@ -809,4 +878,15 @@
     {/if}
 
   </main>
+
+  <DeleteConfirmModal
+    show={showDeleteConfirm}
+    relayUrls={deleteRelayUrls}
+    blossomUrls={deleteBlossomUrls_list}
+    blobCount={deleteBlobCount}
+    deleting={deleteInProgress}
+    results={deleteResults}
+    on:confirm={handleDeleteSite}
+    on:close={() => { showDeleteConfirm = false; deleteResults = null; }}
+  />
 </div>
