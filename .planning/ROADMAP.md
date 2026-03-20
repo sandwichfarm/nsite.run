@@ -38,7 +38,10 @@
   2. Clicking a file in the deploy tree shows its contents (inline or modal) without leaving the deploy flow
   3. Hovering a file in the deploy tree reveals a toggle to exclude it, and excluded files appear in a collapsed ignored summary section
   4. A user can re-include a previously excluded file by toggling it back from the ignored summary
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — Multi-file drop rejection and inline file preview
+- [ ] 07-02-PLAN.md — Universal exclude toggle and ignored summary section
 
 ### Phase 8: Anonymous Key Management
 **Goal**: Anonymous users can safely navigate and log out without losing their generated key
@@ -74,6 +77,6 @@
 | 4. Gateway Routing Layer | v1.0 | 1/1 | Complete | 2026-03-14 |
 | 5. nsite Resolver and Progressive Caching | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
-| 7. Deploy UX Improvements | v1.1 | 0/? | Not started | - |
+| 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
 | 8. Anonymous Key Management | v1.1 | 0/? | Not started | - |
 | 9. Site Management | v1.1 | 0/? | Not started | - |
