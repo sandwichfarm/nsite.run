@@ -1,6 +1,8 @@
 import { PrivateKeySigner, ExtensionSigner, NostrConnectSigner } from 'applesauce-signers';
 import { RelayPool } from 'applesauce-relay/pool';
 import { nsecEncode } from 'nostr-tools/nip19';
+import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
+import { ANON_KEY_STORAGE_KEY } from './store.js';
 
 /**
  * Default relays used for NIP-46 handshake and bootstrap queries.
@@ -48,6 +50,63 @@ export async function createAnonymousSigner() {
   const pubkey = await signer.getPublicKey();
   const nsec = nsecEncode(signer.key);
   return { signer, pubkey, nsec };
+}
+
+/**
+ * Restores an anonymous signer from a hex private key stored in sessionStorage.
+ * @returns {Promise<{signer: PrivateKeySigner, pubkey: string, nsec: string} | null>}
+ */
+export async function restoreAnonymousSigner() {
+  try {
+    const hexKey = sessionStorage.getItem(ANON_KEY_STORAGE_KEY);
+    if (!hexKey || hexKey.length !== 64) return null;
+    const keyBytes = hexToBytes(hexKey);
+    const signer = new PrivateKeySigner(keyBytes);
+    const pubkey = await signer.getPublicKey();
+    const nsec = nsecEncode(signer.key);
+    return { signer, pubkey, nsec };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saves the anonymous signer's private key as hex to sessionStorage.
+ * @param {PrivateKeySigner} signer
+ */
+export function saveAnonymousKey(signer) {
+  try {
+    sessionStorage.setItem(ANON_KEY_STORAGE_KEY, bytesToHex(signer.key));
+  } catch { /* sessionStorage not available */ }
+}
+
+/**
+ * Clears the anonymous key from sessionStorage.
+ */
+export function clearAnonymousKey() {
+  try {
+    sessionStorage.removeItem(ANON_KEY_STORAGE_KEY);
+  } catch { /* ignore */ }
+}
+
+/**
+ * Triggers a file download containing the nsec string.
+ * Filename: nsite-nsec-{npub-prefix}.txt
+ * @param {string} nsec - nsec1... bech32 string
+ * @param {string} npub - npub1... bech32 string (used for filename)
+ */
+export function downloadNsecFile(nsec, npub) {
+  const prefix = npub ? npub.slice(0, 12) : 'unknown';
+  const filename = `nsite-nsec-${prefix}.txt`;
+  const blob = new Blob([nsec], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
