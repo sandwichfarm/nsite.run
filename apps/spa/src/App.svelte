@@ -127,6 +127,7 @@
 
   $: step = $deployState.step;
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
+  $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -513,6 +514,7 @@
               tree={fileTree}
               warnings={fileWarnings}
               onToggleExclude={toggleExclude}
+              {fileDataMap}
             />
           </div>
           {#if !fileListExpanded && selectedFiles.length > 10}
