@@ -81,5 +81,5 @@ Plans:
 | 5. nsite Resolver and Progressive Caching | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
-| 8. Anonymous Key Management | v1.1 | 0/2 | Not started | - |
+| 8. Anonymous Key Management | 1/2 | In Progress|  | - |
 | 9. Site Management | v1.1 | 0/? | Not started | - |

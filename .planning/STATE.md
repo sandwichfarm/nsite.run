@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Gaps
-status: unknown
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-20T16:17:16.715Z"
+status: in-progress
+stopped_at: "Completed 08-01-PLAN.md"
+last_updated: "2026-03-20T16:46:39Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** Phase 07 — deploy-ux-improvements
+**Current focus:** Phase 08 — anonymous-key-management
 
 ## Current Position
 
-Phase: 07 (deploy-ux-improvements) — COMPLETE
+Phase: 08 (anonymous-key-management) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -37,6 +37,9 @@ See PROJECT.md Key Decisions table for full list with outcomes.
 - [Phase 07-deploy-ux-improvements]: TEXT_EXTENSIONS allowlist approach for preview eligibility; 100-line pagination via previewLinesShown state
 - [Phase 07-deploy-ux-improvements]: Excluded state moved from FileTree internal to App.svelte-managed prop — single source of truth for excluded files
 - [Phase 07-deploy-ux-improvements]: Hover-reveal toggle pattern: opacity-0 group-hover:opacity-100 with stopPropagation for exclude buttons on all file/dir rows
+- [Phase 08-anonymous-key-management]: Store anonymous key as 64-char hex string in sessionStorage (not nsec) — compact and safe; auto-clears on tab close
+- [Phase 08-anonymous-key-management]: Restore-or-clear pattern on mount — if signerType is anonymous but key missing from sessionStorage, clear stale session
+- [Phase 08-anonymous-key-management]: Download button (purple) is primary action for nsec backup; Copy button (amber) is secondary convenience action
 
 ### Pending Todos
 
@@ -48,6 +51,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T16:17:16.713Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-anonymous-key-management/08-CONTEXT.md
+Last session: 2026-03-20T16:46:39Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-anonymous-key-management/08-02-PLAN.md
