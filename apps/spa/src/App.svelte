@@ -5,6 +5,8 @@
   import {
     createAnonymousSigner,
     createExtensionSigner,
+    restoreAnonymousSigner,
+    saveAnonymousKey,
     NSITE_RELAY,
     NSITE_BLOSSOM,
     DEFAULT_RELAYS,
@@ -106,8 +108,20 @@
   // Hydrate profile + relay/blossom lists on mount
   // ---------------------------------------------------------------------------
 
-  onMount(() => {
+  onMount(async () => {
+    // Restore anonymous session from sessionStorage
     const sess = get(session);
+    if (sess.signerType === 'anonymous' && !currentSigner) {
+      const restored = await restoreAnonymousSigner();
+      if (restored) {
+        currentSigner = restored.signer;
+        deployNsec = restored.nsec;
+      } else {
+        // Key not found in sessionStorage — session is stale, clear it
+        session.set({ pubkey: null, signerType: null, displayName: null, avatar: null, npub: null });
+      }
+    }
+
     if (sess.pubkey && !sess.displayName) {
       fetchProfile(sess.pubkey, DEFAULT_RELAYS).then((profile) => {
         if (profile) {
@@ -216,6 +230,8 @@
           avatar: null,
           npub,
         });
+
+        saveAnonymousKey(signer);
       }
 
       const sess = get(session);
