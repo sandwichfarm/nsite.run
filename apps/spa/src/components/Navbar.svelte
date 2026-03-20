@@ -5,8 +5,6 @@
 
   export let onLoginClick = () => {};
   export let deployNsec = null;
-  export let showManageLink = false;
-  export let onManageClick = () => {};
 
   let showLogoutConfirm = false;
 
@@ -71,14 +69,6 @@
             {/if}
           </div>
         </div>
-        {#if showManageLink}
-          <button
-            on:click={onManageClick}
-            class="text-sm text-purple-400 hover:text-purple-300 transition-colors px-2 py-1 rounded hover:bg-slate-700"
-          >
-            Manage
-          </button>
-        {/if}
         <button
           on:click={logout}
           class="text-sm text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"

@@ -156,7 +156,7 @@
   }
 </script>
 
-<section class="max-w-2xl mx-auto px-4 py-10">
+<div>
 
   {#if deleteState === 'idle'}
     <!-- ===== IDLE: Site info + action buttons ===== -->
@@ -477,4 +477,4 @@
     </div>
   {/if}
 
-</section>
+</div>

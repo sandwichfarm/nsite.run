@@ -457,29 +457,11 @@
   <Navbar
     onLoginClick={() => (showLoginModal = true)}
     {deployNsec}
-    showManageLink={!!existingManifest && !!$session.pubkey}
-    onManageClick={() => { currentPage = 'manage'; }}
   />
 
   <main>
 
-    {#if currentPage === 'manage'}
-      <!-- ===== MANAGE PAGE ===== -->
-      <ManageSite
-        siteUrl={existingSiteUrl}
-        publishDate={existingPublishDate}
-        fileCount={existingFileCount}
-        relayUrls={deleteRelayUrls}
-        blossomUrls={deleteBlossomUrls_list}
-        blobCount={deleteBlobCount}
-        signer={currentSigner}
-        manifest={existingManifest}
-        on:update={() => { currentPage = 'deploy'; resetForUpdate(); }}
-        on:deleted={() => { existingManifest = null; currentPage = 'deploy'; }}
-      />
-    {:else}
-
-    <!-- ===== IDLE / SELECTING: Deploy Zone ===== -->
+    <!-- ===== IDLE / SELECTING: Hero with tabs ===== -->
     {#if step === 'idle' || step === 'selecting'}
 
       <!-- Hero: full viewport -->
@@ -494,27 +476,65 @@
         </div>
 
         <div class="w-full max-w-2xl">
-          <DeployZone on:files-selected={handleFilesSelected} />
+          <!-- Tabs (only show when manage tab is available) -->
+          {#if existingManifest && $session.pubkey}
+            <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
+              <button
+                on:click={() => (currentPage = 'deploy')}
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  {currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+              >
+                Deploy
+              </button>
+              <button
+                on:click={() => (currentPage = 'manage')}
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  {currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+              >
+                Manage
+              </button>
+            </div>
+          {/if}
+
+          <!-- Tab content -->
+          {#if currentPage === 'manage' && existingManifest}
+            <ManageSite
+              siteUrl={existingSiteUrl}
+              publishDate={existingPublishDate}
+              fileCount={existingFileCount}
+              relayUrls={deleteRelayUrls}
+              blossomUrls={deleteBlossomUrls_list}
+              blobCount={deleteBlobCount}
+              signer={currentSigner}
+              manifest={existingManifest}
+              on:update={() => { currentPage = 'deploy'; resetForUpdate(); }}
+              on:deleted={() => { existingManifest = null; currentPage = 'deploy'; }}
+            />
+          {:else}
+            <DeployZone on:files-selected={handleFilesSelected} />
+          {/if}
         </div>
 
-        {#if $session.pubkey}
-          <div class="flex items-center gap-2 mt-6 text-sm text-slate-400">
-            <span>deploying as</span>
-            {#if $session.avatar}
-              <img src={$session.avatar} alt="" class="w-5 h-5 rounded-full" />
-            {/if}
-            <span class="text-purple-300 font-medium">{$session.displayName || $session.npub?.slice(0, 16) + '...'}</span>
-          </div>
-        {:else}
-          <p class="text-slate-500 text-sm mt-6">
-            or
-            <button
-              on:click={() => (showLoginModal = true)}
-              class="text-purple-400 hover:text-purple-300 underline"
-            >
-              login with your nostr identity
-            </button>
-          </p>
+        {#if currentPage !== 'manage'}
+          {#if $session.pubkey}
+            <div class="flex items-center gap-2 mt-6 text-sm text-slate-400">
+              <span>deploying as</span>
+              {#if $session.avatar}
+                <img src={$session.avatar} alt="" class="w-5 h-5 rounded-full" />
+              {/if}
+              <span class="text-purple-300 font-medium">{$session.displayName || $session.npub?.slice(0, 16) + '...'}</span>
+            </div>
+          {:else}
+            <p class="text-slate-500 text-sm mt-6">
+              or
+              <button
+                on:click={() => (showLoginModal = true)}
+                class="text-purple-400 hover:text-purple-300 underline"
+              >
+                login with your nostr identity
+              </button>
+            </p>
+          {/if}
         {/if}
 
         <!-- Scroll nudge -->
@@ -838,7 +858,6 @@
       </section>
     {/if}
 
-    {/if}
   </main>
 
 </div>
