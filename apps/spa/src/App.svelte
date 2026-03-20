@@ -17,8 +17,8 @@
   } from './lib/nostr.js';
   import { npubEncode } from 'nostr-tools/nip19';
   import { hashFile } from './lib/crypto.js';
-  import { checkExistence, uploadBlobs, deleteBlobs } from './lib/upload.js';
-  import { publishManifest, publishEmptyManifest, publishDeletionEvent } from './lib/publish.js';
+  import { checkExistence, uploadBlobs } from './lib/upload.js';
+  import { publishManifest } from './lib/publish.js';
 
   import Navbar from './components/Navbar.svelte';
   import DeployZone from './components/DeployZone.svelte';
@@ -28,14 +28,16 @@
   import LoginModal from './components/LoginModal.svelte';
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
-  import SiteInfoCard from './components/SiteInfoCard.svelte';
-  import DeleteConfirmModal from './components/DeleteConfirmModal.svelte';
+  import ManageSite from './components/ManageSite.svelte';
 
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
 
   let showLoginModal = false;
+
+  // Page navigation: 'deploy' | 'manage'
+  let currentPage = 'deploy';
 
   // Files & tree state (set when DeployZone fires 'files-selected')
   let selectedFiles = [];
@@ -79,12 +81,6 @@
   // Existing site info (for returning users)
   let existingManifest = null;
   let siteInfoLoading = false;
-
-  // Deletion state
-  let showDeleteConfirm = false;
-  let deleteInProgress = false;
-  let deleteResults = null;
-  let deleteProgress = null; // {completed, total, serverResults, relaysDone, phase}
 
   function giveUpServer(url) {
     givenUpServers.add(url);
@@ -165,7 +161,7 @@
   $: userExcludedCount = excludedFiles.size;
   $: userExcludedPaths = [...excludedFiles]; // array for rendering
 
-  // Derived values for SiteInfoCard
+  // Derived values for site info
   $: existingSiteUrl = (() => {
     if (!existingManifest || !$session.npub) return '';
     try { return `https://${$session.npub}.${new URL(NSITE_BLOSSOM).host}`; } catch { return ''; }
@@ -274,69 +270,6 @@
       existingManifest = null;
     } finally {
       siteInfoLoading = false;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Delete handler
-  // ---------------------------------------------------------------------------
-
-  async function handleDeleteSite() {
-    if (!currentSigner || !existingManifest) return;
-    deleteInProgress = true;
-    deleteResults = null;
-    deleteProgress = { phase: 'relays', completed: 0, total: 0 };
-
-    try {
-      const relays = deleteRelayUrls;
-      const blossoms = deleteBlossomUrls_list;
-
-      // 1. Publish empty manifest to all relays
-      deleteProgress = { phase: 'relays', completed: 0, total: relays.length, detail: 'Publishing empty manifest...' };
-      const emptyResult = await publishEmptyManifest(currentSigner, relays);
-
-      // 2. Publish kind 5 deletion event referencing the manifest event ID
-      deleteProgress = { phase: 'relays', completed: 0, total: relays.length, detail: 'Publishing deletion event...' };
-      const deletionResult = await publishDeletionEvent(currentSigner, existingManifest.id, relays);
-
-      // Merge relay results
-      const relayResults = emptyResult.results.map((r, i) => ({
-        relay: r.relay,
-        success: r.success,
-        message: r.success
-          ? (deletionResult.results[i]?.success ? 'manifest cleared + deletion event sent' : 'manifest cleared (deletion event failed)')
-          : r.message ?? 'failed',
-      }));
-
-      // 3. Delete blobs from blossom servers
-      const sha256List = [...new Set(
-        existingManifest.tags
-          .filter(t => t[0] === 'path' && t[2])
-          .map(t => t[2])
-      )];
-
-      let blossomResults = [];
-      if (sha256List.length > 0) {
-        deleteProgress = { phase: 'blobs', completed: 0, total: sha256List.length * blossoms.length, detail: 'Deleting blobs...' };
-        const blobResult = await deleteBlobs(currentSigner, sha256List, blossoms, (p) => {
-          deleteProgress = { phase: 'blobs', completed: p.completed, total: p.total, detail: `Deleting blobs... ${p.completed}/${p.total}` };
-        });
-        blossomResults = blobResult.results;
-      }
-
-      deleteResults = { relayResults, blossomResults };
-
-      // Clear existing manifest — site is deleted
-      existingManifest = null;
-
-    } catch (err) {
-      deleteResults = {
-        relayResults: [{ relay: 'error', success: false, message: err?.message ?? 'Unexpected error' }],
-        blossomResults: [],
-      };
-    } finally {
-      deleteInProgress = false;
-      deleteProgress = null;
     }
   }
 
@@ -483,7 +416,7 @@
 
       deployState.update((s) => ({ ...s, step: 'success', progress: 100 }));
       progressDetails = '';
-      // Update existingManifest so SiteInfoCard reflects the latest deploy when user resets
+      // Update existingManifest so ManageSite reflects the latest deploy when user resets
       existingManifest = deployEvent;
 
     } catch (err) {
@@ -515,24 +448,33 @@
 <!-- App shell -->
 <div class="min-h-screen bg-slate-900 text-gray-100">
 
-  <Navbar onLoginClick={() => (showLoginModal = true)} {deployNsec} />
+  <Navbar
+    onLoginClick={() => (showLoginModal = true)}
+    {deployNsec}
+    showManageLink={!!existingManifest && !!$session.pubkey}
+    onManageClick={() => { currentPage = 'manage'; }}
+  />
 
   <main>
 
+    {#if currentPage === 'manage'}
+      <!-- ===== MANAGE PAGE ===== -->
+      <ManageSite
+        siteUrl={existingSiteUrl}
+        publishDate={existingPublishDate}
+        fileCount={existingFileCount}
+        relayUrls={deleteRelayUrls}
+        blossomUrls={deleteBlossomUrls_list}
+        blobCount={deleteBlobCount}
+        signer={currentSigner}
+        manifest={existingManifest}
+        on:update={() => { currentPage = 'deploy'; resetForUpdate(); }}
+        on:deleted={() => { existingManifest = null; currentPage = 'deploy'; }}
+      />
+    {:else}
+
     <!-- ===== IDLE / SELECTING: Deploy Zone ===== -->
     {#if step === 'idle' || step === 'selecting'}
-      {#if (existingManifest || siteInfoLoading) && $session.pubkey}
-        <section class="max-w-2xl mx-auto px-4 pt-8">
-          <SiteInfoCard
-            siteUrl={existingSiteUrl}
-            publishDate={existingPublishDate}
-            fileCount={existingFileCount}
-            loading={siteInfoLoading}
-            on:update={resetForUpdate}
-            on:delete={() => { showDeleteConfirm = true; deleteResults = null; }}
-          />
-        </section>
-      {/if}
 
       <!-- Hero: full viewport -->
       <section class="min-h-screen flex flex-col items-center justify-center px-4">
@@ -890,17 +832,7 @@
       </section>
     {/if}
 
+    {/if}
   </main>
 
-  <DeleteConfirmModal
-    show={showDeleteConfirm}
-    relayUrls={deleteRelayUrls}
-    blossomUrls={deleteBlossomUrls_list}
-    blobCount={deleteBlobCount}
-    deleting={deleteInProgress}
-    progress={deleteProgress}
-    results={deleteResults}
-    on:confirm={handleDeleteSite}
-    on:close={() => { showDeleteConfirm = false; deleteResults = null; }}
-  />
 </div>
