@@ -11,7 +11,7 @@ Requirements for v1.1 Feature Gaps release. Each maps to roadmap phases.
 
 - [x] **DPLX-01**: Deploy zone rejects multi-file drag and shows message to use folder or archive
 - [x] **DPLX-02**: User can click a file in the deploy tree to preview its contents inline or in a modal
-- [ ] **DPLX-03**: User can exclude/include individual files via hover toggle in deploy tree, with excluded files collected in an ignored summary section
+- [x] **DPLX-03**: User can exclude/include individual files via hover toggle in deploy tree, with excluded files collected in an ignored summary section
 
 ### Anonymous Key Management
 
@@ -60,7 +60,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DPLX-01 | Phase 7 | Complete |
 | DPLX-02 | Phase 7 | Complete |
-| DPLX-03 | Phase 7 | Pending |
+| DPLX-03 | Phase 7 | Complete |
 | AKEY-01 | Phase 8 | Pending |
 | AKEY-02 | Phase 8 | Pending |
 | AKEY-03 | Phase 8 | Pending |

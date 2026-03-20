@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Gaps
 status: unknown
-stopped_at: Completed 07-deploy-ux-improvements-07-01-PLAN.md
-last_updated: "2026-03-20T15:58:02.139Z"
+stopped_at: Completed 07-deploy-ux-improvements-07-02-PLAN.md
+last_updated: "2026-03-20T16:04:42.195Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 
 ## Current Position
 
-Phase: 07 (deploy-ux-improvements) — EXECUTING
-Plan: 1 of 2
+Phase: 07 (deploy-ux-improvements) — COMPLETE
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -35,6 +35,8 @@ See PROJECT.md Key Decisions table for full list with outcomes.
 - All v1.1 work is SPA-only (apps/spa Svelte code) — no backend/gateway changes needed
 - [Phase 07-deploy-ux-improvements]: Reject only 2+ loose files with no directory — single file and archive drops continue unchanged
 - [Phase 07-deploy-ux-improvements]: TEXT_EXTENSIONS allowlist approach for preview eligibility; 100-line pagination via previewLinesShown state
+- [Phase 07-deploy-ux-improvements]: Excluded state moved from FileTree internal to App.svelte-managed prop — single source of truth for excluded files
+- [Phase 07-deploy-ux-improvements]: Hover-reveal toggle pattern: opacity-0 group-hover:opacity-100 with stopPropagation for exclude buttons on all file/dir rows
 
 ### Pending Todos
 
@@ -46,6 +48,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T15:58:02.137Z
-Stopped at: Completed 07-deploy-ux-improvements-07-01-PLAN.md
+Last session: 2026-03-20T16:04:42.193Z
+Stopped at: Completed 07-deploy-ux-improvements-07-02-PLAN.md
 Resume file: None
