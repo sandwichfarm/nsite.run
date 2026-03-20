@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Gaps
 status: in-progress
-stopped_at: "Completed 08-01-PLAN.md"
-last_updated: "2026-03-20T16:46:39Z"
+stopped_at: "Completed 08-02-PLAN.md"
+last_updated: "2026-03-20T16:50:24Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 
 ## Current Position
 
-Phase: 08 (anonymous-key-management) — EXECUTING
-Plan: 2 of 2
+Phase: 08 (anonymous-key-management) — COMPLETE
+Plan: 2 of 2 (all plans complete)
 
 ## Accumulated Context
 
@@ -40,6 +40,8 @@ See PROJECT.md Key Decisions table for full list with outcomes.
 - [Phase 08-anonymous-key-management]: Store anonymous key as 64-char hex string in sessionStorage (not nsec) — compact and safe; auto-clears on tab close
 - [Phase 08-anonymous-key-management]: Restore-or-clear pattern on mount — if signerType is anonymous but key missing from sessionStorage, clear stale session
 - [Phase 08-anonymous-key-management]: Download button (purple) is primary action for nsec backup; Copy button (amber) is secondary convenience action
+- [Phase 08-anonymous-key-management]: LogoutConfirmModal allows backdrop/Escape dismiss (cancel is safe); only confirming clears anonymous key
+- [Phase 08-anonymous-key-management]: deployNsec threaded from App.svelte through Navbar prop to modal rather than reading sessionStorage in modal
 
 ### Pending Todos
 
@@ -51,6 +53,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T16:46:39Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-anonymous-key-management/08-02-PLAN.md
+Last session: 2026-03-20T16:50:24Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: Phase 08 complete — all plans finished

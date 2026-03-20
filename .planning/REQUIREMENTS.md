@@ -16,7 +16,7 @@ Requirements for v1.1 Feature Gaps release. Each maps to roadmap phases.
 ### Anonymous Key Management
 
 - [x] **AKEY-01**: Anonymous key persists in session store across navigation and page reload, with coherent UI showing current nsite
-- [ ] **AKEY-02**: Logout prompts confirmation dialog ensuring anonymous user has backed up nsec before clearing key
+- [x] **AKEY-02**: Logout prompts confirmation dialog ensuring anonymous user has backed up nsec before clearing key
 - [x] **AKEY-03**: User can download nsec as a text file as first backup option, with clipboard copy as secondary
 
 ### Site Management
@@ -62,7 +62,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DPLX-02 | Phase 7 | Complete |
 | DPLX-03 | Phase 7 | Complete |
 | AKEY-01 | Phase 8 | Complete |
-| AKEY-02 | Phase 8 | Pending |
+| AKEY-02 | Phase 8 | Complete |
 | AKEY-03 | Phase 8 | Complete |
 | SITE-01 | Phase 9 | Pending |
 | SITE-02 | Phase 9 | Pending |

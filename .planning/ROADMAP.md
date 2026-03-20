@@ -24,7 +24,7 @@
 **Milestone Goal:** Close UX gaps in the deploy SPA — improve file handling in the deploy flow, protect anonymous users from key loss, and add post-deploy site management actions. All changes are SPA-only (apps/spa Svelte code).
 
 - [ ] **Phase 7: Deploy UX Improvements** — Reject loose file drops, add file preview, per-file exclude/include toggle
-- [ ] **Phase 8: Anonymous Key Management** — Persist anonymous key across sessions, confirmation on logout, file download backup
+- [x] **Phase 8: Anonymous Key Management** — Persist anonymous key across sessions, confirmation on logout, file download backup (completed 2026-03-20)
 - [ ] **Phase 9: Site Management** — Update button after deploy, returning user dashboard, site deletion
 
 ## Phase Details
@@ -81,5 +81,5 @@ Plans:
 | 5. nsite Resolver and Progressive Caching | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
-| 8. Anonymous Key Management | 1/2 | In Progress|  | - |
+| 8. Anonymous Key Management | 2/2 | Complete   | 2026-03-20 | - |
 | 9. Site Management | v1.1 | 0/? | Not started | - |
