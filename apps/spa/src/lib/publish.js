@@ -137,3 +137,63 @@ export async function publishManifest(signer, files, servers, relays, spaFallbac
 
   return { event, results, successCount, failureCount };
 }
+
+/**
+ * Publishes an empty kind 15128 manifest to all relays, effectively "unpublishing" the site.
+ * Uses replaceable event semantics — the empty manifest supersedes any previous manifest.
+ *
+ * @param {{ signEvent: (template: object) => Promise<object> }} signer
+ * @param {string[]} relays - Relay WebSocket URLs
+ * @returns {Promise<{ event: object, results: { relay: string, success: boolean, message?: string }[] }>}
+ */
+export async function publishEmptyManifest(signer, relays) {
+  const template = {
+    kind: 15128,
+    created_at: Math.floor(Date.now() / 1000),
+    tags: [['client', 'nsite.run']],
+    content: '',
+  };
+  const event = await signer.signEvent(template);
+
+  const results = [];
+  for (const relay of relays) {
+    const result = await publishToRelay(event, relay).catch(() => ({
+      success: false,
+      message: 'connection failed',
+    }));
+    results.push({ relay, ...result });
+  }
+
+  return { event, results };
+}
+
+/**
+ * Publishes a NIP-09 kind 5 deletion event referencing a specific event ID.
+ * This is belt-and-suspenders alongside the empty manifest — some relays
+ * honor deletion requests and actually remove events.
+ *
+ * @param {{ signEvent: (template: object) => Promise<object> }} signer
+ * @param {string} eventId - The event ID to request deletion of
+ * @param {string[]} relays - Relay WebSocket URLs
+ * @returns {Promise<{ event: object, results: { relay: string, success: boolean, message?: string }[] }>}
+ */
+export async function publishDeletionEvent(signer, eventId, relays) {
+  const template = {
+    kind: 5,
+    created_at: Math.floor(Date.now() / 1000),
+    tags: [['e', eventId]],
+    content: 'nsite deletion via nsite.run',
+  };
+  const event = await signer.signEvent(template);
+
+  const results = [];
+  for (const relay of relays) {
+    const result = await publishToRelay(event, relay).catch(() => ({
+      success: false,
+      message: 'connection failed',
+    }));
+    results.push({ relay, ...result });
+  }
+
+  return { event, results };
+}
