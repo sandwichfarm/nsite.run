@@ -36,7 +36,24 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+- [ ] Deploy zone rejects multi-file drag and prompts for folder or archive
+- [ ] File preview in deploy tree (inline or modal)
+- [ ] Per-file exclude/include toggle in deploy tree with ignored summary
+- [ ] Anonymous key persists in session store across navigation/reload
+- [ ] Logout confirmation warns anonymous users to back up nsec
+- [ ] nsec backup via file download (not just clipboard copy)
+- [ ] Update button after successful deploy returns to file drop zone
+- [ ] Returning logged-in user sees existing site info (URL, last publish, file count)
+- [ ] Delete/destroy button publishes empty manifest and confirms removal
+
+## Current Milestone: v1.1 Feature Gaps
+
+**Goal:** Close UX gaps in the deploy SPA identified from initial user feedback — improve file handling, protect anonymous users from key loss, and add site management actions.
+
+**Target features:**
+- Deploy UX: reject loose file drops, file preview, per-file exclude
+- Anonymous key management: session persistence, logout confirmation, file download backup
+- Site management: update button, returning user dashboard, site deletion
 
 ### Out of Scope
 
@@ -114,4 +131,4 @@ All traffic hits nsite.run. The gateway Edge Script acts as the primary router:
 | 120s symmetric auth window for blossom | Stricter than reference (blssm.us); rejects created_at >120s in past or future | ✓ Good — tighter security |
 
 ---
-*Last updated: 2026-03-20 after v1.0 milestone*
+*Last updated: 2026-03-20 after v1.1 milestone start*
