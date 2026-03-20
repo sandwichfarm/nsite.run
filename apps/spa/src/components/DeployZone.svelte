@@ -58,6 +58,31 @@
       const items = e.dataTransfer?.items;
       if (!items) return;
 
+      // First pass: classify each dropped item to detect loose multi-file drops.
+      // Loose files are non-directory, non-archive file entries.
+      let looseFileCount = 0;
+      let hasDirectory = false;
+      for (const item of items) {
+        const entry = item.webkitGetAsEntry?.();
+        if (!entry) continue;
+        if (entry.isDirectory) {
+          hasDirectory = true;
+        } else if (entry.isFile) {
+          const name = entry.name.toLowerCase();
+          const isArchive = name.endsWith('.zip') || name.endsWith('.tar.gz') || name.endsWith('.tgz');
+          if (!isArchive) {
+            looseFileCount++;
+          }
+        }
+      }
+
+      // Reject if 2 or more loose files are dropped without a directory
+      if (!hasDirectory && looseFileCount >= 2) {
+        loadError = 'Multiple files detected — please drop a folder or archive (.zip, .tar.gz)';
+        isLoading = false;
+        return;
+      }
+
       const files = [];
 
       for (const item of items) {
