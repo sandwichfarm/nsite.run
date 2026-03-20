@@ -43,6 +43,44 @@
 
 ---
 
+## Milestone: v1.1 — Feature Gaps
+
+**Shipped:** 2026-03-20
+**Phases:** 3 | **Plans:** 6
+
+### What Was Built
+- Deploy UX: multi-file drag rejection, inline file preview with 100-line pagination, per-file exclude toggle with recursive directory support and three-layer feedback (inline + badge + summary)
+- Anonymous key management: sessionStorage persistence with hex key, auto-restore on reload, logout confirmation modal with checkbox gate, nsec file download
+- Site management: "Update Site" button preserving signer, SiteInfoCard with multi-relay manifest query, decentralized deletion (empty manifest + kind 5 to relays, BUD-02 DELETE to blossoms) with scope summary modal
+
+### What Worked
+- Discuss-phase → plan-phase → execute-phase pipeline ran cleanly for all 3 phases with zero replanning
+- Plan checker passed all plans on first attempt — context decisions were specific enough to prevent ambiguity
+- 2-task plans with 2 waves per phase kept execution fast (~2-3 min per plan)
+- GitHub issues provided clear acceptance criteria — minimal discussion needed
+
+### What Was Inefficient
+- ROADMAP.md checkbox tracking drifted again (phase 7 checkboxes not updated by executor)
+- STATE.md accumulated many phase-level decisions that probably belong in summaries, not state
+
+### Patterns Established
+- sessionStorage for sensitive ephemeral data (anonymous keys) — localStorage for persistent preferences
+- `createEventDispatcher` + `on:event` pattern for child-to-parent communication across SPA components
+- Multi-relay parallel query with `Promise.allSettled` + deduplication by event ID
+- Decentralized deletion: empty replaceable event + NIP-09 kind 5 + BUD-02 DELETE — belt and suspenders
+
+### Key Lessons
+1. User feedback (GitHub issues) provides better requirements than speculative feature planning — every issue had clear problem/solution framing
+2. SPA-only phases execute faster because no backend coordination needed — keep frontend and backend phases separate when possible
+3. sessionStorage vs localStorage is a meaningful UX decision, not just a technical one — users' mental model of "session" matters
+
+### Cost Observations
+- Model mix: opus for planning, sonnet for execution and verification
+- All 6 plans completed in single session
+- Notable: zero research phases needed — existing v1.0 patterns covered all requirements
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -50,14 +88,17 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 | 6 | 18 | Initial milestone — established patterns |
+| v1.1 | 3 | 6 | Issue-driven — all from GitHub feedback, zero research needed |
 
 ### Cumulative Quality
 
 | Milestone | Requirements | Coverage |
 |-----------|-------------|----------|
 | v1.0 | 58/58 | 100% |
+| v1.1 | 9/9 | 100% |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Edge Script module independence (no cross-package imports) is a hard constraint — plan for it
 2. Port-from-reference is dramatically faster than greenfield for protocol implementations
+3. User feedback (GitHub issues) produces cleaner requirements than speculative planning — confirmed in v1.1
