@@ -13,6 +13,7 @@
     fetchRelayList,
     fetchBlossomList,
     fetchProfile,
+    fetchExistingManifest,
   } from './lib/nostr.js';
   import { npubEncode } from 'nostr-tools/nip19';
   import { hashFile } from './lib/crypto.js';
@@ -27,6 +28,7 @@
   import LoginModal from './components/LoginModal.svelte';
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
+  import SiteInfoCard from './components/SiteInfoCard.svelte';
 
   // ---------------------------------------------------------------------------
   // State
@@ -73,6 +75,10 @@
   let givenUpReactive = new Set();
   let deployBlossomUrls = [];
 
+  // Existing site info (for returning users)
+  let existingManifest = null;
+  let siteInfoLoading = false;
+
   function giveUpServer(url) {
     givenUpServers.add(url);
     givenUpReactive = new Set(givenUpServers);
@@ -116,6 +122,8 @@
       if (restored) {
         currentSigner = restored.signer;
         deployNsec = restored.nsec;
+        // Fetch existing site info for returning anonymous users
+        fetchSiteInfo(sess.pubkey);
       } else {
         // Key not found in sessionStorage — session is stale, clear it
         session.set({ pubkey: null, signerType: null, displayName: null, avatar: null, npub: null });
@@ -135,6 +143,8 @@
     }
     if (sess.pubkey && sess.signerType !== 'anonymous') {
       fetchUserServers(sess.pubkey);
+      // Fetch existing site info for returning users
+      fetchSiteInfo(sess.pubkey);
     }
   });
 
@@ -147,6 +157,14 @@
   $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
   $: userExcludedCount = excludedFiles.size;
   $: userExcludedPaths = [...excludedFiles]; // array for rendering
+
+  // Derived values for SiteInfoCard
+  $: existingSiteUrl = (() => {
+    if (!existingManifest || !$session.npub) return '';
+    try { return `https://${$session.npub}.${new URL(NSITE_BLOSSOM).host}`; } catch { return ''; }
+  })();
+  $: existingPublishDate = existingManifest ? new Date(existingManifest.created_at * 1000) : null;
+  $: existingFileCount = existingManifest ? existingManifest.tags.filter(t => t[0] === 'path').length : 0;
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -196,6 +214,48 @@
       result: null,
       error: null,
     });
+  }
+
+  function resetForUpdate() {
+    selectedFiles = [];
+    fileTree = null;
+    fileWarnings = [];
+    excludedFiles = new Set();
+    excludedCount = 0;
+    fileListExpanded = false;
+    excludedSummaryExpanded = false;
+    spaFallback = false;
+    // NOTE: currentSigner and deployNsec are intentionally NOT cleared
+    deployEvent = null;
+    uploadResult = null;
+    uploadProgress = null;
+    checkProgress = null;
+    publishResult = null;
+    errorMessage = '';
+    givenUpServers = new Set();
+    givenUpReactive = new Set();
+    deployBlossomUrls = [];
+    deployState.set({
+      step: 'idle',
+      files: [],
+      warnings: [],
+      progress: 0,
+      result: null,
+      error: null,
+    });
+  }
+
+  async function fetchSiteInfo(pubkey) {
+    siteInfoLoading = true;
+    try {
+      const relayList = [...new Set([NSITE_RELAY, ...userRelays, ...(userRelays.length === 0 ? DEFAULT_RELAYS : [])])];
+      const result = await fetchExistingManifest(pubkey, relayList);
+      existingManifest = result;
+    } catch {
+      existingManifest = null;
+    } finally {
+      siteInfoLoading = false;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -341,6 +401,8 @@
 
       deployState.update((s) => ({ ...s, step: 'success', progress: 100 }));
       progressDetails = '';
+      // Update existingManifest so SiteInfoCard reflects the latest deploy when user resets
+      existingManifest = deployEvent;
 
     } catch (err) {
       errorMessage = err?.message ?? 'An unexpected error occurred.';
@@ -361,6 +423,10 @@
     if (sess.pubkey && sess.signerType !== 'anonymous') {
       fetchUserServers(sess.pubkey);
     }
+    // Fetch existing site info on login
+    if (sess.pubkey) {
+      fetchSiteInfo(sess.pubkey);
+    }
   }}
 />
 
@@ -373,6 +439,19 @@
 
     <!-- ===== IDLE / SELECTING: Deploy Zone ===== -->
     {#if step === 'idle' || step === 'selecting'}
+      {#if (existingManifest || siteInfoLoading) && $session.pubkey}
+        <section class="max-w-2xl mx-auto px-4 pt-8">
+          <SiteInfoCard
+            siteUrl={existingSiteUrl}
+            publishDate={existingPublishDate}
+            fileCount={existingFileCount}
+            loading={siteInfoLoading}
+            on:update={resetForUpdate}
+            on:delete={() => { /* wired in Plan 02 */ }}
+          />
+        </section>
+      {/if}
+
       <!-- Hero: full viewport -->
       <section class="min-h-screen flex flex-col items-center justify-center px-4">
         <div class="text-center mb-10">
@@ -694,6 +773,7 @@
           {uploadResult}
           {publishResult}
           givenUpServers={givenUpReactive}
+          on:update={resetForUpdate}
         />
         <div class="mt-4 text-center">
           <button
