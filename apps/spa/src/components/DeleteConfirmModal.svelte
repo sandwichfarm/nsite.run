@@ -104,23 +104,45 @@
 
           {#if progress}
             <!-- Phase indicator -->
-            <p class="text-slate-300 text-sm mb-2">
+            <p class="text-slate-300 text-sm mb-3">
               {#if progress.phase === 'relays'}
                 Publishing to relays...
               {:else if progress.phase === 'blobs'}
-                Deleting blobs...
+                Deleting blobs from blossom servers...
               {/if}
             </p>
 
             <!-- Progress bar -->
             {#if progress.total > 0}
-              <div class="w-full bg-slate-700 rounded-full h-2 mb-2">
+              <div class="w-full bg-slate-700 rounded-full h-2 mb-1">
                 <div
                   class="bg-red-500 h-2 rounded-full transition-all duration-200"
                   style="width: {Math.round((progress.completed / progress.total) * 100)}%"
                 ></div>
               </div>
-              <p class="text-xs text-slate-500">{progress.completed} / {progress.total}</p>
+              <p class="text-xs text-slate-500 mb-3">{progress.completed} / {progress.total}</p>
+            {/if}
+
+            <!-- Per-server live status (blobs phase) -->
+            {#if progress.phase === 'blobs' && progress.serverResults}
+              <div class="space-y-1.5 mt-2">
+                {#each Object.entries(progress.serverResults) as [url, sr]}
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-mono text-slate-500 truncate mr-2">{url.replace(/^https?:\/\//, '')}</span>
+                    <span class="flex-shrink-0">
+                      {#if sr.deleted > 0}
+                        <span class="text-green-400">{sr.deleted} deleted</span>
+                      {/if}
+                      {#if sr.failed > 0}
+                        <span class="text-red-400 ml-1">{sr.failed} failed</span>
+                      {/if}
+                      {#if sr.deleted === 0 && sr.failed === 0}
+                        <span class="text-slate-600">waiting...</span>
+                      {/if}
+                    </span>
+                  </div>
+                {/each}
+              </div>
             {/if}
           {:else}
             <p class="text-slate-400 text-sm">Preparing...</p>

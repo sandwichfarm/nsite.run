@@ -264,7 +264,12 @@
     try {
       const relayList = [...new Set([NSITE_RELAY, ...userRelays, ...(userRelays.length === 0 ? DEFAULT_RELAYS : [])])];
       const result = await fetchExistingManifest(pubkey, relayList);
-      existingManifest = result;
+      // Treat empty manifest (0 path tags) as "no site" — this is the deleted state
+      if (result && result.tags.filter(t => t[0] === 'path').length === 0) {
+        existingManifest = null;
+      } else {
+        existingManifest = result;
+      }
     } catch {
       existingManifest = null;
     } finally {
