@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Gaps
-status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-20T15:36:03.581Z"
-last_activity: 2026-03-20 — Roadmap created for v1.1 (phases 7-9)
+status: unknown
+stopped_at: Completed 07-deploy-ux-improvements-07-01-PLAN.md
+last_updated: "2026-03-20T15:58:02.139Z"
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** v1.1 Feature Gaps — Phase 7: Deploy UX Improvements
+**Current focus:** Phase 07 — deploy-ux-improvements
 
 ## Current Position
 
-Phase: 7 of 9 (Deploy UX Improvements)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-20 — Roadmap created for v1.1 (phases 7-9)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 07 (deploy-ux-improvements) — EXECUTING
+Plan: 1 of 2
 
 ## Accumulated Context
 
@@ -39,6 +33,8 @@ Progress: [░░░░░░░░░░] 0%
 See PROJECT.md Key Decisions table for full list with outcomes.
 
 - All v1.1 work is SPA-only (apps/spa Svelte code) — no backend/gateway changes needed
+- [Phase 07-deploy-ux-improvements]: Reject only 2+ loose files with no directory — single file and archive drops continue unchanged
+- [Phase 07-deploy-ux-improvements]: TEXT_EXTENSIONS allowlist approach for preview eligibility; 100-line pagination via previewLinesShown state
 
 ### Pending Todos
 
@@ -50,6 +46,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T15:36:03.579Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-deploy-ux-improvements/07-CONTEXT.md
+Last session: 2026-03-20T15:58:02.137Z
+Stopped at: Completed 07-deploy-ux-improvements-07-01-PLAN.md
+Resume file: None
