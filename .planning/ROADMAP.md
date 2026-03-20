@@ -85,4 +85,4 @@ Plans:
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 9. Site Management | v1.1 | 0/2 | Not started | - |
+| 9. Site Management | 1/2 | In Progress|  | - |
