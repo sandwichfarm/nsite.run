@@ -66,7 +66,10 @@ Plans:
   2. A returning logged-in user sees their existing site URL, last publish date, and file count/size on page load before taking any action
   3. A user can trigger site deletion via a confirmation dialog that publishes an empty/tombstone manifest to the relay
   4. After deletion, the UI reflects that no site is currently published for the user's key
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Update Site button, site info query, and returning user SiteInfoCard
+- [ ] 09-02-PLAN.md — Site deletion with empty manifest, kind 5 event, and blob cleanup
 
 ## Progress
 
@@ -81,5 +84,5 @@ Plans:
 | 5. nsite Resolver and Progressive Caching | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
-| 8. Anonymous Key Management | 2/2 | Complete   | 2026-03-20 | - |
-| 9. Site Management | v1.1 | 0/? | Not started | - |
+| 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
+| 9. Site Management | v1.1 | 0/2 | Not started | - |
