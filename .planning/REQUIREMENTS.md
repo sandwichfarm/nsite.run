@@ -23,7 +23,7 @@ Requirements for v1.1 Feature Gaps release. Each maps to roadmap phases.
 
 - [x] **SITE-01**: After successful deploy, an "Update Site" button returns user to file drop zone with same key
 - [x] **SITE-02**: Returning logged-in user sees existing site info on load (site URL, last publish date, file count/size, quick links)
-- [ ] **SITE-03**: User can delete/destroy a published site via confirmation dialog that publishes empty/tombstone manifest
+- [x] **SITE-03**: User can delete/destroy a published site via confirmation dialog that publishes empty/tombstone manifest
 
 ## Future Requirements
 
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AKEY-03 | Phase 8 | Complete |
 | SITE-01 | Phase 9 | Complete |
 | SITE-02 | Phase 9 | Complete |
-| SITE-03 | Phase 9 | Pending |
+| SITE-03 | Phase 9 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 9 total
