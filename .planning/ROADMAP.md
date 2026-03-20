@@ -25,7 +25,7 @@
 
 - [ ] **Phase 7: Deploy UX Improvements** — Reject loose file drops, add file preview, per-file exclude/include toggle
 - [x] **Phase 8: Anonymous Key Management** — Persist anonymous key across sessions, confirmation on logout, file download backup (completed 2026-03-20)
-- [ ] **Phase 9: Site Management** — Update button after deploy, returning user dashboard, site deletion
+- [x] **Phase 9: Site Management** — Update button after deploy, returning user dashboard, site deletion (completed 2026-03-20)
 
 ## Phase Details
 
@@ -85,4 +85,4 @@ Plans:
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 9. Site Management | 1/2 | In Progress|  | - |
+| 9. Site Management | 2/2 | Complete   | 2026-03-20 | - |

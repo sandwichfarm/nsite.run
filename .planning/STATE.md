@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Feature Gaps
 status: unknown
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-20T18:18:07.334Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-20T18:23:06.127Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -43,6 +43,7 @@ See PROJECT.md Key Decisions table for full list with outcomes.
 - [Phase 08-anonymous-key-management]: LogoutConfirmModal allows backdrop/Escape dismiss (cancel is safe); only confirming clears anonymous key
 - [Phase 08-anonymous-key-management]: deployNsec threaded from App.svelte through Navbar prop to modal rather than reading sessionStorage in modal
 - [Phase 09-site-management]: fetchExistingManifest queries all relays in parallel (Promise.allSettled) and returns newest event — resetForUpdate preserves signer identity for seamless update flow
+- [Phase 09-site-management]: publishEmptyManifest uses replaceable event semantics — no special gateway support needed; existingManifest cleared to null after deletion so UI returns to idle state automatically
 
 ### Pending Todos
 
@@ -54,6 +55,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T18:18:07.332Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-03-20T18:23:06.125Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
