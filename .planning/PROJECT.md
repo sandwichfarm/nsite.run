@@ -36,9 +36,9 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-- [ ] Deploy zone rejects multi-file drag and prompts for folder or archive
-- [ ] File preview in deploy tree (inline or modal)
-- [ ] Per-file exclude/include toggle in deploy tree with ignored summary
+- [x] Deploy zone rejects multi-file drag and prompts for folder or archive — v1.1 Phase 7
+- [x] File preview in deploy tree (inline or modal) — v1.1 Phase 7
+- [x] Per-file exclude/include toggle in deploy tree with ignored summary — v1.1 Phase 7
 - [ ] Anonymous key persists in session store across navigation/reload
 - [ ] Logout confirmation warns anonymous users to back up nsec
 - [ ] nsec backup via file download (not just clipboard copy)
@@ -131,4 +131,4 @@ All traffic hits nsite.run. The gateway Edge Script acts as the primary router:
 | 120s symmetric auth window for blossom | Stricter than reference (blssm.us); rejects created_at >120s in past or future | ✓ Good — tighter security |
 
 ---
-*Last updated: 2026-03-20 after v1.1 milestone start*
+*Last updated: 2026-03-20 after Phase 7 completion*
