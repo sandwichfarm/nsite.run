@@ -59,6 +59,9 @@
   // File list expand/collapse
   let fileListExpanded = false;
 
+  // Excluded files summary expand/collapse
+  let excludedSummaryExpanded = false;
+
   // NIP-65 / 10063 pre-fetched lists
   let userRelays = [];
   let userBlossoms = [];
@@ -128,6 +131,8 @@
   $: step = $deployState.step;
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
   $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
+  $: userExcludedCount = excludedFiles.size;
+  $: userExcludedPaths = [...excludedFiles]; // array for rendering
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -161,6 +166,7 @@
     excludedFiles = new Set();
     excludedCount = 0;
     fileListExpanded = false;
+    excludedSummaryExpanded = false;
     spaFallback = false;
     currentSigner = null;
     deployNsec = null;
@@ -507,6 +513,18 @@
           </div>
         {/if}
 
+        <!-- Excluded files badge -->
+        {#if userExcludedCount > 0}
+          <div class="mb-2 flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full text-xs font-medium">
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.11 6.11m3.768 3.768l4.242 4.242m0 0L17.89 17.89M3 3l18 18" />
+              </svg>
+              {userExcludedCount} excluded
+            </span>
+          </div>
+        {/if}
+
         <!-- File tree with overflow control -->
         <div class="relative">
           <div class="{fileListExpanded ? '' : 'max-h-64 overflow-hidden'}">
@@ -515,6 +533,7 @@
               warnings={fileWarnings}
               onToggleExclude={toggleExclude}
               {fileDataMap}
+              {excludedFiles}
             />
           </div>
           {#if !fileListExpanded && selectedFiles.length > 10}
@@ -535,6 +554,60 @@
             </button>
           {/if}
         </div>
+
+        <!-- Ignored files summary -->
+        {#if userExcludedCount > 0}
+          {@const TRUNCATE_THRESHOLD = 10}
+          {@const showAllExcluded = userExcludedPaths.length <= TRUNCATE_THRESHOLD}
+          <div class="mt-3 bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-slate-400">
+                Excluded files ({userExcludedCount})
+              </h3>
+              {#if excludedFiles.size > 0}
+                <button
+                  on:click={() => {
+                    for (const p of [...excludedFiles]) {
+                      toggleExclude(p);
+                    }
+                  }}
+                  class="text-xs text-purple-400 hover:text-purple-300"
+                >
+                  Re-include all
+                </button>
+              {/if}
+            </div>
+            <ul class="space-y-1">
+              {#each (showAllExcluded || excludedSummaryExpanded ? userExcludedPaths : userExcludedPaths.slice(0, TRUNCATE_THRESHOLD)) as excludedPath}
+                <li class="flex items-center justify-between gap-2 text-xs">
+                  <span class="font-mono text-slate-500 truncate">{excludedPath}</span>
+                  <button
+                    on:click={() => toggleExclude(excludedPath)}
+                    class="text-purple-400 hover:text-purple-300 whitespace-nowrap flex-shrink-0"
+                  >
+                    Re-include
+                  </button>
+                </li>
+              {/each}
+            </ul>
+            {#if !showAllExcluded && !excludedSummaryExpanded}
+              <button
+                on:click={() => (excludedSummaryExpanded = true)}
+                class="mt-2 text-xs text-slate-400 hover:text-slate-300"
+              >
+                + {userExcludedPaths.length - TRUNCATE_THRESHOLD} more
+              </button>
+            {/if}
+            {#if excludedSummaryExpanded && !showAllExcluded}
+              <button
+                on:click={() => (excludedSummaryExpanded = false)}
+                class="mt-2 text-xs text-slate-400 hover:text-slate-300"
+              >
+                Show less
+              </button>
+            {/if}
+          </div>
+        {/if}
 
         <!-- Deploy options -->
         <div class="mt-4 space-y-3">
