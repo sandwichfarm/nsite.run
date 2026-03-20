@@ -367,7 +367,7 @@
 <!-- App shell -->
 <div class="min-h-screen bg-slate-900 text-gray-100">
 
-  <Navbar onLoginClick={() => (showLoginModal = true)} />
+  <Navbar onLoginClick={() => (showLoginModal = true)} {deployNsec} />
 
   <main>
 
