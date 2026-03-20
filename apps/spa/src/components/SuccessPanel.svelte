@@ -20,7 +20,7 @@
   let nsecCopied = false;
   let urlCopied = false;
 
-  import { NSITE_BLOSSOM } from '../lib/nostr.js';
+  import { NSITE_BLOSSOM, downloadNsecFile } from '../lib/nostr.js';
   import ActivityRings from './ActivityRings.svelte';
 
   // Derive gateway domain from NSITE_BLOSSOM (auto-detected or VITE_ override)
@@ -185,10 +185,16 @@
           {nsec}
         </code>
         <button
+          on:click={() => downloadNsecFile(nsec, npub)}
+          class="flex-shrink-0 px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-medium transition-colors"
+        >
+          Download
+        </button>
+        <button
           on:click={copyNsec}
           class="flex-shrink-0 px-3 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-medium transition-colors"
         >
-          {nsecCopied ? 'Copied!' : 'Copy nsec'}
+          {nsecCopied ? 'Copied!' : 'Copy'}
         </button>
       </div>
     </div>

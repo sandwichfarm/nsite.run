@@ -49,6 +49,9 @@
             {#if $session.npub}
               <span class="text-xs text-slate-400 font-mono">{truncateNpub($session.npub)}</span>
             {/if}
+            {#if $session.signerType === 'anonymous'}
+              <span class="text-[10px] font-medium text-amber-400 bg-amber-900/40 px-1.5 py-0.5 rounded-full">Anonymous</span>
+            {/if}
           </div>
         </div>
         <button
