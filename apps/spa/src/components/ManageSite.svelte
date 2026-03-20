@@ -79,8 +79,18 @@
     deleteState = 'idle';
   }
 
+  let deleteError = '';
+
   async function handleConfirmDelete() {
-    if (!signer || !manifest) return;
+    if (!signer) {
+      deleteError = 'No signer available. Please log in again.';
+      return;
+    }
+    if (!manifest) {
+      deleteError = 'No manifest found. Nothing to delete.';
+      return;
+    }
+    deleteError = '';
     deleteState = 'deleting';
     deleteStep = 'relays';
     relayProgress = 0;
@@ -244,6 +254,10 @@
           </ul>
         </div>
       </div>
+
+      {#if deleteError}
+        <p class="text-sm text-red-400 mb-3">{deleteError}</p>
+      {/if}
 
       <!-- Action buttons -->
       <div class="flex gap-3 pt-4 border-t border-slate-700">

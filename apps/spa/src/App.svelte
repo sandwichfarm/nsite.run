@@ -148,6 +148,12 @@
       fetchUserServers(sess.pubkey);
       // Fetch existing site info for returning users
       fetchSiteInfo(sess.pubkey);
+      // Restore signer for extension users (needed for manage page actions)
+      if (sess.signerType === 'extension' && !currentSigner) {
+        try {
+          currentSigner = await createExtensionSigner();
+        } catch { /* extension not available — signer stays null */ }
+      }
     }
   });
 
