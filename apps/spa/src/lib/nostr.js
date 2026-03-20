@@ -170,7 +170,7 @@ export async function connectFromBunkerURI(bunkerUri) {
  * @param {object} filter - Nostr filter object
  * @returns {Promise<object[]>} Array of events received before EOSE
  */
-function queryRelay(url, filter) {
+export function queryRelay(url, filter) {
   return new Promise((resolve, reject) => {
     let ws;
     const events = [];
@@ -316,4 +316,38 @@ export async function fetchBlossomList(pubkey, relays) {
   }
 
   return [];
+}
+
+/**
+ * Fetches the most recent kind 15128 manifest for a pubkey across multiple relays.
+ * Queries all relays in parallel and returns the newest manifest event.
+ * @param {string} pubkey - User's hex pubkey
+ * @param {string[]} relays - Relay URLs to query (should include NIP-65 relays + NSITE_RELAY)
+ * @returns {Promise<object|null>} Most recent manifest event, or null if none found
+ */
+export async function fetchExistingManifest(pubkey, relays) {
+  const filter = { kinds: [15128], authors: [pubkey], limit: 1 };
+  const allEvents = [];
+  const seen = new Set();
+
+  const results = await Promise.allSettled(
+    relays.map(relay => queryRelay(relay, filter))
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      for (const event of result.value) {
+        if (!seen.has(event.id)) {
+          seen.add(event.id);
+          allEvents.push(event);
+        }
+      }
+    }
+  }
+
+  if (allEvents.length === 0) return null;
+
+  // Return the most recent manifest
+  allEvents.sort((a, b) => b.created_at - a.created_at);
+  return allEvents[0];
 }
