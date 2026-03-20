@@ -52,7 +52,10 @@ Plans:
   2. Clicking logout as an anonymous user triggers a confirmation dialog that does not dismiss until the user acknowledges they have backed up their nsec
   3. The nsec backup dialog offers a file download as the primary action, with clipboard copy as a secondary option
   4. After completing the backup confirmation, logout clears the key and returns the user to the unauthenticated state
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — Session persistence, anonymous badge, and nsec download utility
+- [ ] 08-02-PLAN.md — Logout confirmation modal with backup enforcement
 
 ### Phase 9: Site Management
 **Goal**: Users can update or delete a published site and see existing site info on return visits
@@ -78,5 +81,5 @@ Plans:
 | 5. nsite Resolver and Progressive Caching | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. SPA Deploy Interface | v1.0 | 5/5 | Complete | 2026-03-18 |
 | 7. Deploy UX Improvements | v1.1 | 0/2 | In progress | - |
-| 8. Anonymous Key Management | v1.1 | 0/? | Not started | - |
+| 8. Anonymous Key Management | v1.1 | 0/2 | Not started | - |
 | 9. Site Management | v1.1 | 0/? | Not started | - |
