@@ -6,6 +6,7 @@
   export let blossomUrls = [];   // Blossom URLs that will be contacted
   export let blobCount = 0;      // Number of blobs to delete
   export let deleting = false;   // True while deletion is in progress
+  export let progress = null;    // {phase, completed, total, detail} — live progress during deletion
   export let results = null;     // Deletion results (set after completion)
   // results shape: { relayResults: [{relay, success, message}...], blossomResults: [{server, deleted, failed, errors}...] }
 
@@ -101,7 +102,29 @@
             <h2 class="text-lg font-semibold text-white">Deleting your nsite...</h2>
           </div>
 
-          <p class="text-slate-400 text-sm">Contacting servers...</p>
+          {#if progress}
+            <!-- Phase indicator -->
+            <p class="text-slate-300 text-sm mb-2">
+              {#if progress.phase === 'relays'}
+                Publishing to relays...
+              {:else if progress.phase === 'blobs'}
+                Deleting blobs...
+              {/if}
+            </p>
+
+            <!-- Progress bar -->
+            {#if progress.total > 0}
+              <div class="w-full bg-slate-700 rounded-full h-2 mb-2">
+                <div
+                  class="bg-red-500 h-2 rounded-full transition-all duration-200"
+                  style="width: {Math.round((progress.completed / progress.total) * 100)}%"
+                ></div>
+              </div>
+              <p class="text-xs text-slate-500">{progress.completed} / {progress.total}</p>
+            {/if}
+          {:else}
+            <p class="text-slate-400 text-sm">Preparing...</p>
+          {/if}
 
         {:else if results}
           <!-- State 3: Results -->

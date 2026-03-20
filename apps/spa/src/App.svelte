@@ -84,6 +84,7 @@
   let showDeleteConfirm = false;
   let deleteInProgress = false;
   let deleteResults = null;
+  let deleteProgress = null; // {completed, total, serverResults, relaysDone, phase}
 
   function giveUpServer(url) {
     givenUpServers.add(url);
@@ -279,18 +280,21 @@
     if (!currentSigner || !existingManifest) return;
     deleteInProgress = true;
     deleteResults = null;
+    deleteProgress = { phase: 'relays', completed: 0, total: 0 };
 
     try {
       const relays = deleteRelayUrls;
       const blossoms = deleteBlossomUrls_list;
 
       // 1. Publish empty manifest to all relays
+      deleteProgress = { phase: 'relays', completed: 0, total: relays.length, detail: 'Publishing empty manifest...' };
       const emptyResult = await publishEmptyManifest(currentSigner, relays);
 
       // 2. Publish kind 5 deletion event referencing the manifest event ID
+      deleteProgress = { phase: 'relays', completed: 0, total: relays.length, detail: 'Publishing deletion event...' };
       const deletionResult = await publishDeletionEvent(currentSigner, existingManifest.id, relays);
 
-      // Merge relay results (combine empty manifest + deletion event results)
+      // Merge relay results
       const relayResults = emptyResult.results.map((r, i) => ({
         relay: r.relay,
         success: r.success,
@@ -308,7 +312,10 @@
 
       let blossomResults = [];
       if (sha256List.length > 0) {
-        const blobResult = await deleteBlobs(currentSigner, sha256List, blossoms);
+        deleteProgress = { phase: 'blobs', completed: 0, total: sha256List.length * blossoms.length, detail: 'Deleting blobs...' };
+        const blobResult = await deleteBlobs(currentSigner, sha256List, blossoms, (p) => {
+          deleteProgress = { phase: 'blobs', completed: p.completed, total: p.total, detail: `Deleting blobs... ${p.completed}/${p.total}` };
+        });
         blossomResults = blobResult.results;
       }
 
@@ -324,6 +331,7 @@
       };
     } finally {
       deleteInProgress = false;
+      deleteProgress = null;
     }
   }
 
@@ -885,6 +893,7 @@
     blossomUrls={deleteBlossomUrls_list}
     blobCount={deleteBlobCount}
     deleting={deleteInProgress}
+    progress={deleteProgress}
     results={deleteResults}
     on:confirm={handleDeleteSite}
     on:close={() => { showDeleteConfirm = false; deleteResults = null; }}

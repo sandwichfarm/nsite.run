@@ -356,17 +356,18 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
  * @param {(progress: { server: string, completed: number, total: number, successes: number, failures: number }) => void} [onProgress]
  * @returns {Promise<{ results: { server: string, deleted: number, failed: number, errors: string[] }[] }>}
  */
+const DELETE_CONCURRENCY = 5;
+
 export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
   if (sha256List.length === 0) return { results: [] };
 
-  const allResults = [];
+  const totalOps = sha256List.length * blossomUrls.length;
+  let completedOps = 0;
 
+  // Pre-sign auth headers for all servers (batched)
+  const AUTH_BATCH_SIZE = 50;
+  const perServerAuth = new Map();
   for (const url of blossomUrls) {
-    const base = url.replace(/\/$/, '');
-    const serverResult = { server: url, deleted: 0, failed: 0, errors: [] };
-
-    // Sign auth for all hashes in one batch for this server
-    const AUTH_BATCH_SIZE = 50;
     const authHeaders = new Map();
     for (let i = 0; i < sha256List.length; i += AUTH_BATCH_SIZE) {
       const batch = sha256List.slice(i, i + AUTH_BATCH_SIZE);
@@ -377,42 +378,54 @@ export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
         authHeaders.set(hash, header);
       }
     }
-
-    for (let i = 0; i < sha256List.length; i++) {
-      const hash = sha256List[i];
-      try {
-        const resp = await fetch(`${base}/${hash}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: authHeaders.get(hash),
-          },
-        });
-        if (resp.ok || resp.status === 404) {
-          // 404 is fine — blob already gone
-          serverResult.deleted++;
-        } else {
-          const body = await resp.text().catch(() => '');
-          serverResult.failed++;
-          serverResult.errors.push(`${hash.slice(0, 8)}...: HTTP ${resp.status} ${body}`.trim());
-        }
-      } catch (err) {
-        serverResult.failed++;
-        serverResult.errors.push(`${hash.slice(0, 8)}...: ${err?.message ?? String(err)}`);
-      }
-
-      if (onProgress) {
-        onProgress({
-          server: url,
-          completed: i + 1,
-          total: sha256List.length,
-          successes: serverResult.deleted,
-          failures: serverResult.failed,
-        });
-      }
-    }
-
-    allResults.push(serverResult);
+    perServerAuth.set(url, authHeaders);
   }
 
-  return { results: allResults };
+  // Build flat work queue: [{server, hash}, ...]
+  const workItems = [];
+  for (const url of blossomUrls) {
+    for (const hash of sha256List) {
+      workItems.push({ url, hash });
+    }
+  }
+
+  // Track per-server results
+  const serverResults = new Map();
+  for (const url of blossomUrls) {
+    serverResults.set(url, { server: url, deleted: 0, failed: 0, errors: [] });
+  }
+
+  // Execute with concurrency
+  await parallelMap(workItems, DELETE_CONCURRENCY, async ({ url, hash }) => {
+    const base = url.replace(/\/$/, '');
+    const result = serverResults.get(url);
+    const authHeaders = perServerAuth.get(url);
+    try {
+      const resp = await fetch(`${base}/${hash}`, {
+        method: 'DELETE',
+        headers: { Authorization: authHeaders.get(hash) },
+      });
+      if (resp.ok || resp.status === 404) {
+        result.deleted++;
+      } else {
+        const body = await resp.text().catch(() => '');
+        result.failed++;
+        result.errors.push(`${hash.slice(0, 8)}...: HTTP ${resp.status} ${body}`.trim());
+      }
+    } catch (err) {
+      result.failed++;
+      result.errors.push(`${hash.slice(0, 8)}...: ${err?.message ?? String(err)}`);
+    }
+
+    completedOps++;
+    if (onProgress) {
+      onProgress({
+        completed: completedOps,
+        total: totalOps,
+        serverResults: Object.fromEntries(serverResults),
+      });
+    }
+  });
+
+  return { results: [...serverResults.values()] };
 }
