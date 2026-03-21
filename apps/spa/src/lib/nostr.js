@@ -351,3 +351,104 @@ export async function fetchExistingManifest(pubkey, relays) {
   allEvents.sort((a, b) => b.created_at - a.created_at);
   return allEvents[0];
 }
+
+/**
+ * Returns true if the manifest event has zero path tags (empty/deleted manifest).
+ * @param {object} event - Nostr event
+ * @returns {boolean}
+ */
+function isEmptyManifest(event) {
+  return !event.tags.some(t => t[0] === 'path');
+}
+
+/**
+ * Fetches all manifests (root kind 15128 and named kind 35128) for a pubkey.
+ * Queries all relays in parallel with two filters simultaneously.
+ * Deduplicates by event ID, filters out empty manifests.
+ *
+ * @param {string} pubkey - User's hex pubkey
+ * @param {string[]} relays - Relay URLs to query
+ * @returns {Promise<{ root: object|null, named: object[] }>}
+ *   root: the most recent non-empty kind 15128 manifest, or null
+ *   named: array of most-recent-per-dTag non-empty kind 35128 manifests, sorted by created_at descending
+ */
+export async function fetchAllManifests(pubkey, relays) {
+  const rootFilter = { kinds: [15128], authors: [pubkey], limit: 1 };
+  const namedFilter = { kinds: [35128], authors: [pubkey] };
+
+  const seen = new Set();
+  const rootEvents = [];
+  const namedEvents = [];
+
+  // Query all relays for both filters in parallel
+  const queryPromises = relays.flatMap(relay => [
+    queryRelay(relay, rootFilter),
+    queryRelay(relay, namedFilter),
+  ]);
+
+  const results = await Promise.allSettled(queryPromises);
+
+  // Results are interleaved: [relay0-root, relay0-named, relay1-root, relay1-named, ...]
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    if (result.status !== 'fulfilled') continue;
+    // Even indices = root filter results, odd indices = named filter results
+    const isRootResult = i % 2 === 0;
+    for (const event of result.value) {
+      if (seen.has(event.id)) continue;
+      seen.add(event.id);
+      if (isRootResult) {
+        rootEvents.push(event);
+      } else {
+        namedEvents.push(event);
+      }
+    }
+  }
+
+  // Root: pick the most recent non-empty event
+  rootEvents.sort((a, b) => b.created_at - a.created_at);
+  const rootManifest = rootEvents.find(e => !isEmptyManifest(e)) ?? null;
+
+  // Named: group by d-tag, keep most recent per d-tag, filter empty, sort by created_at desc
+  const byDTag = new Map();
+  for (const event of namedEvents) {
+    const dTag = getManifestDTag(event);
+    if (!dTag) continue;
+    const existing = byDTag.get(dTag);
+    if (!existing || event.created_at > existing.created_at) {
+      byDTag.set(dTag, event);
+    }
+  }
+  const namedManifests = [...byDTag.values()]
+    .filter(e => !isEmptyManifest(e))
+    .sort((a, b) => b.created_at - a.created_at);
+
+  return { root: rootManifest, named: namedManifests };
+}
+
+/**
+ * Extracts the d-tag value from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string|null}
+ */
+export function getManifestDTag(event) {
+  return event.tags.find(t => t[0] === 'd')?.[1] || null;
+}
+
+/**
+ * Extracts the title from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string} Empty string if no title tag present
+ */
+export function getManifestTitle(event) {
+  return event.tags.find(t => t[0] === 'title')?.[1] || '';
+}
+
+/**
+ * Extracts the description from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string} Empty string if no description tag present
+ */
+export function getManifestDescription(event) {
+  return event.tags.find(t => t[0] === 'description')?.[1] || '';
+}
