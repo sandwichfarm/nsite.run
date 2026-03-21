@@ -49,12 +49,12 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 - [x] Gateway parses named site subdomains using base36 encoding (pubkeyB36 + dTag in single label) — v1.2 Phase 10
 - [x] Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag — v1.2 Phase 10
 - [x] Gateway removes old double-wildcard named site format — v1.2 Phase 10
-- [ ] User can choose root site (15128) or named site (35128) in deploy flow
-- [ ] User provides dTag identifier when deploying named site
-- [ ] Named site manifest published as kind 35128 with d tag
-- [ ] User can set title for their site (title tag on manifest)
-- [ ] User can set description for their site (description tag on manifest)
-- [ ] Manage tab shows all user's sites (root + named) with switching
+- [x] User can choose root site (15128) or named site (35128) in deploy flow — v1.2 Phase 11
+- [x] User provides dTag identifier when deploying named site — v1.2 Phase 11
+- [x] Named site manifest published as kind 35128 with d tag — v1.2 Phase 11
+- [x] User can set title for their site (title tag on manifest) — v1.2 Phase 11
+- [x] User can set description for their site (description tag on manifest) — v1.2 Phase 11
+- [x] Manage tab shows all user's sites (root + named) with switching — v1.2 Phase 11
 
 ## Current Milestone: v1.2 Named Sites
 
