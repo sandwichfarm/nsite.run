@@ -14,11 +14,17 @@
     fetchBlossomList,
     fetchProfile,
     fetchExistingManifest,
+    fetchAllManifests,
+    getManifestDTag,
+    getManifestTitle,
+    getManifestDescription,
   } from './lib/nostr.js';
   import { npubEncode } from 'nostr-tools/nip19';
   import { hashFile } from './lib/crypto.js';
   import { checkExistence, uploadBlobs } from './lib/upload.js';
   import { publishManifest } from './lib/publish.js';
+  import { base36Encode } from './lib/base36.js';
+  import { hexToBytes } from 'nostr-tools/utils';
 
   import Navbar from './components/Navbar.svelte';
   import DeployZone from './components/DeployZone.svelte';
@@ -48,6 +54,18 @@
 
   // Deploy options
   let spaFallback = false;
+
+  // Named site state
+  let siteType = 'root'; // 'root' | 'named'
+  let dTag = '';
+  let dTagError = '';
+  let dTagReadOnly = false;
+  let deployTitle = '';
+  let deployDescription = '';
+
+  // Multi-site data from fetchAllManifests
+  let allSites = { root: null, named: [] };
+  let sitesLoading = false;
 
   // Current signer (not persisted — lost on reload)
   let currentSigner = null;
@@ -163,6 +181,11 @@
   // ---------------------------------------------------------------------------
 
   $: step = $deployState.step;
+  $: dTagValid = siteType === 'root' || /^[a-z0-9]{1,13}$/.test(dTag);
+  $: dTagError = siteType === 'named' && dTag.length > 0 && !dTagValid
+    ? 'Only lowercase letters and numbers, 1-13 characters'
+    : '';
+  $: canDeploy = siteType === 'root' || (dTag.length > 0 && dTagValid);
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
   $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
   $: userExcludedCount = excludedFiles.size;
@@ -217,6 +240,12 @@
     fileListExpanded = false;
     excludedSummaryExpanded = false;
     spaFallback = false;
+    siteType = 'root';
+    dTag = '';
+    dTagError = '';
+    dTagReadOnly = false;
+    deployTitle = '';
+    deployDescription = '';
     currentSigner = null;
     deployNsec = null;
     deployEvent = null;
@@ -263,19 +292,19 @@
   }
 
   async function fetchSiteInfo(pubkey) {
+    sitesLoading = true;
     siteInfoLoading = true;
     try {
       const relayList = [...new Set([NSITE_RELAY, ...userRelays, ...(userRelays.length === 0 ? DEFAULT_RELAYS : [])])];
-      const result = await fetchExistingManifest(pubkey, relayList);
-      // Treat empty manifest (0 path tags) as "no site" — this is the deleted state
-      if (result && result.tags.filter(t => t[0] === 'path').length === 0) {
-        existingManifest = null;
-      } else {
-        existingManifest = result;
-      }
+      const result = await fetchAllManifests(pubkey, relayList);
+      allSites = result;
+      // Backward compat: keep existingManifest as root for remaining derived values
+      existingManifest = result.root;
     } catch {
+      allSites = { root: null, named: [] };
       existingManifest = null;
     } finally {
+      sitesLoading = false;
       siteInfoLoading = false;
     }
   }
@@ -404,7 +433,13 @@
       let relayUrls = [...new Set([NSITE_RELAY, ...cfg.extraRelays, ...userRelays])];
 
       const activeBlossomUrls = blossomUrls.filter(u => !givenUpServers.has(u));
-      publishResult = await publishManifest(currentSigner, hashedFiles, activeBlossomUrls, relayUrls, spaFallback);
+      publishResult = await publishManifest(currentSigner, hashedFiles, activeBlossomUrls, relayUrls, {
+        spaFallback,
+        kind: siteType === 'named' ? 35128 : 15128,
+        dTag: siteType === 'named' ? dTag : undefined,
+        title: deployTitle || undefined,
+        description: deployDescription || undefined,
+      });
       deployEvent = publishResult?.event ?? null;
 
       // Warn about partial relay failures (some accepted, some rejected)
@@ -425,6 +460,11 @@
       progressDetails = '';
       // Update existingManifest so ManageSite reflects the latest deploy when user resets
       existingManifest = deployEvent;
+      // Also refresh allSites if we have a session pubkey
+      const postDeploySess = get(session);
+      if (postDeploySess.pubkey) {
+        fetchSiteInfo(postDeploySess.pubkey);
+      }
 
     } catch (err) {
       errorMessage = err?.message ?? 'An unexpected error occurred.';
@@ -478,7 +518,7 @@
 
         <div class="w-full max-w-2xl">
           <!-- Tabs (only show when manage tab is available) -->
-          {#if existingManifest && $session.pubkey}
+          {#if (allSites.root || allSites.named.length > 0) && $session.pubkey}
             <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
               <button
                 on:click={() => (currentPage = 'deploy')}
@@ -498,18 +538,32 @@
           {/if}
 
           <!-- Tab content -->
-          {#if currentPage === 'manage' && existingManifest}
+          {#if currentPage === 'manage'}
             <ManageSite
-              siteUrl={existingSiteUrl}
-              publishDate={existingPublishDate}
-              fileCount={existingFileCount}
+              sites={allSites}
+              pubkey={$session.pubkey}
               relayUrls={deleteRelayUrls}
               blossomUrls={deleteBlossomUrls_list}
-              blobCount={deleteBlobCount}
               signer={currentSigner}
-              manifest={existingManifest}
-              on:update={() => { currentPage = 'deploy'; resetForUpdate(); }}
-              on:deleted={() => { existingManifest = null; currentPage = 'deploy'; }}
+              on:update={(e) => {
+                const site = e.detail;
+                currentPage = 'deploy';
+                if (site.kind === 35128) {
+                  siteType = 'named';
+                  dTag = getManifestDTag(site) || '';
+                  dTagReadOnly = true;
+                } else {
+                  siteType = 'root';
+                  dTag = '';
+                  dTagReadOnly = false;
+                }
+                deployTitle = getManifestTitle(site);
+                deployDescription = getManifestDescription(site);
+                resetForUpdate();
+              }}
+              on:deleted={() => {
+                fetchSiteInfo($session.pubkey);
+              }}
             />
           {:else}
             <DeployZone on:files-selected={handleFilesSelected} />
@@ -756,7 +810,88 @@
         {/if}
 
         <!-- Deploy options -->
-        <div class="mt-4 space-y-3">
+        <div class="mt-4 space-y-4">
+          <!-- Root/Named site selector -->
+          <div>
+            <p class="text-sm font-medium text-slate-300 mb-2">Site type</p>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="siteType"
+                  value="root"
+                  bind:group={siteType}
+                  class="w-4 h-4 border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
+                />
+                <span class="text-sm text-slate-300">Root site</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="siteType"
+                  value="named"
+                  bind:group={siteType}
+                  class="w-4 h-4 border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
+                />
+                <span class="text-sm text-slate-300">Named site</span>
+              </label>
+            </div>
+
+            {#if siteType === 'named'}
+              <div class="mt-3">
+                <label class="block text-sm text-slate-400 mb-1" for="dTagInput">
+                  Site identifier (dTag)
+                  {#if dTagReadOnly}
+                    <span class="text-slate-500 text-xs ml-1">— cannot be changed on update</span>
+                  {/if}
+                </label>
+                <input
+                  id="dTagInput"
+                  type="text"
+                  value={dTag}
+                  on:input={(e) => {
+                    dTag = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    e.target.value = dTag;
+                  }}
+                  placeholder="e.g. blog, portfolio, docs"
+                  readonly={dTagReadOnly}
+                  class="w-full px-3 py-2 rounded-lg bg-slate-700 text-white text-sm placeholder-slate-500 border transition-colors
+                    {dTagError ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-purple-500'}
+                    {dTagReadOnly ? 'opacity-60 cursor-not-allowed' : ''}
+                    focus:outline-none focus:ring-1"
+                />
+                {#if dTagError}
+                  <p class="text-xs text-red-400 mt-1">{dTagError}</p>
+                {/if}
+              </div>
+            {/if}
+          </div>
+
+          <!-- Title input (always visible) -->
+          <div>
+            <label class="block text-sm text-slate-400 mb-1" for="deployTitle">Title (optional)</label>
+            <input
+              id="deployTitle"
+              type="text"
+              bind:value={deployTitle}
+              placeholder="My Awesome Site"
+              class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+          </div>
+
+          <!-- Description input (always visible) -->
+          <div>
+            <label class="block text-sm text-slate-400 mb-1" for="deployDescription">Description (optional)</label>
+            <textarea
+              id="deployDescription"
+              bind:value={deployDescription}
+              placeholder="A brief description of your site"
+              rows="2"
+              class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+            ></textarea>
+          </div>
+
+          <!-- SPA fallback checkbox -->
           <label class="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -778,7 +913,9 @@
         <div class="mt-6">
           <button
             on:click={handleDeploy}
-            class="w-full py-3 px-6 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold text-lg transition-colors"
+            disabled={!canDeploy}
+            class="w-full py-3 px-6 bg-purple-600 text-white rounded-lg font-semibold text-lg transition-colors
+              {canDeploy ? 'hover:bg-purple-500' : 'opacity-50 cursor-not-allowed'}"
           >
             {$session.pubkey ? 'Deploy' : 'Deploy Anonymously'}
           </button>
