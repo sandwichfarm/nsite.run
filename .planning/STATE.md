@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
-status: in-progress
-stopped_at: "Completed 11-01-PLAN.md"
-last_updated: "2026-03-21T10:45:00.000Z"
+status: unknown
+stopped_at: "Checkpoint 11-02 Task 3: visual verification"
+last_updated: "2026-03-21T09:52:18.068Z"
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -42,6 +42,9 @@ Recent decisions affecting current work:
 - [Phase 11-01]: buildManifest backward compat: boolean third arg detected via typeof and wrapped as { spaFallback } — existing App.svelte callers unchanged during transition
 - [Phase 11-01]: fetchAllManifests uses interleaved flatMap query (even=root, odd=named) — single Promise.allSettled covers all relays and both kinds
 - [Phase 11-01]: Empty manifest detection: absence of path tags (not kind-based) — consistent for both 15128 and 35128
+- [Phase 11]: Tab visibility uses allSites.root || allSites.named.length > 0 — shows Manage tab for named-only users
+- [Phase 11]: ManageSite dispatch('update', site) passes full manifest event — App.svelte extracts kind/dTag/title/description
+- [Phase 11]: Svelte 3 @const restriction: used reactive deletingBlobCount instead of inline const in template
 
 ### Pending Todos
 
@@ -53,6 +56,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T10:45:00.000Z
-Stopped at: Completed 11-01-PLAN.md
-Resume file: .planning/phases/11-spa-named-site-support/11-02-PLAN.md
+Last session: 2026-03-21T09:52:17.982Z
+Stopped at: Checkpoint 11-02 Task 3: visual verification
+Resume file: None

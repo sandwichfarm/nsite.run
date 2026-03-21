@@ -15,8 +15,8 @@ Requirements for v1.2 Named Sites release. Each maps to roadmap phases.
 
 ### SPA Deploy
 
-- [ ] **SPA-14**: User can choose between deploying a root site (kind 15128) or a named site (kind 35128) in the deploy flow
-- [ ] **SPA-15**: When deploying a named site, user provides a dTag identifier validated as `^[a-z0-9]{1,13}$`
+- [x] **SPA-14**: User can choose between deploying a root site (kind 15128) or a named site (kind 35128) in the deploy flow
+- [x] **SPA-15**: When deploying a named site, user provides a dTag identifier validated as `^[a-z0-9]{1,13}$`
 - [x] **SPA-16**: Named site manifest is published as kind 35128 with the dTag as `d` tag
 
 ### SPA Metadata
@@ -26,7 +26,7 @@ Requirements for v1.2 Named Sites release. Each maps to roadmap phases.
 
 ### SPA Management
 
-- [ ] **SPA-19**: Manage tab shows all user's sites (root + named) with ability to switch between them for update/delete
+- [x] **SPA-19**: Manage tab shows all user's sites (root + named) with ability to switch between them for update/delete
 
 ## Future Requirements
 
@@ -61,12 +61,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GATE-13 | Phase 10 | Complete |
 | GATE-14 | Phase 10 | Complete |
 | GATE-15 | Phase 10 | Complete |
-| SPA-14 | Phase 11 | Pending |
-| SPA-15 | Phase 11 | Pending |
+| SPA-14 | Phase 11 | Complete |
+| SPA-15 | Phase 11 | Complete |
 | SPA-16 | Phase 11 | Complete |
 | SPA-17 | Phase 11 | Complete |
 | SPA-18 | Phase 11 | Complete |
-| SPA-19 | Phase 11 | Pending |
+| SPA-19 | Phase 11 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 9 total
