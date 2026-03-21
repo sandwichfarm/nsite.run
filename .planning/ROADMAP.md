@@ -63,7 +63,7 @@ Plans:
   3. A successful named site deploy publishes a kind 35128 event with the correct `d` tag
   4. User can add a title and description that appear as tags on the published manifest event (both root and named sites)
   5. The Manage tab lists all user sites (root kind 15128 and named kind 35128) and allows switching the active site for update or delete operations
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 11-01-PLAN.md — Data layer: publish.js named site/metadata params, nostr.js multi-manifest fetch, base36.js utility
@@ -83,4 +83,4 @@ Plans:
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 10. Gateway Named Site Encoding | v1.2 | 2/2 | Complete | 2026-03-21 |
-| 11. SPA Named Site Support | v1.2 | 0/2 | Not started | - |
+| 11. SPA Named Site Support | 1/2 | In Progress|  | - |
