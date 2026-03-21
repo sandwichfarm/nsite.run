@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-21"
-last_activity: "2026-03-21 — Roadmap created for v1.2, phases 10-11 defined"
+status: planning
+stopped_at: Phase 10 context gathered
+last_updated: "2026-03-21T08:48:23.250Z"
+last_activity: 2026-03-21 — Roadmap created for v1.2
 progress:
   total_phases: 2
   completed_phases: 0
@@ -39,6 +39,7 @@ Progress: [░░░░░░░░░░] 0%
 See PROJECT.md Key Decisions table for full list with outcomes.
 
 Recent decisions affecting current work:
+
 - Base36 named site encoding chosen because SSL certs can't do double wildcards (`*.*.nsite.run`); single-label `<pubkeyB36><dTag>` fits `*.nsite.run` cert
 
 ### Pending Todos
@@ -51,6 +52,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21
-Stopped at: Roadmap created — ready to plan Phase 10
-Resume file: None
+Last session: 2026-03-21T08:48:23.248Z
+Stopped at: Phase 10 context gathered
+Resume file: .planning/phases/10-gateway-named-site-encoding/10-CONTEXT.md
