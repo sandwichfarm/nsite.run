@@ -9,7 +9,7 @@ Requirements for v1.2 Named Sites release. Each maps to roadmap phases.
 
 ### Gateway
 
-- [ ] **GATE-13**: Gateway parses named site subdomains using base36 encoding — single label `<pubkeyB36><dTag>` where pubkeyB36 is 50 chars and dTag is 1-13 chars of `[a-z0-9]`
+- [x] **GATE-13**: Gateway parses named site subdomains using base36 encoding — single label `<pubkeyB36><dTag>` where pubkeyB36 is 50 chars and dTag is 1-13 chars of `[a-z0-9]`
 - [ ] **GATE-14**: Gateway resolves named site manifests by querying kind 35128 with decoded pubkey and `#d` filter for the extracted dTag
 - [ ] **GATE-15**: Gateway removes old double-wildcard named site format (`identifier.npub1xxx.nsite.run`) — replaced by new single-label encoding
 
@@ -58,7 +58,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GATE-13 | Phase 10 | Pending |
+| GATE-13 | Phase 10 | Complete |
 | GATE-14 | Phase 10 | Pending |
 | GATE-15 | Phase 10 | Pending |
 | SPA-14 | Phase 11 | Pending |

@@ -47,7 +47,7 @@
   2. The gateway correctly decodes the first 50 chars of the subdomain label as a base36 pubkey and the remainder as the dTag
   3. Named site manifest is fetched as kind 35128 using the decoded pubkey and dTag as the `#d` filter
   4. Requests to the old `identifier.npub1xxx.nsite.run` format no longer match a named site route
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 10-01-PLAN.md — Base36 codec in shared package (TDD)
@@ -78,5 +78,5 @@ Plans:
 | 7. Deploy UX Improvements | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 10. Gateway Named Site Encoding | v1.2 | 0/2 | Planning | - |
+| 10. Gateway Named Site Encoding | 1/2 | In Progress|  | - |
 | 11. SPA Named Site Support | v1.2 | 0/TBD | Not started | - |

@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
-status: planning
-stopped_at: Phase 10 context gathered
-last_updated: "2026-03-21T08:48:23.250Z"
-last_activity: 2026-03-21 — Roadmap created for v1.2
+status: in-progress
+stopped_at: "Completed 10-01-PLAN.md"
+last_updated: "2026-03-21T08:59:29Z"
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** v1.2 Named Sites — Phase 10: Gateway Named Site Encoding
+**Current focus:** Phase 10 — gateway-named-site-encoding
 
 ## Current Position
 
-Phase: 10 of 11 (Gateway Named Site Encoding)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-21 — Roadmap created for v1.2
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 10 (gateway-named-site-encoding) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -41,6 +35,8 @@ See PROJECT.md Key Decisions table for full list with outcomes.
 Recent decisions affecting current work:
 
 - Base36 named site encoding chosen because SSL certs can't do double wildcards (`*.*.nsite.run`); single-label `<pubkeyB36><dTag>` fits `*.nsite.run` cert
+- Hand-rolled BigInt base36 codec in packages/shared — no external library needed (~55 lines)
+- Decode validates with regex /^[a-z0-9]{50}$/ before any math for fast-fail on bad inputs
 
 ### Pending Todos
 
@@ -52,6 +48,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:48:23.248Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-gateway-named-site-encoding/10-CONTEXT.md
+Last session: 2026-03-21T08:59:29Z
+Stopped at: Completed 10-01-PLAN.md
+Resume file: .planning/phases/10-gateway-named-site-encoding/10-02-PLAN.md
