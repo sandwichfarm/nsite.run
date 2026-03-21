@@ -31,6 +31,7 @@
 
   // Which card is expanded
   let expandedSiteId = null;
+  let copiedSiteId = null;
 
   // Step pill definitions for deletion
   const DELETE_STEPS = [
@@ -242,7 +243,7 @@
       <div class="space-y-3">
         {#each siteList as site (site.id)}
           <div class="bg-slate-800 rounded-lg overflow-hidden">
-            <!-- Card header: always visible, clickable to expand -->
+            <!-- Card header: clickable to expand -->
             <button
               on:click={() => toggleExpand(site.id)}
               class="w-full p-4 text-left flex items-center gap-3 hover:bg-slate-700/50 transition-colors"
@@ -252,8 +253,7 @@
                 {site.kind === 35128 ? 'bg-blue-900/50 text-blue-300' : 'bg-purple-900/50 text-purple-300'}">
                 {siteLabel(site)}
               </span>
-              <!-- URL -->
-              <span class="font-mono text-sm text-slate-300 truncate flex-1">{siteUrl(site)}</span>
+              <span class="flex-1"></span>
               <!-- Expand chevron -->
               <svg
                 class="w-4 h-4 text-slate-400 transition-transform flex-shrink-0 {expandedSiteId === site.id ? 'rotate-180' : ''}"
@@ -267,9 +267,22 @@
 
             <!-- Expanded section -->
             {#if expandedSiteId === site.id}
+              {@const url = siteUrl(site)}
               <div class="px-4 pb-4 border-t border-slate-700">
+                <!-- URL with copy button -->
+                <div class="flex items-center gap-2 mt-3 mb-3">
+                  <a href={url} target="_blank" rel="noopener noreferrer"
+                    class="font-mono text-sm text-purple-400 hover:text-purple-300 break-all flex-1 transition-colors"
+                  >{url}</a>
+                  <button
+                    on:click={() => { navigator.clipboard.writeText(url); copiedSiteId = site.id; setTimeout(() => { copiedSiteId = null; }, 2000); }}
+                    class="flex-shrink-0 px-2 py-1 text-xs rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+                  >
+                    {copiedSiteId === site.id ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
                 <!-- Stats row -->
-                <div class="flex flex-wrap gap-4 text-sm text-slate-400 mt-3 mb-4">
+                <div class="flex flex-wrap gap-4 text-sm text-slate-400 mb-4">
                   <span class="flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
