@@ -50,8 +50,8 @@
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 10-01-PLAN.md — Base36 codec in shared package (TDD)
-- [ ] 10-02-PLAN.md — Hostname parser rewrite + resolver adjustment
+- [x] 10-01-PLAN.md — Base36 codec in shared package (TDD)
+- [x] 10-02-PLAN.md — Hostname parser rewrite + resolver adjustment
 
 ### Phase 11: SPA Named Site Support
 **Goal**: Users can deploy named sites with a dTag and optional title/description, and can view and switch between all their sites (root and named) in the Manage tab
@@ -63,7 +63,11 @@ Plans:
   3. A successful named site deploy publishes a kind 35128 event with the correct `d` tag
   4. User can add a title and description that appear as tags on the published manifest event (both root and named sites)
   5. The Manage tab lists all user sites (root kind 15128 and named kind 35128) and allows switching the active site for update or delete operations
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Data layer: publish.js named site/metadata params, nostr.js multi-manifest fetch, base36.js utility
+- [ ] 11-02-PLAN.md — UI layer: deploy flow root/named selector with dTag/metadata, ManageSite multi-site card list
 
 ## Progress
 
@@ -78,5 +82,5 @@ Plans:
 | 7. Deploy UX Improvements | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 10. Gateway Named Site Encoding | 2/2 | Complete    | 2026-03-21 | - |
-| 11. SPA Named Site Support | v1.2 | 0/TBD | Not started | - |
+| 10. Gateway Named Site Encoding | v1.2 | 2/2 | Complete | 2026-03-21 |
+| 11. SPA Named Site Support | v1.2 | 0/2 | Not started | - |
