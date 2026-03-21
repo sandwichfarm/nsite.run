@@ -82,6 +82,7 @@
   let deleteError = '';
 
   async function handleConfirmDelete() {
+    if (deleteState === 'deleting') return; // prevent double-trigger
     if (!signer) {
       deleteError = 'No signer available. Please log in again.';
       return;
@@ -100,16 +101,22 @@
     try {
       const relays = relayUrls;
       const blossoms = blossomUrls;
+      console.log('[delete] signer:', !!signer, 'manifest.id:', manifest?.id);
+      console.log('[delete] relays:', relays.length, 'blossoms:', blossoms.length, 'path tags:', manifest?.tags?.filter(t => t[0] === 'path')?.length);
 
       // 1. Publish empty manifest to all relays
+      console.log('[delete] step 1: publishing empty manifest...');
       relayDetails = 'Publishing empty manifest...';
       relayProgress = 0;
       const emptyResult = await publishEmptyManifest(signer, relays);
+      console.log('[delete] step 1 done:', emptyResult.results.map(r => `${r.relay}: ${r.success}`));
       relayProgress = 50;
 
       // 2. Publish kind 5 deletion event
+      console.log('[delete] step 2: publishing deletion event...');
       relayDetails = 'Publishing deletion event...';
       const deletionResult = await publishDeletionEvent(signer, manifest.id, relays);
+      console.log('[delete] step 2 done:', deletionResult.results.map(r => `${r.relay}: ${r.success}`));
       relayProgress = 100;
 
       // Merge relay results
@@ -138,12 +145,16 @@
         blossomResults = blobResult.results;
       }
 
-      // Done
+      // Done — success
+      console.log('[delete] all steps complete');
       deleteStep = 'done';
+      deleteState = 'done';
       deleteResults = { relayResults, blossomResults };
 
     } catch (err) {
+      console.error('[delete] ERROR:', err);
       deleteStep = 'done';
+      deleteState = 'done';
       deleteResults = {
         relayResults: [{ relay: 'error', success: false, message: err?.message ?? 'Unexpected error' }],
         blossomResults: [],

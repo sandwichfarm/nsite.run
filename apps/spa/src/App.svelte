@@ -151,7 +151,8 @@
       // Restore signer for extension users (needed for manage page actions)
       if (sess.signerType === 'extension' && !currentSigner) {
         try {
-          currentSigner = await createExtensionSigner();
+          const ext = await createExtensionSigner();
+          currentSigner = ext.signer;
         } catch { /* extension not available — signer stays null */ }
       }
     }
