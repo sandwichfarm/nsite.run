@@ -2,14 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
-status: unknown
-stopped_at: "Checkpoint 11-02 Task 3: visual verification"
-last_updated: "2026-03-21T10:15:26.206Z"
+status: milestone_complete
+stopped_at: v1.2 milestone archived
+last_updated: "2026-03-21"
+last_activity: "2026-03-21 — v1.2 Named Sites milestone completed and archived"
 progress:
   total_phases: 2
   completed_phases: 2
   total_plans: 4
   completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -19,12 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** Phase 11 — spa-named-site-support
+**Current focus:** v1.2 shipped — planning next milestone
 
 ## Current Position
 
-Phase: 11 (spa-named-site-support) — EXECUTING
-Plan: 2 of 2
+Milestone: v1.2 Named Sites — COMPLETE (shipped 2026-03-21)
+Status: Between milestones
+Last activity: 2026-03-21 — v1.2 milestone archived
+
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -32,30 +37,16 @@ Plan: 2 of 2
 
 See PROJECT.md Key Decisions table for full list with outcomes.
 
-Recent decisions affecting current work:
-
-- Base36 named site encoding chosen because SSL certs can't do double wildcards (`*.*.nsite.run`); single-label `<pubkeyB36><dTag>` fits `*.nsite.run` cert
-- Hand-rolled BigInt base36 codec in packages/shared — no external library needed (~55 lines)
-- Decode validates with regex /^[a-z0-9]{50}$/ before any math for fast-fail on bad inputs
-- [Phase 10-gateway-named-site-encoding]: SitePointer.npub kept for backward compat — named sites set npub to empty string and populate pubkeyHex
-- [Phase 10-gateway-named-site-encoding]: parts.length === 3 enforces single-label subdomain; 4+ part hosts (old format) return null
-- [Phase 11-01]: buildManifest backward compat: boolean third arg detected via typeof and wrapped as { spaFallback } — existing App.svelte callers unchanged during transition
-- [Phase 11-01]: fetchAllManifests uses interleaved flatMap query (even=root, odd=named) — single Promise.allSettled covers all relays and both kinds
-- [Phase 11-01]: Empty manifest detection: absence of path tags (not kind-based) — consistent for both 15128 and 35128
-- [Phase 11]: Tab visibility uses allSites.root || allSites.named.length > 0 — shows Manage tab for named-only users
-- [Phase 11]: ManageSite dispatch('update', site) passes full manifest event — App.svelte extracts kind/dTag/title/description
-- [Phase 11]: Svelte 3 @const restriction: used reactive deletingBlobCount instead of inline const in template
-
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-- Base36 encoding spec was "pending" at v1.1 ship — now being implemented. If NIP changes after Phase 10, gateway will need a follow-up fix.
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:52:17.982Z
-Stopped at: Checkpoint 11-02 Task 3: visual verification
+Last session: 2026-03-21
+Stopped at: v1.2 milestone complete
 Resume file: None

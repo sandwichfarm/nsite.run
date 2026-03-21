@@ -1,5 +1,21 @@
 # Milestones
 
+## v1.2 Named Sites (Shipped: 2026-03-21)
+
+**Phases completed:** 2 phases, 4 plans, 2 tasks
+
+**Key accomplishments:**
+
+- Gateway: base36 single-label encoding for named site subdomains (50-char pubkey + 1-13 char dTag), replacing deprecated double-wildcard format
+- Shared package: hand-rolled base36 codec (encode/decode 32-byte pubkeys ↔ 50-char base36 strings)
+- SPA deploy: root/named site radio selector with inline dTag validation, title + description metadata fields on manifest events
+- SPA manage: multi-site card list showing root + all named sites, per-site Update (pre-fills form) and Delete (NIP-09 kind 5)
+- Manifest publishing: kind 35128 support with d tag, title/description tags, backward-compatible options object API
+
+**Stats:** 14,680 LOC (+1,042) | 8 feature commits | 9 requirements
+
+---
+
 ## v1.1 Feature Gaps (Shipped: 2026-03-20)
 
 **Phases completed:** 3 phases, 6 plans, 0 tasks

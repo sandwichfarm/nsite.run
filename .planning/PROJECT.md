@@ -46,24 +46,18 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-- [x] Gateway parses named site subdomains using base36 encoding (pubkeyB36 + dTag in single label) — v1.2 Phase 10
-- [x] Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag — v1.2 Phase 10
-- [x] Gateway removes old double-wildcard named site format — v1.2 Phase 10
-- [x] User can choose root site (15128) or named site (35128) in deploy flow — v1.2 Phase 11
-- [x] User provides dTag identifier when deploying named site — v1.2 Phase 11
-- [x] Named site manifest published as kind 35128 with d tag — v1.2 Phase 11
-- [x] User can set title for their site (title tag on manifest) — v1.2 Phase 11
-- [x] User can set description for their site (description tag on manifest) — v1.2 Phase 11
-- [x] Manage tab shows all user's sites (root + named) with switching — v1.2 Phase 11
+- ✓ Gateway parses named site subdomains using base36 encoding — v1.2
+- ✓ Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag — v1.2
+- ✓ Gateway removes old double-wildcard named site format — v1.2
+- ✓ User can choose root site (15128) or named site (35128) in deploy flow — v1.2
+- ✓ User provides dTag identifier when deploying named site — v1.2
+- ✓ Named site manifest published as kind 35128 with d tag — v1.2
+- ✓ User can set title and description for their site (manifest tags) — v1.2
+- ✓ Manage tab shows all user's sites (root + named) with switching — v1.2
 
-## Current Milestone: v1.2 Named Sites
+### Active
 
-**Goal:** Support the updated nsite spec's named site encoding scheme (base36 single-subdomain) in both gateway and SPA, add manifest metadata (title, description), and enable deploying/managing named sites from the web deployer.
-
-**Target features:**
-- Gateway: base36 named site subdomain parsing, remove old double-wildcard format
-- SPA deploy: root/named site selector, dTag input, title + description fields
-- SPA manage: list all user sites (root + named), switch between them
+(None — next milestone requirements defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -151,7 +145,8 @@ All traffic hits nsite.run. The gateway Edge Script acts as the primary router:
 | 120s symmetric auth window for blossom | Stricter than reference (blssm.us); rejects created_at >120s in past or future | ✓ Good — tighter security |
 
 ---
-| Base36 named site encoding | SSL certs can't do double wildcards; single subdomain label fits *.nsite.run cert | — Pending |
+| Base36 named site encoding | SSL certs can't do double wildcards; single subdomain label fits *.nsite.run cert | ✓ Good — 50-char pubkey + 1-13 char dTag |
+| Kind 5 only for deletion (no empty manifest) | Empty manifest creates lingering event; kind 5 tells relays to actually remove | ✓ Good — cleaner deletion |
 
 ---
-*Last updated: 2026-03-21 after v1.2 milestone start*
+*Last updated: 2026-03-21 after v1.2 milestone*

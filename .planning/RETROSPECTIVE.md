@@ -81,6 +81,40 @@
 
 ---
 
+## Milestone: v1.2 — Named Sites
+
+**Shipped:** 2026-03-21
+**Phases:** 2 | **Plans:** 4
+
+### What Was Built
+- Gateway: base36 single-label encoding for named site subdomains, replacing deprecated double-wildcard format
+- Shared package: hand-rolled base36 codec for 32-byte pubkey ↔ 50-char base36 conversion
+- SPA deploy: root/named site radio selector with inline dTag validation, title + description metadata
+- SPA manage: multi-site card list with per-site Update/Delete, base36-encoded URLs
+
+### What Worked
+- Clean horizontal split: data layer (Plan 01) then UI layer (Plan 02) — zero file overlap between plans
+- Base36 codec in shared package — reusable by both gateway (Deno) and SPA (JS port)
+- Spec-first approach: reading NIP PR #1538 upfront prevented rework
+
+### What Was Inefficient
+- SuccessPanel URL generation wasn't updated for named sites — caught by user testing, not verification
+- Empty manifest deletion approach (v1.1) created lingering events — had to switch to kind 5 only
+- Debug logging left in ManageSite.svelte from deletion fix — should be stripped before shipping
+
+### Patterns Established
+- Base36 encoding for named site subdomains: 50-char pubkey + 1-13 char dTag in single DNS label
+- Kind 5 deletion only (no empty manifest) — cleaner, relays actually remove the event
+- JS port of Deno shared utilities for SPA — small functions trivially ported, avoids cross-workspace imports
+- Optimistic local state update after deploy — relay refresh after 3s delay
+
+### Key Lessons
+1. Always test URL generation in ALL places it appears (SuccessPanel, ManageSite, etc.) — easy to miss one
+2. NIP-09 kind 5 deletion is more reliable than empty replaceable events — the empty event lingers
+3. Spec may use base32 but real-world adoption may prefer base36 — be ready to adapt encoding
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -89,6 +123,7 @@
 |-----------|--------|-------|------------|
 | v1.0 | 6 | 18 | Initial milestone — established patterns |
 | v1.1 | 3 | 6 | Issue-driven — all from GitHub feedback, zero research needed |
+| v1.2 | 2 | 4 | Spec-driven — NIP update required encoding change across gateway + SPA |
 
 ### Cumulative Quality
 
@@ -96,9 +131,11 @@
 |-----------|-------------|----------|
 | v1.0 | 58/58 | 100% |
 | v1.1 | 9/9 | 100% |
+| v1.2 | 9/9 | 100% |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Edge Script module independence (no cross-package imports) is a hard constraint — plan for it
 2. Port-from-reference is dramatically faster than greenfield for protocol implementations
 3. User feedback (GitHub issues) produces cleaner requirements than speculative planning — confirmed in v1.1
+4. Kind 5 deletion is more reliable than empty replaceable events — confirmed in v1.2
