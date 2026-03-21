@@ -46,7 +46,24 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+- [ ] Gateway parses named site subdomains using base36 encoding (pubkeyB36 + dTag in single label)
+- [ ] Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag
+- [ ] Gateway removes old double-wildcard named site format
+- [ ] User can choose root site (15128) or named site (35128) in deploy flow
+- [ ] User provides dTag identifier when deploying named site
+- [ ] Named site manifest published as kind 35128 with d tag
+- [ ] User can set title for their site (title tag on manifest)
+- [ ] User can set description for their site (description tag on manifest)
+- [ ] Manage tab shows all user's sites (root + named) with switching
+
+## Current Milestone: v1.2 Named Sites
+
+**Goal:** Support the updated nsite spec's named site encoding scheme (base36 single-subdomain) in both gateway and SPA, add manifest metadata (title, description), and enable deploying/managing named sites from the web deployer.
+
+**Target features:**
+- Gateway: base36 named site subdomain parsing, remove old double-wildcard format
+- SPA deploy: root/named site selector, dTag input, title + description fields
+- SPA manage: list all user sites (root + named), switch between them
 
 ### Out of Scope
 
@@ -81,7 +98,17 @@ Site manifests are nostr events:
 - Kind 35128: Named site manifest (addressable, d tag = identifier)
 - `path` tags map absolute paths to SHA-256 hashes
 - `server` tags hint at blossom servers
+- `title` tag: optional site title
+- `description` tag: optional site description
+- `source` tag: optional link to source code
 - Resolution: fetch user's 10002 relay list, query manifest, fetch blobs from manifest's server tags or user's 10063 blossom server list
+
+Named site subdomain encoding (updated spec):
+- Single subdomain label: `<pubkeyB36><dTag>` (no separator)
+- pubkeyB36: raw 32-byte pubkey, base36 lowercase (50 chars)
+- dTag: `^[a-z0-9]{1,13}$` (1-13 chars, total label max 63)
+- Detection: label length 51-63, all `[a-z0-9]`, first 50 chars decode to valid 32-byte pubkey
+- Old format (`identifier.npub1xxx.nsite.run`) deprecated — SSL certs can't do double wildcards
 
 ### Bunny Infrastructure
 
@@ -124,4 +151,7 @@ All traffic hits nsite.run. The gateway Edge Script acts as the primary router:
 | 120s symmetric auth window for blossom | Stricter than reference (blssm.us); rejects created_at >120s in past or future | ✓ Good — tighter security |
 
 ---
-*Last updated: 2026-03-20 after v1.1 milestone*
+| Base36 named site encoding | SSL certs can't do double wildcards; single subdomain label fits *.nsite.run cert | — Pending |
+
+---
+*Last updated: 2026-03-21 after v1.2 milestone start*
