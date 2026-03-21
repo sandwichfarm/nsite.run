@@ -364,21 +364,13 @@ export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
   const totalOps = sha256List.length * blossomUrls.length;
   let completedOps = 0;
 
-  // Pre-sign auth headers for all servers (batched)
-  const AUTH_BATCH_SIZE = 50;
-  const perServerAuth = new Map();
-  for (const url of blossomUrls) {
-    const authHeaders = new Map();
-    for (let i = 0; i < sha256List.length; i += AUTH_BATCH_SIZE) {
-      const batch = sha256List.slice(i, i + AUTH_BATCH_SIZE);
-      const template = buildAuthEvent(batch, 'delete');
-      const signed = await signer.signEvent(template);
-      const header = 'Nostr ' + btoa(JSON.stringify(signed));
-      for (const hash of batch) {
-        authHeaders.set(hash, header);
-      }
-    }
-    perServerAuth.set(url, authHeaders);
+  // Pre-sign auth headers: one auth event per hash (BUD-02 spec requires
+  // single x tag per delete — multiple x tags must NOT be interpreted as batch)
+  const perHashAuth = new Map();
+  for (const hash of sha256List) {
+    const template = buildAuthEvent(hash, 'delete');
+    const signed = await signer.signEvent(template);
+    perHashAuth.set(hash, 'Nostr ' + btoa(JSON.stringify(signed)));
   }
 
   // Build flat work queue: [{server, hash}, ...]
@@ -399,11 +391,10 @@ export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
   await parallelMap(workItems, DELETE_CONCURRENCY, async ({ url, hash }) => {
     const base = url.replace(/\/$/, '');
     const result = serverResults.get(url);
-    const authHeaders = perServerAuth.get(url);
     try {
       const resp = await fetch(`${base}/${hash}`, {
         method: 'DELETE',
-        headers: { Authorization: authHeaders.get(hash) },
+        headers: { Authorization: perHashAuth.get(hash) },
       });
       if (resp.ok || resp.status === 404) {
         result.deleted++;
