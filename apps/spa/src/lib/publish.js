@@ -1,12 +1,24 @@
 /**
- * Builds a kind 15128 site manifest event template (unsigned).
+ * Builds a site manifest event template (unsigned).
+ *
+ * Supports both root sites (kind 15128) and named sites (kind 35128 with dTag).
  *
  * @param {{ path: string, sha256: string }[]} files - List of files with path and sha256
  * @param {string[]} servers - Blossom server URLs for server hints
- * @param {boolean} spaFallback - If true and /index.html exists, adds /404.html path tag
+ * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string }} options
+ *   - If boolean (legacy), treated as `{ spaFallback: options }` for backward compatibility.
+ *   - spaFallback: If true and /index.html exists, adds /404.html path tag
+ *   - kind: Event kind, defaults to 15128. Use 35128 for named sites.
+ *   - dTag: Named site identifier. When provided, adds ['d', dTag] tag.
+ *   - title: Site title. When non-empty, adds ['title', title] tag.
+ *   - description: Site description. When non-empty, adds ['description', description] tag.
  * @returns {{ kind: number, created_at: number, tags: string[][], content: string }}
  */
-export function buildManifest(files, servers, spaFallback) {
+export function buildManifest(files, servers, options) {
+  // Backward compat: if options is a boolean, treat it as { spaFallback: options }
+  const opts = typeof options === 'boolean' ? { spaFallback: options } : (options ?? {});
+  const { spaFallback = false, kind = 15128, dTag, title, description } = opts;
+
   const pathTags = files.map((f) => ['path', f.path, f.sha256]);
 
   // SPA fallback: add /404.html pointing to index.html's sha256
@@ -19,10 +31,22 @@ export function buildManifest(files, servers, spaFallback) {
 
   const serverTags = servers.map((url) => ['server', url]);
 
+  // Optional metadata tags
+  const metaTags = [];
+  if (dTag) {
+    metaTags.push(['d', dTag]);
+  }
+  if (title) {
+    metaTags.push(['title', title]);
+  }
+  if (description) {
+    metaTags.push(['description', description]);
+  }
+
   return {
-    kind: 15128,
+    kind,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [...pathTags, ...serverTags, ['client', 'nsite.run']],
+    tags: [...pathTags, ...serverTags, ...metaTags, ['client', 'nsite.run']],
     content: '',
   };
 }
@@ -88,7 +112,9 @@ export function publishToRelay(signedEvent, relayUrl) {
  * @param {{ path: string, sha256: string }[]} files
  * @param {string[]} servers - Blossom server URLs
  * @param {string[]} relays - Relay WebSocket URLs to publish to
- * @param {boolean} spaFallback
+ * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string }} options
+ *   - Passed through to buildManifest. See buildManifest for full options documentation.
+ *   - If boolean (legacy), treated as { spaFallback: options } for backward compatibility.
  * @returns {Promise<{ event: object, results: { relay: string, success: boolean, message?: string }[] }>}
  */
 /**
@@ -99,8 +125,8 @@ export function publishToRelay(signedEvent, relayUrl) {
  * - Manifest accepted by ≥1 relay = success (partial relay failures are warnings, not errors)
  * - Manifest accepted by 0 relays = failure (throw with rejection messages)
  */
-export async function publishManifest(signer, files, servers, relays, spaFallback) {
-  const template = buildManifest(files, servers, spaFallback);
+export async function publishManifest(signer, files, servers, relays, options) {
+  const template = buildManifest(files, servers, options);
   const event = await signer.signEvent(template);
 
   // Also publish a kind 10002 relay list so the resolver can discover this user's relays.
@@ -139,18 +165,30 @@ export async function publishManifest(signer, files, servers, relays, spaFallbac
 }
 
 /**
- * Publishes an empty kind 15128 manifest to all relays, effectively "unpublishing" the site.
+ * Publishes an empty manifest to all relays, effectively "unpublishing" the site.
  * Uses replaceable event semantics — the empty manifest supersedes any previous manifest.
+ *
+ * For root sites (default): publishes kind 15128 with no path tags.
+ * For named sites: pass options.dTag to publish kind 35128 with ['d', dTag] tag.
  *
  * @param {{ signEvent: (template: object) => Promise<object> }} signer
  * @param {string[]} relays - Relay WebSocket URLs
+ * @param {{ dTag?: string }} [options] - Optional. When dTag provided, publishes kind 35128 for named site deletion.
  * @returns {Promise<{ event: object, results: { relay: string, success: boolean, message?: string }[] }>}
  */
-export async function publishEmptyManifest(signer, relays) {
+export async function publishEmptyManifest(signer, relays, options) {
+  const { dTag } = options ?? {};
+  const kind = dTag ? 35128 : 15128;
+
+  const tags = [['client', 'nsite.run']];
+  if (dTag) {
+    tags.unshift(['d', dTag]);
+  }
+
   const template = {
-    kind: 15128,
+    kind,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [['client', 'nsite.run']],
+    tags,
     content: '',
   };
   const event = await signer.signEvent(template);
