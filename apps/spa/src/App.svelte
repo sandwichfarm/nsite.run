@@ -458,12 +458,30 @@
 
       deployState.update((s) => ({ ...s, step: 'success', progress: 100 }));
       progressDetails = '';
-      // Update existingManifest so ManageSite reflects the latest deploy when user resets
+      // Optimistically update local state so Manage tab shows the new site immediately
       existingManifest = deployEvent;
-      // Also refresh allSites if we have a session pubkey
+      if (deployEvent.kind === 35128) {
+        // Add/replace named site in allSites
+        const dTagVal = deployEvent.tags.find(t => t[0] === 'd')?.[1];
+        if (dTagVal) {
+          allSites = {
+            ...allSites,
+            named: [
+              ...allSites.named.filter(s => {
+                const sd = s.tags.find(t => t[0] === 'd')?.[1];
+                return sd !== dTagVal;
+              }),
+              deployEvent,
+            ],
+          };
+        }
+      } else {
+        allSites = { ...allSites, root: deployEvent };
+      }
+      // Also refresh from relays after a delay to pick up any relay-side changes
       const postDeploySess = get(session);
       if (postDeploySess.pubkey) {
-        fetchSiteInfo(postDeploySess.pubkey);
+        setTimeout(() => fetchSiteInfo(postDeploySess.pubkey), 3000);
       }
 
     } catch (err) {
@@ -961,6 +979,9 @@
           {uploadResult}
           {publishResult}
           givenUpServers={givenUpReactive}
+          {siteType}
+          {dTag}
+          pubkeyHex={$session.pubkey || ''}
           on:update={resetForUpdate}
         />
         <div class="mt-4 text-center">

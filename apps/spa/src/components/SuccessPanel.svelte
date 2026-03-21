@@ -15,6 +15,9 @@
   export let uploadResult = null;
   export let givenUpServers = new Set();
   export let publishResult = null;
+  export let siteType = 'root'; // 'root' | 'named'
+  export let dTag = '';
+  export let pubkeyHex = ''; // hex pubkey for base36 encoding
 
   let manifestExpanded = false;
   let nsecCopied = false;
@@ -22,6 +25,8 @@
 
   import { createEventDispatcher } from 'svelte';
   import { NSITE_BLOSSOM, downloadNsecFile } from '../lib/nostr.js';
+  import { base36Encode } from '../lib/base36.js';
+  import { hexToBytes } from 'nostr-tools/utils';
   import ActivityRings from './ActivityRings.svelte';
 
   const dispatch = createEventDispatcher();
@@ -30,8 +35,16 @@
   $: gatewayHost = (() => {
     try { return new URL(NSITE_BLOSSOM).host; } catch { return 'nsite.run'; }
   })();
-  // SECURITY: never construct a URL with nsec — only npub
-  $: siteUrl = (npub && npub.startsWith('npub1')) ? `https://${npub}.${gatewayHost}` : '';
+  // Build site URL: named sites use base36+dTag, root sites use npub
+  $: siteUrl = (() => {
+    if (siteType === 'named' && pubkeyHex && dTag) {
+      try {
+        const encoded = base36Encode(hexToBytes(pubkeyHex));
+        return `https://${encoded}${dTag}.${gatewayHost}`;
+      } catch { /* fall through */ }
+    }
+    return (npub && npub.startsWith('npub1')) ? `https://${npub}.${gatewayHost}` : '';
+  })();
 
   async function copyUrl() {
     if (!siteUrl) return;
