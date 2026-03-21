@@ -33,7 +33,7 @@
 
 **Milestone Goal:** Support the updated nsite spec's base36 named site encoding in both gateway and SPA, add manifest metadata (title, description), and enable deploying and managing named sites from the web deployer.
 
-- [ ] **Phase 10: Gateway Named Site Encoding** - Replace old double-wildcard format with base36 single-label parsing and kind 35128 resolution
+- [x] **Phase 10: Gateway Named Site Encoding** - Replace old double-wildcard format with base36 single-label parsing and kind 35128 resolution (completed 2026-03-21)
 - [ ] **Phase 11: SPA Named Site Support** - Add root/named site selector, dTag input, title/description metadata, and multi-site management
 
 ## Phase Details
@@ -47,7 +47,7 @@
   2. The gateway correctly decodes the first 50 chars of the subdomain label as a base36 pubkey and the remainder as the dTag
   3. Named site manifest is fetched as kind 35128 using the decoded pubkey and dTag as the `#d` filter
   4. Requests to the old `identifier.npub1xxx.nsite.run` format no longer match a named site route
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 10-01-PLAN.md — Base36 codec in shared package (TDD)
@@ -78,5 +78,5 @@ Plans:
 | 7. Deploy UX Improvements | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 10. Gateway Named Site Encoding | 1/2 | In Progress|  | - |
+| 10. Gateway Named Site Encoding | 2/2 | Complete   | 2026-03-21 | - |
 | 11. SPA Named Site Support | v1.2 | 0/TBD | Not started | - |

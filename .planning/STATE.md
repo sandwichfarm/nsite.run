@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
-status: in-progress
-stopped_at: "Completed 10-01-PLAN.md"
-last_updated: "2026-03-21T08:59:29Z"
+status: unknown
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-21T09:03:33.963Z"
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -37,6 +37,8 @@ Recent decisions affecting current work:
 - Base36 named site encoding chosen because SSL certs can't do double wildcards (`*.*.nsite.run`); single-label `<pubkeyB36><dTag>` fits `*.nsite.run` cert
 - Hand-rolled BigInt base36 codec in packages/shared — no external library needed (~55 lines)
 - Decode validates with regex /^[a-z0-9]{50}$/ before any math for fast-fail on bad inputs
+- [Phase 10-gateway-named-site-encoding]: SitePointer.npub kept for backward compat — named sites set npub to empty string and populate pubkeyHex
+- [Phase 10-gateway-named-site-encoding]: parts.length === 3 enforces single-label subdomain; 4+ part hosts (old format) return null
 
 ### Pending Todos
 
@@ -48,6 +50,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:59:29Z
-Stopped at: Completed 10-01-PLAN.md
-Resume file: .planning/phases/10-gateway-named-site-encoding/10-02-PLAN.md
+Last session: 2026-03-21T09:03:33.961Z
+Stopped at: Completed 10-02-PLAN.md
+Resume file: None
