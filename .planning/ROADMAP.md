@@ -78,5 +78,5 @@ Plans:
 | 7. Deploy UX Improvements | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 8. Anonymous Key Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
-| 10. Gateway Named Site Encoding | 2/2 | Complete   | 2026-03-21 | - |
+| 10. Gateway Named Site Encoding | 2/2 | Complete    | 2026-03-21 | - |
 | 11. SPA Named Site Support | v1.2 | 0/TBD | Not started | - |
