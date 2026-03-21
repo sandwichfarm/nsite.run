@@ -46,9 +46,9 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-- [ ] Gateway parses named site subdomains using base36 encoding (pubkeyB36 + dTag in single label)
-- [ ] Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag
-- [ ] Gateway removes old double-wildcard named site format
+- [x] Gateway parses named site subdomains using base36 encoding (pubkeyB36 + dTag in single label) — v1.2 Phase 10
+- [x] Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag — v1.2 Phase 10
+- [x] Gateway removes old double-wildcard named site format — v1.2 Phase 10
 - [ ] User can choose root site (15128) or named site (35128) in deploy flow
 - [ ] User provides dTag identifier when deploying named site
 - [ ] Named site manifest published as kind 35128 with d tag
