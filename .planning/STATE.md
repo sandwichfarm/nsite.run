@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Named Sites
 status: unknown
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-21T09:06:29.408Z"
+stopped_at: Phase 11 context gathered
+last_updated: "2026-03-21T09:20:51.150Z"
 progress:
   total_phases: 2
   completed_phases: 1
@@ -50,6 +50,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:03:33.961Z
-Stopped at: Completed 10-02-PLAN.md
-Resume file: None
+Last session: 2026-03-21T09:20:51.148Z
+Stopped at: Phase 11 context gathered
+Resume file: .planning/phases/11-spa-named-site-support/11-CONTEXT.md
