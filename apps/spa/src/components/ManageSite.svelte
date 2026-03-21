@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { publishEmptyManifest, publishDeletionEvent } from '../lib/publish.js';
+  import { publishDeletionEvent } from '../lib/publish.js';
   import { deleteBlobs } from '../lib/upload.js';
   import { base36Encode } from '../lib/base36.js';
   import { hexToBytes } from 'nostr-tools/utils';
@@ -163,28 +163,19 @@
       console.log('[delete] signer:', !!signer, 'site.id:', deletingSite?.id, 'kind:', deletingSite?.kind, 'dTag:', dTag);
       console.log('[delete] relays:', relays.length, 'blossoms:', blossoms.length, 'path tags:', deletingSite?.tags?.filter(t => t[0] === 'path')?.length);
 
-      // 1. Publish empty manifest to all relays
-      console.log('[delete] step 1: publishing empty manifest...');
-      relayDetails = 'Publishing empty manifest...';
-      relayProgress = 0;
-      const emptyResult = await publishEmptyManifest(signer, relays, dTag ? { dTag } : {});
-      console.log('[delete] step 1 done:', emptyResult.results.map(r => `${r.relay}: ${r.success}`));
-      relayProgress = 50;
-
-      // 2. Publish kind 5 deletion event
-      console.log('[delete] step 2: publishing deletion event...');
+      // Publish kind 5 deletion event (NIP-09) to all relays
+      // Don't publish empty manifest — it creates a lingering empty event that some relays serve
+      console.log('[delete] publishing deletion event for event:', deletingSite.id);
       relayDetails = 'Publishing deletion event...';
+      relayProgress = 0;
       const deletionResult = await publishDeletionEvent(signer, deletingSite.id, relays);
-      console.log('[delete] step 2 done:', deletionResult.results.map(r => `${r.relay}: ${r.success}`));
+      console.log('[delete] deletion done:', deletionResult.results.map(r => `${r.relay}: ${r.success}`));
       relayProgress = 100;
 
-      // Merge relay results
-      const relayResults = emptyResult.results.map((r, i) => ({
+      const relayResults = deletionResult.results.map(r => ({
         relay: r.relay,
         success: r.success,
-        message: r.success
-          ? (deletionResult.results[i]?.success ? 'manifest cleared + deletion event sent' : 'manifest cleared (deletion event failed)')
-          : r.message ?? 'failed',
+        message: r.success ? 'deletion event sent' : r.message ?? 'failed',
       }));
 
       // 3. Delete blobs from blossom servers
