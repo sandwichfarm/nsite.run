@@ -55,15 +55,15 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-- [ ] Edge scripts run locally with Bunny.v1.serve() polyfill
-- [ ] Relay uses local SQLite for dev, blossom uses local filesystem
-- [ ] Gateway routes to local relay/blossom matching prod architecture
-- [ ] Root dev command starts all services + SPA concurrently
-- [ ] SPA auto-configured to point at local gateway
+- [x] Edge scripts run locally with Bunny.v1.serve() polyfill — v1.3 Phase 12
+- [x] Relay uses local SQLite for dev, blossom uses local filesystem — v1.3 Phase 12
+- [x] Gateway routes to local relay/blossom matching prod architecture — v1.3 Phase 12
+- [x] Root dev command starts all services + SPA concurrently — v1.3 Phase 12
+- [x] SPA auto-configured to point at local gateway — v1.3 Phase 12
 
-## Current Milestone: v1.3 Local Dev
+### Active
 
-**Goal:** Enable local development and testing of all edge scripts with a single command, matching production routing architecture.
+(None — next milestone requirements defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
