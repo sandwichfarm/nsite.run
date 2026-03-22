@@ -16,9 +16,9 @@ Requirements for v1.3 Local Dev release. Each maps to roadmap phases.
 
 ### Dev Command
 
-- [ ] **DEV-05**: A root `deno task dev` command starts all services (relay, blossom, gateway) + SPA concurrently with colored output
+- [x] **DEV-05**: A root `deno task dev` command starts all services (relay, blossom, gateway) + SPA concurrently with colored output
 - [x] **DEV-06**: SPA dev server auto-configured to point at local gateway (no manual env vars needed)
-- [ ] **DEV-07**: All services stop cleanly on Ctrl+C
+- [x] **DEV-07**: All services stop cleanly on Ctrl+C
 
 ## Future Requirements
 
@@ -50,9 +50,9 @@ Deferred from earlier milestones.
 | DEV-02 | Phase 12 | Complete |
 | DEV-03 | Phase 12 | Complete |
 | DEV-04 | Phase 12 | Complete |
-| DEV-05 | Phase 12 | Pending |
+| DEV-05 | Phase 12 | Complete |
 | DEV-06 | Phase 12 | Complete |
-| DEV-07 | Phase 12 | Pending |
+| DEV-07 | Phase 12 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 7 total
