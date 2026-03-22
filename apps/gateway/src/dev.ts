@@ -33,7 +33,20 @@ if (!(Request.prototype as unknown as Record<string, unknown>).upgradeWebSocket)
   };
 }
 
-// --- 4. Import routing dependencies (after env vars set) ---
+// --- 4. Set up local SQLite DB for the gateway resolver ---
+// The gateway's resolver uses @nsite/shared/libsql (HTTP-only) via db.ts.
+// For local dev, we set BUNNY_DB_URL to the same SQLite file as the relay
+// and monkey-patch the shared libsql module to use @libsql/client/node.
+import { createClient as createNodeClient } from "npm:@libsql/client/node";
+import * as sharedLibsql from "@nsite/shared/libsql";
+
+const DEV_DB_PATH = Deno.env.get("DEV_DB_PATH") ?? "dev-gateway.db";
+const localDb = createNodeClient({ url: `file:${DEV_DB_PATH}` });
+
+// Patch the shared module's createClient to return our local DB
+(sharedLibsql as Record<string, unknown>).createClient = () => localDb;
+
+// --- 5. Import routing dependencies (after env vars and patches) ---
 import { extractNpubAndIdentifier } from "./hostname.ts";
 import { handleRelay } from "./stubs/relay.ts";
 import { handleBlossom } from "./stubs/blossom-dev.ts"; // DEV: uses LocalStorageClient
@@ -117,4 +130,4 @@ Deno.serve({ port: GATEWAY_PORT, hostname: "0.0.0.0" }, async (request: Request)
 });
 
 console.log(`[gateway] Dev server running on http://localhost:${GATEWAY_PORT}`);
-console.log(`[gateway] Routes: relay=8081 blossom=8082 spa=5173`);
+console.log(`[gateway] Routes: relay=${Deno.env.get("RELAY_PORT") ?? "3101"} blossom=${Deno.env.get("BLOSSOM_PORT") ?? "3102"} spa=${Deno.env.get("SPA_PORT") ?? "5173"} db=${DEV_DB_PATH}`);
