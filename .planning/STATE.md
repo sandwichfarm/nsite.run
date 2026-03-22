@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Local Dev
 status: in-progress
-stopped_at: "Completed 12-01-PLAN.md (LocalStorageClient + relay/blossom dev entrypoints)"
-last_updated: "2026-03-22T14:31:41Z"
+stopped_at: Completed 12-02-PLAN.md (gateway dev entrypoint + SPA env config)
+last_updated: "2026-03-22T14:37:27.750Z"
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 12 (local-development-harness) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -38,6 +38,8 @@ Recent decisions affecting Phase 12:
 - [Phase 12 Plan 01]: LocalStorageClient uses structural cast (as unknown as StorageClient) in dev.ts because router types storage as concrete class, not interface
 - [Phase 12 Plan 01]: Relay dev.ts duplicates ~25 lines from main.ts instead of importing it to avoid @libsql/client/web import map conflict that rejects file: URLs
 - [Phase 12 Plan 01]: LocalStorageClient.blobUrl() uses serverUrl (not cdnHostname) — local blossom serves blobs directly
+- [Phase 12]: Gateway dev.ts duplicates router.ts routing logic to swap blossom stub statically imported at module-level — avoids BUNNY_STORAGE_* env var requirement in dev
+- [Phase 12]: .env.local renamed to .env.production.local so Vite .env.development takes effect in dev mode without being overridden by higher-priority .env.local
 
 ### Pending Todos
 
@@ -49,6 +51,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22
-Stopped at: "Completed 12-01-PLAN.md — LocalStorageClient + relay/blossom dev entrypoints"
+Last session: 2026-03-22T14:37:27.748Z
+Stopped at: Completed 12-02-PLAN.md (gateway dev entrypoint + SPA env config)
 Resume file: None
