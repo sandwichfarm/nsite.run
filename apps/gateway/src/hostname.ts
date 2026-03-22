@@ -36,25 +36,37 @@ const NAMED_SITE_RE = /^[a-z0-9]+$/;
  *   "nsite.run"                                  → null (root domain)
  *   "blog.npub1abc.nsite.run"                    → null (old format, not supported)
  */
-export function extractNpubAndIdentifier(host: string): SitePointer | null {
+/**
+ * @param baseDomainParts - number of parts in the base domain (e.g., 2 for "nsite.run", 1 for "localhost")
+ *                          If not provided, auto-detected from BASE_DOMAIN env var or defaults to 2.
+ */
+export function extractNpubAndIdentifier(
+  host: string,
+  baseDomainParts?: number,
+): SitePointer | null {
   // Strip port if present
   const hostname = host.split(":")[0];
   const parts = hostname.split(".");
 
-  // nsite.run has 2 parts. Subdomains make it 3+.
-  if (parts.length < 3) return null;
+  // Auto-detect base domain depth from env if not provided
+  const baseParts = baseDomainParts ??
+    (typeof Deno !== "undefined"
+      ? (Deno.env.get("BASE_DOMAIN") || "nsite.run").split(".").length
+      : 2);
+
+  // Need at least one subdomain beyond the base domain
+  if (parts.length <= baseParts) return null;
 
   const label = parts[0];
 
-  // Root site: npub1xxx.nsite.run — first part starts with "npub1"
+  // Root site: npub1xxx.{base} — first part starts with "npub1"
   if (label.startsWith("npub1")) {
     return { kind: "root", npub: label };
   }
 
-  // Named site: single subdomain label (3 parts total), not npub1, length 51-63, all [a-z0-9]
-  // Only single-label subdomains qualify — 4+ parts (e.g. blog.npub1abc.nsite.run) fall through to null
+  // Named site: exactly one subdomain label beyond base domain, length 51-63, all [a-z0-9]
   if (
-    parts.length === 3 &&
+    parts.length === baseParts + 1 &&
     label.length >= NAMED_SITE_MIN_LENGTH &&
     label.length <= NAMED_SITE_MAX_LENGTH &&
     NAMED_SITE_RE.test(label)

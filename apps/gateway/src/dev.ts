@@ -87,15 +87,17 @@ async function route(request: Request): Promise<Response> {
     return await handleResolver(request, sitePointer);
   }
 
-  // 5. Check for invalid subdomains — redirect to base domain
+  // 5. Check for invalid subdomains — redirect to base domain (with port)
   const hostParts = host.split(":")[0].split(".");
   const baseDomain = Deno.env.get("BASE_DOMAIN") || "localhost";
   const baseDomainParts = baseDomain.split(".");
   if (hostParts.length > baseDomainParts.length) {
+    const port = host.split(":")[1];
+    const redirectHost = port ? `${baseDomain}:${port}` : baseDomain;
     return new Response(null, {
       status: 302,
       headers: {
-        Location: `http://${baseDomain}/`,
+        Location: `http://${redirectHost}/`,
       },
     });
   }
