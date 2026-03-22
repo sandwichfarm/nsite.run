@@ -9,9 +9,9 @@ Requirements for v1.3 Local Dev release. Each maps to roadmap phases.
 
 ### Local Dev Harness
 
-- [ ] **DEV-01**: Each edge script (relay, blossom, gateway) can run locally as a Deno HTTP server with a `Bunny.v1.serve()` polyfill
-- [ ] **DEV-02**: Relay uses local SQLite file for event storage instead of Bunny DB (libSQL)
-- [ ] **DEV-03**: Blossom uses local filesystem directory for blob storage instead of Bunny Storage
+- [x] **DEV-01**: Each edge script (relay, blossom, gateway) can run locally as a Deno HTTP server with a `Bunny.v1.serve()` polyfill
+- [x] **DEV-02**: Relay uses local SQLite file for event storage instead of Bunny DB (libSQL)
+- [x] **DEV-03**: Blossom uses local filesystem directory for blob storage instead of Bunny Storage
 - [ ] **DEV-04**: Gateway routes to local relay and blossom instances, matching production routing architecture
 
 ### Dev Command
@@ -46,9 +46,9 @@ Deferred from earlier milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEV-01 | Phase 12 | Pending |
-| DEV-02 | Phase 12 | Pending |
-| DEV-03 | Phase 12 | Pending |
+| DEV-01 | Phase 12 | Complete |
+| DEV-02 | Phase 12 | Complete |
+| DEV-03 | Phase 12 | Complete |
 | DEV-04 | Phase 12 | Pending |
 | DEV-05 | Phase 12 | Pending |
 | DEV-06 | Phase 12 | Pending |

@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Local Dev
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-22"
-last_activity: "2026-03-22 — Roadmap created for v1.3, Phase 12 defined"
+status: in-progress
+stopped_at: "Completed 12-01-PLAN.md (LocalStorageClient + relay/blossom dev entrypoints)"
+last_updated: "2026-03-22T14:31:41Z"
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** v1.3 Local Dev — Phase 12: Local Development Harness
+**Current focus:** Phase 12 — local-development-harness
 
 ## Current Position
 
-Phase: 12 of 12 (Local Development Harness)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-22 — Roadmap created, Phase 12 ready for planning
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 12 (local-development-harness) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -39,7 +33,11 @@ Progress: [░░░░░░░░░░] 0%
 See PROJECT.md Key Decisions table.
 
 Recent decisions affecting Phase 12:
+
 - [Phase 11]: v1.2 complete — continuous phase numbering continues at 12 for v1.3
+- [Phase 12 Plan 01]: LocalStorageClient uses structural cast (as unknown as StorageClient) in dev.ts because router types storage as concrete class, not interface
+- [Phase 12 Plan 01]: Relay dev.ts duplicates ~25 lines from main.ts instead of importing it to avoid @libsql/client/web import map conflict that rejects file: URLs
+- [Phase 12 Plan 01]: LocalStorageClient.blobUrl() uses serverUrl (not cdnHostname) — local blossom serves blobs directly
 
 ### Pending Todos
 
@@ -52,5 +50,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: Roadmap created — Phase 12 ready for planning
+Stopped at: "Completed 12-01-PLAN.md — LocalStorageClient + relay/blossom dev entrypoints"
 Resume file: None
