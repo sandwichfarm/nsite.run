@@ -18,21 +18,30 @@ interface Service {
 
 const RESET = "\x1b[0m";
 
+// Configurable ports — override with env vars if defaults conflict
+const RELAY_PORT = Deno.env.get("RELAY_PORT") ?? "3101";
+const BLOSSOM_PORT = Deno.env.get("BLOSSOM_PORT") ?? "3102";
+const GATEWAY_PORT = Deno.env.get("GATEWAY_PORT") ?? "3100";
+const SPA_PORT = Deno.env.get("SPA_PORT") ?? "5173";
+
 const SERVICES: Service[] = [
   {
     name: "relay",
     color: "\x1b[36m", // cyan
     cmd: ["deno", "run", "--allow-all", "apps/relay/src/dev.ts"],
+    env: { RELAY_PORT },
   },
   {
     name: "blossom",
     color: "\x1b[35m", // magenta
     cmd: ["deno", "run", "--allow-all", "apps/blossom/src/dev.ts"],
+    env: { BLOSSOM_PORT },
   },
   {
     name: "gateway",
     color: "\x1b[33m", // yellow
     cmd: ["deno", "run", "--allow-all", "apps/gateway/src/dev.ts"],
+    env: { GATEWAY_PORT, RELAY_PORT, BLOSSOM_PORT, SPA_PORT },
   },
   {
     name: "spa",
@@ -46,10 +55,10 @@ const SERVICES: Service[] = [
 console.log(`
 \x1b[1m--- nsite.run local dev ---\x1b[0m
 
-  \x1b[36m[relay]  \x1b[0m http://localhost:8081
-  \x1b[35m[blossom]\x1b[0m http://localhost:8082
-  \x1b[33m[gateway]\x1b[0m http://localhost:8080
-  \x1b[32m[spa]    \x1b[0m http://localhost:5173 (via gateway at :8080)
+  \x1b[36m[relay]  \x1b[0m http://localhost:${RELAY_PORT}
+  \x1b[35m[blossom]\x1b[0m http://localhost:${BLOSSOM_PORT}
+  \x1b[33m[gateway]\x1b[0m http://localhost:${GATEWAY_PORT}
+  \x1b[32m[spa]    \x1b[0m http://localhost:${SPA_PORT} (via gateway at :${GATEWAY_PORT})
 
 Press Ctrl+C to stop all services.
 `);
