@@ -56,7 +56,12 @@
   3. The local relay stores events in a SQLite file and the local blossom stores blobs in a filesystem directory — both readable on disk after operations
   4. The local gateway routes requests to local relay and blossom instances using the same routing logic as production (WebSocket → relay, blossom endpoints → blossom, subdomain → resolver, root → SPA)
   5. Pressing Ctrl+C terminates all services cleanly with no orphaned processes, and the SPA dev server connects to the local gateway without manual configuration
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — LocalStorageClient, relay and blossom dev entrypoints
+- [ ] 12-02-PLAN.md — Gateway dev entrypoint and SPA env configuration
+- [ ] 12-03-PLAN.md — Root dev orchestrator and deno task dev
 
 ## Progress
 
@@ -73,4 +78,4 @@
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 10. Gateway Named Site Encoding | v1.2 | 2/2 | Complete | 2026-03-21 |
 | 11. SPA Named Site Support | v1.2 | 2/2 | Complete | 2026-03-21 |
-| 12. Local Development Harness | v1.3 | 0/TBD | Not started | - |
+| 12. Local Development Harness | v1.3 | 0/3 | In progress | - |
