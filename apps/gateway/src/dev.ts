@@ -34,24 +34,21 @@ if (!(Request.prototype as unknown as Record<string, unknown>).upgradeWebSocket)
 }
 
 // --- 4. Set up local SQLite DB for the gateway resolver ---
-// The gateway's resolver uses @nsite/shared/libsql (HTTP-only) via db.ts.
-// For local dev, we set BUNNY_DB_URL to the same SQLite file as the relay
-// and monkey-patch the shared libsql module to use @libsql/client/node.
 import { createClient as createNodeClient } from "npm:@libsql/client/node";
-import * as sharedLibsql from "@nsite/shared/libsql";
 
 const DEV_DB_PATH = Deno.env.get("DEV_DB_PATH") ?? "dev-gateway.db";
 const localDb = createNodeClient({ url: `file:${DEV_DB_PATH}` });
 
-// Patch the shared module's createClient to return our local DB
-(sharedLibsql as Record<string, unknown>).createClient = () => localDb;
-
-// --- 5. Import routing dependencies (after env vars and patches) ---
+// --- 5. Import routing dependencies ---
 import { extractNpubAndIdentifier } from "./hostname.ts";
 import { handleRelay } from "./stubs/relay.ts";
 import { handleBlossom } from "./stubs/blossom-dev.ts"; // DEV: uses LocalStorageClient
-import { handleResolver } from "./resolver.ts";
+import { handleResolver, setDevDb } from "./resolver.ts";
 import { handleSpa } from "./stubs/spa.ts";
+
+// Inject local SQLite DB into resolver before any requests
+// deno-lint-ignore no-explicit-any
+setDevDb(localDb as any);
 
 /** Pre-compiled blossom blob path regex (mirrors router.ts) */
 const BLOSSOM_PATH_RE = /^\/[0-9a-f]{64}/;
