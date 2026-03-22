@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-03-20)
 - ✅ **v1.1 Feature Gaps** — Phases 7-9 (shipped 2026-03-20)
 - ✅ **v1.2 Named Sites** — Phases 10-11 (shipped 2026-03-21)
+- 🚧 **v1.3 Local Dev** — Phase 12 (in progress)
 
 ## Phases
 
@@ -37,6 +38,26 @@
 
 </details>
 
+### 🚧 v1.3 Local Dev (In Progress)
+
+**Milestone Goal:** Enable local development and testing of all edge scripts with a single command, matching production routing architecture.
+
+- [ ] **Phase 12: Local Development Harness** — Bunny.v1.serve() polyfill, local SQLite/filesystem backends, gateway proxying to local services, root dev command with concurrently
+
+## Phase Details
+
+### Phase 12: Local Development Harness
+**Goal**: Developers can run the full nsite.run stack locally with a single command, using local storage backends that mirror production routing architecture
+**Depends on**: Phase 11
+**Requirements**: DEV-01, DEV-02, DEV-03, DEV-04, DEV-05, DEV-06, DEV-07
+**Success Criteria** (what must be TRUE):
+  1. Developer runs `deno task dev` from the repo root and all four services (relay, blossom, gateway, SPA) start with colored per-service output
+  2. Edge scripts (relay, blossom, gateway) execute locally via a `Bunny.v1.serve()` polyfill with no Bunny platform dependency
+  3. The local relay stores events in a SQLite file and the local blossom stores blobs in a filesystem directory — both readable on disk after operations
+  4. The local gateway routes requests to local relay and blossom instances using the same routing logic as production (WebSocket → relay, blossom endpoints → blossom, subdomain → resolver, root → SPA)
+  5. Pressing Ctrl+C terminates all services cleanly with no orphaned processes, and the SPA dev server connects to the local gateway without manual configuration
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -52,3 +73,4 @@
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 10. Gateway Named Site Encoding | v1.2 | 2/2 | Complete | 2026-03-21 |
 | 11. SPA Named Site Support | v1.2 | 2/2 | Complete | 2026-03-21 |
+| 12. Local Development Harness | v1.3 | 0/TBD | Not started | - |
