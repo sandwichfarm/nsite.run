@@ -531,6 +531,7 @@
       "apps/blossom": {
         "dependencies": [
           "jsr:@nostr/tools@^2.23.3",
+          "jsr:@std/path@^1.0.6",
           "jsr:@std/toml@1",
           "npm:@noble/curves@1.8.1",
           "npm:@noble/hashes@1.6.1"
