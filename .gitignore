@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Local dev data
+dev-relay.db
+dev-relay.db-*
+.dev-blossom-storage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
