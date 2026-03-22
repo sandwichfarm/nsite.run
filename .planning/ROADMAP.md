@@ -78,4 +78,4 @@ Plans:
 | 9. Site Management | v1.1 | 2/2 | Complete | 2026-03-20 |
 | 10. Gateway Named Site Encoding | v1.2 | 2/2 | Complete | 2026-03-21 |
 | 11. SPA Named Site Support | v1.2 | 2/2 | Complete | 2026-03-21 |
-| 12. Local Development Harness | 3/3 | Complete   | 2026-03-22 | - |
+| 12. Local Development Harness | 3/3 | Complete    | 2026-03-22 | - |
