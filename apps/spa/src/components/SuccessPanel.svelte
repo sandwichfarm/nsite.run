@@ -24,26 +24,22 @@
   let urlCopied = false;
 
   import { createEventDispatcher } from 'svelte';
-  import { NSITE_BLOSSOM, downloadNsecFile } from '../lib/nostr.js';
+  import { downloadNsecFile, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '../lib/nostr.js';
   import { base36Encode } from '../lib/base36.js';
   import { hexToBytes } from 'nostr-tools/utils';
   import ActivityRings from './ActivityRings.svelte';
 
   const dispatch = createEventDispatcher();
 
-  // Derive gateway domain from NSITE_BLOSSOM (auto-detected or VITE_ override)
-  $: gatewayHost = (() => {
-    try { return new URL(NSITE_BLOSSOM).host; } catch { return 'nsite.run'; }
-  })();
-  // Build site URL: named sites use base36+dTag, root sites use npub
+  // Build site URL using the centralized gateway host
   $: siteUrl = (() => {
     if (siteType === 'named' && pubkeyHex && dTag) {
       try {
         const encoded = base36Encode(hexToBytes(pubkeyHex));
-        return `https://${encoded}${dTag}.${gatewayHost}`;
+        return `${NSITE_GATEWAY_PROTOCOL}://${encoded}${dTag}.${NSITE_GATEWAY_HOST}`;
       } catch { /* fall through */ }
     }
-    return (npub && npub.startsWith('npub1')) ? `https://${npub}.${gatewayHost}` : '';
+    return (npub && npub.startsWith('npub1')) ? `${NSITE_GATEWAY_PROTOCOL}://${npub}.${NSITE_GATEWAY_HOST}` : '';
   })();
 
   async function copyUrl() {

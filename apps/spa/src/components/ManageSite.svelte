@@ -5,7 +5,7 @@
   import { base36Encode } from '../lib/base36.js';
   import { hexToBytes } from 'nostr-tools/utils';
   import { npubEncode } from 'nostr-tools/nip19';
-  import { getManifestDTag, getManifestTitle, getManifestDescription } from '../lib/nostr.js';
+  import { getManifestDTag, getManifestTitle, getManifestDescription, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '../lib/nostr.js';
 
   const dispatch = createEventDispatcher();
 
@@ -82,13 +82,13 @@
       const dTag = getManifestDTag(manifest) || '';
       try {
         const encoded = base36Encode(hexToBytes(pubkey));
-        return `https://${encoded}${dTag}.nsite.run`;
+        return `${NSITE_GATEWAY_PROTOCOL}://${encoded}${dTag}.${NSITE_GATEWAY_HOST}`;
       } catch { return ''; }
     }
     // Root site
     try {
       const npub = npubEncode(pubkey);
-      return `https://${npub}.nsite.run`;
+      return `${NSITE_GATEWAY_PROTOCOL}://${npub}.${NSITE_GATEWAY_HOST}`;
     } catch { return ''; }
   }
 

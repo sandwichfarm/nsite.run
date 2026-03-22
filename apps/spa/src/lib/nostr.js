@@ -12,10 +12,14 @@ import { ANON_KEY_STORAGE_KEY } from './store.js';
 export const DEFAULT_RELAYS = ['wss://relay.damus.io', 'wss://relay.primal.net'];
 
 /**
- * Derive relay and blossom URLs from the current page origin.
- * The relay/blossom/gateway always live at the same domain as the SPA.
+ * Derive service URLs from the current page origin.
+ * Default: relay/blossom/gateway all live at the same domain as the SPA.
  *
- * In development, override with VITE_NSITE_RELAY and VITE_NSITE_BLOSSOM env vars.
+ * Override with VITE_ env vars for development or custom deployments:
+ *   VITE_NSITE_RELAY    — WebSocket URL for relay (e.g., ws://localhost:3100)
+ *   VITE_NSITE_BLOSSOM  — HTTP URL for blossom (e.g., http://localhost:3100)
+ *   VITE_NSITE_GATEWAY  — Gateway host for site URLs (e.g., localhost:3100)
+ *                         Used to construct npub.gateway and base36.gateway URLs
  */
 const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://nsite.run';
 const _wsProtocol = _origin.startsWith('https') ? 'wss' : 'ws';
@@ -26,6 +30,12 @@ export const NSITE_RELAY = import.meta.env.VITE_NSITE_RELAY || `${_wsProtocol}:/
 
 /** The blossom server for blob uploads. */
 export const NSITE_BLOSSOM = import.meta.env.VITE_NSITE_BLOSSOM || _origin;
+
+/** Gateway host for constructing site URLs (npub.host, base36dtag.host). */
+export const NSITE_GATEWAY_HOST = import.meta.env.VITE_NSITE_GATEWAY || _host;
+
+/** Protocol for site URLs (https in production, http in dev). */
+export const NSITE_GATEWAY_PROTOCOL = _origin.startsWith('https') ? 'https' : 'http';
 
 /** @type {RelayPool | null} */
 let _pool = null;
