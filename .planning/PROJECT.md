@@ -44,8 +44,6 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 - ✓ Returning logged-in user sees existing site info (URL, last publish, file count) — v1.1
 - ✓ Delete/destroy publishes empty manifest + kind 5 to relays, DELETEs blobs from blossoms — v1.1
 
-### Active
-
 - ✓ Gateway parses named site subdomains using base36 encoding — v1.2
 - ✓ Gateway resolves named site manifests (kind 35128) via decoded base36 pubkey and dTag — v1.2
 - ✓ Gateway removes old double-wildcard named site format — v1.2
@@ -57,7 +55,15 @@ Provide reliable, always-available nsite infrastructure that serves sites fast v
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+- [ ] Edge scripts run locally with Bunny.v1.serve() polyfill
+- [ ] Relay uses local SQLite for dev, blossom uses local filesystem
+- [ ] Gateway routes to local relay/blossom matching prod architecture
+- [ ] Root dev command starts all services + SPA concurrently
+- [ ] SPA auto-configured to point at local gateway
+
+## Current Milestone: v1.3 Local Dev
+
+**Goal:** Enable local development and testing of all edge scripts with a single command, matching production routing architecture.
 
 ### Out of Scope
 

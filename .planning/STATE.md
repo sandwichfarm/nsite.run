@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Named Sites
-status: milestone_complete
-stopped_at: v1.2 milestone archived
+milestone: v1.3
+milestone_name: Local Dev
+status: defining_requirements
+stopped_at: null
 last_updated: "2026-03-21"
-last_activity: "2026-03-21 — v1.2 Named Sites milestone completed and archived"
+last_activity: "2026-03-21 — Milestone v1.3 started"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Provide reliable, always-available nsite infrastructure that serves sites fast via progressive caching while making the relay and blossom accessible to the broader nsite ecosystem.
-**Current focus:** v1.2 shipped — planning next milestone
+**Current focus:** v1.3 Local Dev — defining requirements
 
 ## Current Position
 
-Milestone: v1.2 Named Sites — COMPLETE (shipped 2026-03-21)
-Status: Between milestones
-Last activity: 2026-03-21 — v1.2 milestone archived
+Phase: Not started (defining requirements)
+Status: Defining requirements
+Last activity: 2026-03-21 — Milestone v1.3 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Decisions
 
-See PROJECT.md Key Decisions table for full list with outcomes.
+See PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -48,5 +48,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: v1.2 milestone complete
+Stopped at: Milestone v1.3 started
 Resume file: None
