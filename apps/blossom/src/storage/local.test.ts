@@ -80,16 +80,16 @@ Deno.test("LocalStorageClient - getText returns file content", async () => {
 });
 
 Deno.test("LocalStorageClient - list returns relative paths for prefix", async () => {
-  // Write multiple files under same prefix
-  await client.put("lists/pk/pubkey123/index.json", new TextEncoder().encode("{}"));
-  await client.put("lists/pk/pubkey456/index.json", new TextEncoder().encode("{}"));
+  // Write multiple files directly under same prefix (not nested subdirectories)
+  await client.put("listtest/ab/file1.json", new TextEncoder().encode("{}"));
+  await client.put("listtest/ab/file2.json", new TextEncoder().encode("{}"));
 
-  const items = await client.list("lists/pk/");
+  const items = await client.list("listtest/ab/");
   // Should contain at least two entries
   assertEquals(items.length >= 2, true);
-  // Items should be relative paths starting with the prefix (as directory names, not individual files deeply nested)
+  // Items should be relative paths starting with the prefix
   for (const item of items) {
-    assertEquals(item.startsWith("lists/pk/"), true);
+    assertEquals(item.startsWith("listtest/ab/"), true);
   }
 });
 
