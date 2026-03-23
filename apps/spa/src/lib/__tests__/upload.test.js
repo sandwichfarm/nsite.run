@@ -386,4 +386,52 @@ describe('uploadBlobs', () => {
 
     globalThis.fetch = origFetch;
   });
+
+  it('sends each file MIME type in upload headers when provided', async () => {
+    const files = [
+      { ...makeFile('index.html'), type: 'text/html; charset=utf-8' },
+      { ...makeFile('app.js'), type: 'application/javascript' },
+    ];
+    const existing = new Map();
+    const signer = fakeSigner();
+    const servers = [S1];
+
+    const seenHeaders = [];
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (_url, opts) => {
+      if (opts?.method === 'PUT') seenHeaders.push(opts.headers);
+      return { ok: true, status: 200, text: async () => '' };
+    });
+
+    await uploadBlobs(files, existing, signer, servers);
+
+    expect(seenHeaders).toHaveLength(2);
+    expect(seenHeaders[0]['Content-Type']).toBe('text/html; charset=utf-8');
+    expect(seenHeaders[0]['X-Content-Type']).toBe('text/html; charset=utf-8');
+    expect(seenHeaders[1]['Content-Type']).toBe('application/javascript');
+    expect(seenHeaders[1]['X-Content-Type']).toBe('application/javascript');
+
+    globalThis.fetch = origFetch;
+  });
+
+  it('falls back to application/octet-stream when MIME type is unavailable', async () => {
+    const files = [makeFile('blob.bin')];
+    const existing = new Map();
+    const signer = fakeSigner();
+    const servers = [S1];
+
+    const origFetch = globalThis.fetch;
+    let uploadHeaders = null;
+    globalThis.fetch = vi.fn(async (_url, opts) => {
+      if (opts?.method === 'PUT') uploadHeaders = opts.headers;
+      return { ok: true, status: 200, text: async () => '' };
+    });
+
+    await uploadBlobs(files, existing, signer, servers);
+
+    expect(uploadHeaders['Content-Type']).toBe('application/octet-stream');
+    expect(uploadHeaders['X-Content-Type']).toBeUndefined();
+
+    globalThis.fetch = origFetch;
+  });
 });

@@ -13,6 +13,15 @@
 
 import { unzip, gunzip } from 'fflate';
 import { parseTar } from 'nanotar';
+import { contentType } from '@std/media-types/content-type';
+
+export function inferMimeType(path) {
+  if (!path) return undefined;
+  const dotIndex = path.lastIndexOf('.');
+  if (dotIndex === -1) return undefined;
+  const ext = path.slice(dotIndex).toLowerCase();
+  return contentType(ext);
+}
 
 // ---------------------------------------------------------------------------
 // VCS auto-exclude patterns
@@ -34,7 +43,7 @@ export const VCS_EXCLUDE_SUFFIX = '/.DS_Store';
  * top-level directory (e.g., "dist/index.html" → "/index.html").
  *
  * @param {ArrayBuffer} arrayBuffer
- * @returns {Promise<Array<{path: string, data: Uint8Array, size: number}>>}
+ * @returns {Promise<Array<{path: string, data: Uint8Array, size: number, type?: string}>>}
  */
 export function extractZip(arrayBuffer) {
   return new Promise((resolve, reject) => {
@@ -48,6 +57,7 @@ export function extractZip(arrayBuffer) {
           path: '/' + name,
           data,
           size: data.length,
+          type: inferMimeType(name),
         }));
 
       // Detect and strip common root prefix
@@ -64,8 +74,8 @@ export function extractZip(arrayBuffer) {
  * e.g., ["dist/a.html", "dist/b.js"] → ["/a.html", "/b.js"]
  * e.g., ["index.html", "app.js"]     → ["/index.html", "/app.js"] (no change)
  *
- * @param {Array<{path: string, data: Uint8Array, size: number}>} files
- * @returns {Array<{path: string, data: Uint8Array, size: number}>}
+ * @param {Array<{path: string, data: Uint8Array, size: number, type?: string}>} files
+ * @returns {Array<{path: string, data: Uint8Array, size: number, type?: string}>}
  */
 function stripCommonRootPrefix(files) {
   if (files.length === 0) return files;
@@ -105,7 +115,7 @@ function stripCommonRootPrefix(files) {
  * Filters to file entries only, normalizes paths with leading '/'.
  *
  * @param {ArrayBuffer} arrayBuffer
- * @returns {Promise<Array<{path: string, data: Uint8Array, size: number}>>}
+ * @returns {Promise<Array<{path: string, data: Uint8Array, size: number, type?: string}>>}
  */
 export function extractTarGz(arrayBuffer) {
   return new Promise((resolve, reject) => {
@@ -129,6 +139,7 @@ export function extractTarGz(arrayBuffer) {
             path: '/' + e.name.replace(/^\//, ''), // normalize leading slash
             data,
             size: data.length,
+            type: inferMimeType(e.name),
           };
         });
 
@@ -274,7 +285,7 @@ function sortNodes(nodes) {
  * Open a directory picker dialog. Uses showDirectoryPicker (Chromium)
  * with fallback to a hidden <input webkitdirectory> for Firefox/Safari.
  *
- * @returns {Promise<Array<{path: string, data: Uint8Array, size: number}>>}
+ * @returns {Promise<Array<{path: string, data: Uint8Array, size: number, type?: string}>>}
  */
 export async function pickDirectory() {
   if ('showDirectoryPicker' in window) {
@@ -300,7 +311,7 @@ export async function pickDirectory() {
               const relPath = file.webkitRelativePath;
               const slashIdx = relPath.indexOf('/');
               const path = slashIdx >= 0 ? relPath.slice(slashIdx) : '/' + relPath;
-              return { path, data, size: data.length };
+              return { path, data, size: data.length, type: file.type || inferMimeType(path) };
             })
           );
           resolve(files);
@@ -330,7 +341,7 @@ export async function pickDirectory() {
  * Open an archive file picker dialog (.zip, .tar.gz, .tgz).
  * Extracts the archive based on file extension.
  *
- * @returns {Promise<Array<{path: string, data: Uint8Array, size: number}>>}
+ * @returns {Promise<Array<{path: string, data: Uint8Array, size: number, type?: string}>>}
  */
 export async function pickArchive() {
   return new Promise((resolve, reject) => {
@@ -385,7 +396,7 @@ export async function pickArchive() {
  *
  * @param {FileSystemDirectoryHandle} dirHandle
  * @param {string} basePath - Path prefix accumulated during recursion
- * @returns {Promise<Array<{path: string, data: Uint8Array, size: number}>>}
+ * @returns {Promise<Array<{path: string, data: Uint8Array, size: number, type?: string}>>}
  */
 export async function readDirectoryHandle(dirHandle, basePath) {
   const files = [];
@@ -399,7 +410,7 @@ export async function readDirectoryHandle(dirHandle, basePath) {
     } else {
       const file = await handle.getFile();
       const data = new Uint8Array(await file.arrayBuffer());
-      files.push({ path, data, size: data.length });
+      files.push({ path, data, size: data.length, type: file.type || inferMimeType(path) });
     }
   }
 

@@ -288,12 +288,18 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
         }
 
         try {
+          const contentType = file.type || 'application/octet-stream';
+          const headers = {
+            Authorization: authHeaders.get(file.sha256),
+            'Content-Type': contentType,
+          };
+          if (file.type) {
+            headers['X-Content-Type'] = file.type;
+          }
+
           const resp = await fetch(`${base}/upload`, {
             method: 'PUT',
-            headers: {
-              Authorization: authHeaders.get(file.sha256),
-              'Content-Type': 'application/octet-stream',
-            },
+            headers,
             body: file.data,
           });
 

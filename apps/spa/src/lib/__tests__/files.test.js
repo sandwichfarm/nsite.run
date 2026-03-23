@@ -5,6 +5,7 @@ import {
   extractTarGz,
   buildFileTree,
   autoExcludeVCS,
+  inferMimeType,
 } from '../files.js';
 
 // Helper: create a ZIP buffer using fflate's zip function
@@ -87,6 +88,13 @@ describe('extractZip', () => {
     const decoded = new TextDecoder().decode(files[0].data);
     expect(decoded).toBe(content);
   });
+
+  it('infers MIME type from extracted ZIP file paths', async () => {
+    const buf = await makeZip({ 'index.html': '<html></html>', 'assets/logo.png': 'png' });
+    const files = await extractZip(buf);
+    expect(files.find(f => f.path === '/index.html').type).toBe('text/html; charset=UTF-8');
+    expect(files.find(f => f.path === '/assets/logo.png').type).toBe('image/png');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -150,6 +158,34 @@ describe('extractTarGz', () => {
     const files = await extractTarGz(gzBuf);
     const f = files.find(x => x.path.includes('page.html'));
     expect(f.path).toBe('/sub/page.html');
+  });
+
+  it('infers MIME type from extracted TAR entries', async () => {
+    const { createTar } = await import('nanotar');
+    const { gzip } = await import('fflate');
+
+    const tarBuf = createTar([{ name: 'styles/site.css', data: 'body {}' }]);
+    const gzBuf = await new Promise((resolve, reject) => {
+      gzip(new Uint8Array(tarBuf), (err, data) =>
+        err ? reject(err) : resolve(data.buffer)
+      );
+    });
+
+    const files = await extractTarGz(gzBuf);
+    expect(files.find(f => f.path === '/styles/site.css').type).toBe('text/css; charset=UTF-8');
+  });
+});
+
+describe('inferMimeType', () => {
+  it('returns known MIME types from file extensions', () => {
+    expect(inferMimeType('/index.html')).toBe('text/html; charset=UTF-8');
+    expect(inferMimeType('/app.js')).toBe('text/javascript; charset=UTF-8');
+    expect(inferMimeType('/image.webp')).toBe('image/webp');
+  });
+
+  it('returns undefined for unknown extensions', () => {
+    expect(inferMimeType('/README.unknown')).toBeUndefined();
+    expect(inferMimeType('/no-extension')).toBeUndefined();
   });
 });
 
