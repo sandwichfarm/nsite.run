@@ -33,6 +33,18 @@ jobs:
           npm ci
           npm run build
 
+      - name: Clean old SPA files from Bunny Storage
+        run: |
+          # List existing files and delete them before uploading new ones
+          FILES=$(curl -s -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
+            "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/assets/")
+          echo "$FILES" | jq -r '.[].ObjectName' 2>/dev/null | while read -r name; do
+            echo "Deleting old asset: $name"
+            curl -s -X DELETE \
+              -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
+              "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/assets/$name"
+          done
+
       - name: Deploy SPA to Bunny Storage
         run: |
           cd apps/spa/dist
