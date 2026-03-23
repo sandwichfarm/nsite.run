@@ -76,7 +76,11 @@ export function handleWebSocketUpgrade(
               send(socket, ["NOTICE", "error: EVENT payload must be an object"]);
               return;
             }
-            await handleEvent(socket, db, args[0] as NostrEvent, state);
+            const nostrEvent = args[0] as NostrEvent;
+            console.info(
+              `[relay] received EVENT id=${nostrEvent.id} kind=${nostrEvent.kind} pubkey=${nostrEvent.pubkey}`,
+            );
+            await handleEvent(socket, db, nostrEvent, state);
             break;
           }
 

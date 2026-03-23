@@ -2,15 +2,15 @@ import { assertEquals } from "@std/assert";
 import { detectCompression, detectContentType, resolveIndexPath } from "./content-type.ts";
 
 Deno.test("detectContentType - .html returns text/html with charset", () => {
-  assertEquals(detectContentType(".html"), "text/html; charset=utf-8");
+  assertEquals(detectContentType(".html"), "text/html; charset=UTF-8");
 });
 
 Deno.test("detectContentType - .css returns text/css", () => {
-  assertEquals(detectContentType(".css"), "text/css");
+  assertEquals(detectContentType(".css"), "text/css; charset=UTF-8");
 });
 
 Deno.test("detectContentType - .js returns application/javascript", () => {
-  assertEquals(detectContentType(".js"), "application/javascript");
+  assertEquals(detectContentType(".js"), "text/javascript; charset=UTF-8");
 });
 
 Deno.test("detectContentType - .png returns image/png", () => {
@@ -34,13 +34,13 @@ Deno.test("detectContentType - empty string returns application/octet-stream", (
 });
 
 Deno.test("detectContentType - full path extracts extension correctly", () => {
-  assertEquals(detectContentType("/path/to/file.html"), "text/html; charset=utf-8");
-  assertEquals(detectContentType("/style.css"), "text/css");
-  assertEquals(detectContentType("/app.js"), "application/javascript");
+  assertEquals(detectContentType("/path/to/file.html"), "text/html; charset=UTF-8");
+  assertEquals(detectContentType("/style.css"), "text/css; charset=UTF-8");
+  assertEquals(detectContentType("/app.js"), "text/javascript; charset=UTF-8");
 });
 
 Deno.test("detectContentType - .json returns application/json", () => {
-  assertEquals(detectContentType(".json"), "application/json");
+  assertEquals(detectContentType(".json"), "application/json; charset=UTF-8");
 });
 
 Deno.test("detectContentType - .svg returns image/svg+xml", () => {
@@ -48,11 +48,11 @@ Deno.test("detectContentType - .svg returns image/svg+xml", () => {
 });
 
 Deno.test("detectContentType - .ico returns image/x-icon", () => {
-  assertEquals(detectContentType(".ico"), "image/x-icon");
+  assertEquals(detectContentType(".ico"), "image/vnd.microsoft.icon");
 });
 
 Deno.test("detectContentType - .mjs returns application/javascript", () => {
-  assertEquals(detectContentType(".mjs"), "application/javascript");
+  assertEquals(detectContentType(".mjs"), "text/javascript; charset=UTF-8");
 });
 
 Deno.test("resolveIndexPath - / returns /index.html", () => {

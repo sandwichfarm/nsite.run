@@ -8,6 +8,7 @@
     "@noble/curves/": "npm:/@noble/curves@1.8.1/",
     "@noble/hashes/": "npm:/@noble/hashes@1.6.1/",
     "@nostr/tools/pure": "jsr:@nostr/tools@^2.23.3/pure",
+    "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/toml": "jsr:@std/toml@^1.0.0"
   },
   "tasks": {

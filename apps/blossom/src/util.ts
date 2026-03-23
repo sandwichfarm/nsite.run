@@ -45,3 +45,16 @@ export function jsonResponse(
 export function errorResponse(message: string, status = 400): Response {
   return jsonResponse({ message }, status);
 }
+
+/** Log a single-line record for each blob accepted by the server */
+export function logBlobUpload(
+  source: "upload" | "mirror",
+  sha256: string,
+  size: number,
+  contentType: string,
+  pubkey: string,
+): void {
+  console.log(
+    `[blossom] blob uploaded source=${source} sha256=${sha256} size=${size} type=${contentType} pubkey=${pubkey}`,
+  );
+}
