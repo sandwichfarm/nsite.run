@@ -57,8 +57,14 @@ jobs:
               "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/$path"
           done
 
-      - name: Purge CDN cache
+      - name: Purge CDN caches
         run: |
+          # Purge SPA assets CDN (next-nsite-run pull zone — where edge script fetches SPA from)
+          echo "Purging SPA assets CDN..."
+          curl -s -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_PULLZONE_ID }}/purgeCache" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+          # Purge gateway CDN (nsite-gateway pull zone — what users hit)
+          echo "Purging gateway CDN..."
           curl -s -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_GATEWAY_PULLZONE_ID }}/purgeCache" \
             -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
 
