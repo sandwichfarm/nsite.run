@@ -17,6 +17,10 @@ dev-relay.db
 dev-relay.db-*
 .dev-blossom-storage/
 
+# Planning and tooling (local only)
+.planning/
+docs/superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
