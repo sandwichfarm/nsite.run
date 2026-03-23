@@ -1,6 +1,8 @@
 import { PrivateKeySigner, ExtensionSigner, NostrConnectSigner } from 'applesauce-signers';
 import { RelayPool } from 'applesauce-relay/pool';
 import { nsecEncode } from 'nostr-tools/nip19';
+import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
+import { ANON_KEY_STORAGE_KEY } from './store.js';
 
 /**
  * Default relays used for NIP-46 handshake and bootstrap queries.
@@ -10,10 +12,14 @@ import { nsecEncode } from 'nostr-tools/nip19';
 export const DEFAULT_RELAYS = ['wss://relay.damus.io', 'wss://relay.primal.net'];
 
 /**
- * Derive relay and blossom URLs from the current page origin.
- * The relay/blossom/gateway always live at the same domain as the SPA.
+ * Derive service URLs from the current page origin.
+ * Default: relay/blossom/gateway all live at the same domain as the SPA.
  *
- * In development, override with VITE_NSITE_RELAY and VITE_NSITE_BLOSSOM env vars.
+ * Override with VITE_ env vars for development or custom deployments:
+ *   VITE_NSITE_RELAY    — WebSocket URL for relay (e.g., ws://localhost:3100)
+ *   VITE_NSITE_BLOSSOM  — HTTP URL for blossom (e.g., http://localhost:3100)
+ *   VITE_NSITE_GATEWAY  — Gateway host for site URLs (e.g., localhost:3100)
+ *                         Used to construct npub.gateway and base36.gateway URLs
  */
 const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://nsite.run';
 const _wsProtocol = _origin.startsWith('https') ? 'wss' : 'ws';
@@ -24,6 +30,12 @@ export const NSITE_RELAY = import.meta.env.VITE_NSITE_RELAY || `${_wsProtocol}:/
 
 /** The blossom server for blob uploads. */
 export const NSITE_BLOSSOM = import.meta.env.VITE_NSITE_BLOSSOM || _origin;
+
+/** Gateway host for constructing site URLs (npub.host, base36dtag.host). */
+export const NSITE_GATEWAY_HOST = import.meta.env.VITE_NSITE_GATEWAY || _host;
+
+/** Protocol for site URLs (https in production, http in dev). */
+export const NSITE_GATEWAY_PROTOCOL = _origin.startsWith('https') ? 'https' : 'http';
 
 /** @type {RelayPool | null} */
 let _pool = null;
@@ -48,6 +60,63 @@ export async function createAnonymousSigner() {
   const pubkey = await signer.getPublicKey();
   const nsec = nsecEncode(signer.key);
   return { signer, pubkey, nsec };
+}
+
+/**
+ * Restores an anonymous signer from a hex private key stored in sessionStorage.
+ * @returns {Promise<{signer: PrivateKeySigner, pubkey: string, nsec: string} | null>}
+ */
+export async function restoreAnonymousSigner() {
+  try {
+    const hexKey = sessionStorage.getItem(ANON_KEY_STORAGE_KEY);
+    if (!hexKey || hexKey.length !== 64) return null;
+    const keyBytes = hexToBytes(hexKey);
+    const signer = new PrivateKeySigner(keyBytes);
+    const pubkey = await signer.getPublicKey();
+    const nsec = nsecEncode(signer.key);
+    return { signer, pubkey, nsec };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saves the anonymous signer's private key as hex to sessionStorage.
+ * @param {PrivateKeySigner} signer
+ */
+export function saveAnonymousKey(signer) {
+  try {
+    sessionStorage.setItem(ANON_KEY_STORAGE_KEY, bytesToHex(signer.key));
+  } catch { /* sessionStorage not available */ }
+}
+
+/**
+ * Clears the anonymous key from sessionStorage.
+ */
+export function clearAnonymousKey() {
+  try {
+    sessionStorage.removeItem(ANON_KEY_STORAGE_KEY);
+  } catch { /* ignore */ }
+}
+
+/**
+ * Triggers a file download containing the nsec string.
+ * Filename: nsite-nsec-{npub-prefix}.txt
+ * @param {string} nsec - nsec1... bech32 string
+ * @param {string} npub - npub1... bech32 string (used for filename)
+ */
+export function downloadNsecFile(nsec, npub) {
+  const prefix = npub ? npub.slice(0, 12) : 'unknown';
+  const filename = `nsite-nsec-${prefix}.txt`;
+  const blob = new Blob([nsec], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -111,7 +180,7 @@ export async function connectFromBunkerURI(bunkerUri) {
  * @param {object} filter - Nostr filter object
  * @returns {Promise<object[]>} Array of events received before EOSE
  */
-function queryRelay(url, filter) {
+export function queryRelay(url, filter) {
   return new Promise((resolve, reject) => {
     let ws;
     const events = [];
@@ -257,4 +326,139 @@ export async function fetchBlossomList(pubkey, relays) {
   }
 
   return [];
+}
+
+/**
+ * Fetches the most recent kind 15128 manifest for a pubkey across multiple relays.
+ * Queries all relays in parallel and returns the newest manifest event.
+ * @param {string} pubkey - User's hex pubkey
+ * @param {string[]} relays - Relay URLs to query (should include NIP-65 relays + NSITE_RELAY)
+ * @returns {Promise<object|null>} Most recent manifest event, or null if none found
+ */
+export async function fetchExistingManifest(pubkey, relays) {
+  const filter = { kinds: [15128], authors: [pubkey], limit: 1 };
+  const allEvents = [];
+  const seen = new Set();
+
+  const results = await Promise.allSettled(
+    relays.map(relay => queryRelay(relay, filter))
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      for (const event of result.value) {
+        if (!seen.has(event.id)) {
+          seen.add(event.id);
+          allEvents.push(event);
+        }
+      }
+    }
+  }
+
+  if (allEvents.length === 0) return null;
+
+  // Return the most recent manifest
+  allEvents.sort((a, b) => b.created_at - a.created_at);
+  return allEvents[0];
+}
+
+/**
+ * Returns true if the manifest event has zero path tags (empty/deleted manifest).
+ * @param {object} event - Nostr event
+ * @returns {boolean}
+ */
+function isEmptyManifest(event) {
+  return !event.tags.some(t => t[0] === 'path');
+}
+
+/**
+ * Fetches all manifests (root kind 15128 and named kind 35128) for a pubkey.
+ * Queries all relays in parallel with two filters simultaneously.
+ * Deduplicates by event ID, filters out empty manifests.
+ *
+ * @param {string} pubkey - User's hex pubkey
+ * @param {string[]} relays - Relay URLs to query
+ * @returns {Promise<{ root: object|null, named: object[] }>}
+ *   root: the most recent non-empty kind 15128 manifest, or null
+ *   named: array of most-recent-per-dTag non-empty kind 35128 manifests, sorted by created_at descending
+ */
+export async function fetchAllManifests(pubkey, relays) {
+  const rootFilter = { kinds: [15128], authors: [pubkey], limit: 1 };
+  const namedFilter = { kinds: [35128], authors: [pubkey] };
+
+  const seen = new Set();
+  const rootEvents = [];
+  const namedEvents = [];
+
+  // Query all relays for both filters in parallel
+  const queryPromises = relays.flatMap(relay => [
+    queryRelay(relay, rootFilter),
+    queryRelay(relay, namedFilter),
+  ]);
+
+  const results = await Promise.allSettled(queryPromises);
+
+  // Results are interleaved: [relay0-root, relay0-named, relay1-root, relay1-named, ...]
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    if (result.status !== 'fulfilled') continue;
+    // Even indices = root filter results, odd indices = named filter results
+    const isRootResult = i % 2 === 0;
+    for (const event of result.value) {
+      if (seen.has(event.id)) continue;
+      seen.add(event.id);
+      if (isRootResult) {
+        rootEvents.push(event);
+      } else {
+        namedEvents.push(event);
+      }
+    }
+  }
+
+  // Root: pick the most recent non-empty event
+  rootEvents.sort((a, b) => b.created_at - a.created_at);
+  const rootManifest = rootEvents.find(e => !isEmptyManifest(e)) ?? null;
+
+  // Named: group by d-tag, keep most recent per d-tag, filter empty, sort by created_at desc
+  const byDTag = new Map();
+  for (const event of namedEvents) {
+    const dTag = getManifestDTag(event);
+    if (!dTag) continue;
+    const existing = byDTag.get(dTag);
+    if (!existing || event.created_at > existing.created_at) {
+      byDTag.set(dTag, event);
+    }
+  }
+  const namedManifests = [...byDTag.values()]
+    .filter(e => !isEmptyManifest(e))
+    .sort((a, b) => b.created_at - a.created_at);
+
+  return { root: rootManifest, named: namedManifests };
+}
+
+/**
+ * Extracts the d-tag value from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string|null}
+ */
+export function getManifestDTag(event) {
+  return event.tags.find(t => t[0] === 'd')?.[1] || null;
+}
+
+/**
+ * Extracts the title from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string} Empty string if no title tag present
+ */
+export function getManifestTitle(event) {
+  return event.tags.find(t => t[0] === 'title')?.[1] || '';
+}
+
+/**
+ * Extracts the description from a manifest event's tags array.
+ * @param {object} event - Nostr event
+ * @returns {string} Empty string if no description tag present
+ */
+export function getManifestDescription(event) {
+  return event.tags.find(t => t[0] === 'description')?.[1] || '';
 }

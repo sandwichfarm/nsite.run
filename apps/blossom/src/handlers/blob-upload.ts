@@ -3,7 +3,7 @@ import type { StorageClient } from "../storage/client.ts";
 import { validateAuth } from "../auth/nostr.ts";
 import { addOwner, addToIndex, isBlocked } from "../storage/metadata.ts";
 import { sha256 } from "@noble/hashes/sha256";
-import { errorResponse, jsonResponse } from "../util.ts";
+import { errorResponse, jsonResponse, logBlobUpload } from "../util.ts";
 
 /** Convert bytes to hex string using pre-computed lookup */
 const HEX_TABLE: string[] = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
@@ -166,6 +166,8 @@ export async function handleBlobUpload(
   if (nip94) {
     descriptor.nip94 = nip94;
   }
+
+  logBlobUpload("upload", computedHash, totalSize, contentType, auth.pubkey);
 
   return jsonResponse(descriptor);
 }

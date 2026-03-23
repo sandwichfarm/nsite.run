@@ -12,6 +12,7 @@
     "./validation": "./src/validation.ts",
     "./constants": "./src/constants.ts",
     "./libsql": "./src/libsql.ts",
-    "./nostr-verify": "./src/nostr-verify.ts"
+    "./nostr-verify": "./src/nostr-verify.ts",
+    "./base36": "./src/base36.ts"
   }
 }

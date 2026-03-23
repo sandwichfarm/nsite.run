@@ -3,40 +3,7 @@
  * for nsite gateway file serving.
  */
 
-/** Static MIME type map covering common web asset types */
-const CONTENT_TYPES: Record<string, string> = {
-  ".html": "text/html; charset=utf-8",
-  ".css": "text/css",
-  ".js": "application/javascript",
-  ".mjs": "application/javascript",
-  ".jsx": "application/javascript",
-  ".ts": "application/javascript",
-  ".tsx": "application/javascript",
-  ".json": "application/json",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".gif": "image/gif",
-  ".webp": "image/webp",
-  ".avif": "image/avif",
-  ".ico": "image/x-icon",
-  ".woff": "font/woff",
-  ".woff2": "font/woff2",
-  ".ttf": "font/ttf",
-  ".otf": "font/otf",
-  ".xml": "application/xml",
-  ".txt": "text/plain",
-  ".md": "text/markdown",
-  ".wasm": "application/wasm",
-  ".pdf": "application/pdf",
-  ".mp3": "audio/mpeg",
-  ".mp4": "video/mp4",
-  ".webm": "video/webm",
-  ".ogg": "audio/ogg",
-  ".zip": "application/zip",
-  ".gz": "application/gzip",
-};
+import { contentType, typeByExtension } from "@std/media-types";
 
 /**
  * Detect MIME type from file path or extension.
@@ -47,7 +14,10 @@ export function detectContentType(path: string): string {
   const dotIndex = path.lastIndexOf(".");
   if (dotIndex === -1) return "application/octet-stream";
   const ext = path.substring(dotIndex).toLowerCase();
-  return CONTENT_TYPES[ext] ?? "application/octet-stream";
+  const type = typeByExtension(ext);
+  if (!type) return "application/octet-stream";
+
+  return contentType(type) ?? type;
 }
 
 /**

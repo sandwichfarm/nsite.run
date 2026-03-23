@@ -9,6 +9,7 @@
     "jsr:@std/collections@^1.1.3": "1.1.6",
     "jsr:@std/encoding@^1.0.5": "1.0.10",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/path@^1.0.6": "1.1.4",
     "jsr:@std/toml@1": "1.0.11",
     "npm:@libsql/client@*": "0.17.0",
@@ -57,6 +58,9 @@
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/media-types@1.1.0": {
+      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
     },
     "@std/path@1.1.4": {
       "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
@@ -531,6 +535,7 @@
       "apps/blossom": {
         "dependencies": [
           "jsr:@nostr/tools@^2.23.3",
+          "jsr:@std/path@^1.0.6",
           "jsr:@std/toml@1",
           "npm:@noble/curves@1.8.1",
           "npm:@noble/hashes@1.6.1"
@@ -539,6 +544,7 @@
       "apps/gateway": {
         "dependencies": [
           "jsr:@nostr/tools@^2.23.3",
+          "jsr:@std/media-types@^1.1.0",
           "jsr:@std/toml@1",
           "npm:@noble/curves@1.8.1",
           "npm:@noble/hashes@1.6.1"

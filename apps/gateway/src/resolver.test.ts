@@ -167,7 +167,7 @@ Deno.test("injectBanner falls back to append when no </body> tag", () => {
 Deno.test("detectContentType: /style.css does NOT return text/html (no banner for CSS)", () => {
   const ct = detectContentType("/style.css");
   assertEquals(ct.startsWith("text/html"), false);
-  assertEquals(ct, "text/css");
+  assertEquals(ct, "text/css; charset=UTF-8");
 });
 
 Deno.test("detectContentType: /index.html returns text/html (banner eligible)", () => {
@@ -178,7 +178,7 @@ Deno.test("detectContentType: /index.html returns text/html (banner eligible)", 
 Deno.test("detectContentType: /app.js does NOT return text/html", () => {
   const ct = detectContentType("/app.js");
   assertEquals(ct.startsWith("text/html"), false);
-  assertEquals(ct, "application/javascript");
+  assertEquals(ct, "text/javascript; charset=UTF-8");
 });
 
 Deno.test("detectContentType: /image.png does NOT return text/html", () => {

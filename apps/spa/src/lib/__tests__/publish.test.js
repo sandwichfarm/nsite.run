@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { buildManifest } from '../publish.js';
+import { describe, it, expect, vi } from 'vitest';
+import { buildManifest, publishEmptyManifest } from '../publish.js';
 
 const sampleFiles = [
   { path: '/index.html', sha256: 'aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888' },
@@ -111,5 +111,148 @@ describe('buildManifest', () => {
     const event = buildManifest(sampleFiles, [], false);
     const serverTags = event.tags.filter((t) => t[0] === 'server');
     expect(serverTags.length).toBe(0);
+  });
+
+  // --- Options object backward compat ---
+
+  it('accepts spaFallback as options object { spaFallback: true }', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { spaFallback: true });
+    const pathTags = event.tags.filter((t) => t[0] === 'path');
+    const fallbackTag = pathTags.find((t) => t[1] === '/404.html');
+    expect(fallbackTag).toBeDefined();
+    expect(event.kind).toBe(15128);
+  });
+
+  it('accepts spaFallback as options object { spaFallback: false }', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { spaFallback: false });
+    expect(event.kind).toBe(15128);
+    const pathTags = event.tags.filter((t) => t[0] === 'path');
+    expect(pathTags.length).toBe(3);
+  });
+
+  // --- kind 35128 named site support ---
+
+  it('with options.kind=35128 produces kind 35128 event', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { kind: 35128, dTag: 'blog' });
+    expect(event.kind).toBe(35128);
+  });
+
+  it('with options.dTag produces a d tag', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { kind: 35128, dTag: 'blog' });
+    const dTag = event.tags.find((t) => t[0] === 'd');
+    expect(dTag).toBeDefined();
+    expect(dTag[1]).toBe('blog');
+  });
+
+  it('without options.dTag does NOT produce a d tag', () => {
+    const event = buildManifest(sampleFiles, sampleServers, {});
+    const dTag = event.tags.find((t) => t[0] === 'd');
+    expect(dTag).toBeUndefined();
+  });
+
+  it('with options.kind=35128 and dTag includes all standard tags too', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { kind: 35128, dTag: 'myblog' });
+    const pathTags = event.tags.filter((t) => t[0] === 'path');
+    const serverTags = event.tags.filter((t) => t[0] === 'server');
+    const clientTag = event.tags.find((t) => t[0] === 'client');
+    const dTag = event.tags.find((t) => t[0] === 'd');
+    expect(pathTags.length).toBe(3);
+    expect(serverTags.length).toBe(1);
+    expect(clientTag).toBeDefined();
+    expect(dTag).toBeDefined();
+    expect(dTag[1]).toBe('myblog');
+  });
+
+  // --- title and description metadata ---
+
+  it('with options.title adds a title tag', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { title: 'My Site' });
+    const titleTag = event.tags.find((t) => t[0] === 'title');
+    expect(titleTag).toBeDefined();
+    expect(titleTag[1]).toBe('My Site');
+  });
+
+  it('with options.description adds a description tag', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { description: 'A blog about stuff' });
+    const descTag = event.tags.find((t) => t[0] === 'description');
+    expect(descTag).toBeDefined();
+    expect(descTag[1]).toBe('A blog about stuff');
+  });
+
+  it('with options.title="" does NOT add a title tag (empty string omitted)', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { title: '' });
+    const titleTag = event.tags.find((t) => t[0] === 'title');
+    expect(titleTag).toBeUndefined();
+  });
+
+  it('with options.description="" does NOT add a description tag (empty string omitted)', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { description: '' });
+    const descTag = event.tags.find((t) => t[0] === 'description');
+    expect(descTag).toBeUndefined();
+  });
+
+  it('without title/description options no title or description tags', () => {
+    const event = buildManifest(sampleFiles, sampleServers, {});
+    const titleTag = event.tags.find((t) => t[0] === 'title');
+    const descTag = event.tags.find((t) => t[0] === 'description');
+    expect(titleTag).toBeUndefined();
+    expect(descTag).toBeUndefined();
+  });
+
+  it('all options combined: kind 35128 + dTag + title + description + spaFallback', () => {
+    const event = buildManifest(sampleFiles, sampleServers, {
+      kind: 35128,
+      dTag: 'portfolio',
+      title: 'My Portfolio',
+      description: 'A showcase of my work',
+      spaFallback: true,
+    });
+    expect(event.kind).toBe(35128);
+    expect(event.tags.find((t) => t[0] === 'd')?.[1]).toBe('portfolio');
+    expect(event.tags.find((t) => t[0] === 'title')?.[1]).toBe('My Portfolio');
+    expect(event.tags.find((t) => t[0] === 'description')?.[1]).toBe('A showcase of my work');
+    const pathTags = event.tags.filter((t) => t[0] === 'path');
+    // spaFallback adds /404.html
+    expect(pathTags.length).toBe(sampleFiles.length + 1);
+  });
+});
+
+describe('publishEmptyManifest', () => {
+  function makeMockSigner() {
+    return {
+      signEvent: vi.fn(async (template) => ({ ...template, id: 'mock-id', sig: 'mock-sig', pubkey: 'mock-pubkey' })),
+    };
+  }
+
+  it('backward compat: no options publishes kind 15128', async () => {
+    const signer = makeMockSigner();
+    // Mock WebSocket to avoid real network calls
+    global.WebSocket = class {
+      constructor() { this.onopen = null; this.onmessage = null; this.onerror = null; this.onclose = null; }
+      send() {}
+      close() {}
+    };
+
+    await publishEmptyManifest(signer, []).catch(() => {});
+    const template = signer.signEvent.mock.calls[0][0];
+    expect(template.kind).toBe(15128);
+    const dTag = template.tags.find((t) => t[0] === 'd');
+    expect(dTag).toBeUndefined();
+  });
+
+  it('with options.dTag publishes kind 35128 with d tag', async () => {
+    const signer = makeMockSigner();
+    global.WebSocket = class {
+      constructor() { this.onopen = null; this.onmessage = null; this.onerror = null; this.onclose = null; }
+      send() {}
+      close() {}
+    };
+
+    await publishEmptyManifest(signer, [], { dTag: 'blog' }).catch(() => {});
+    const template = signer.signEvent.mock.calls[0][0];
+    expect(template.kind).toBe(35128);
+    const dTag = template.tags.find((t) => t[0] === 'd');
+    expect(dTag).toBeDefined();
+    expect(dTag[1]).toBe('blog');
   });
 });

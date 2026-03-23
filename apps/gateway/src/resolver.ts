@@ -70,6 +70,11 @@ function getDb(): Client {
   return _db;
 }
 
+/** Inject a pre-created DB client (used by dev.ts for local SQLite). */
+export function setDevDb(client: Client): void {
+  _db = client;
+}
+
 function getStorage(): StorageClient | null {
   if (!_storageInit) {
     _storageClient = createStorageClient();
@@ -133,8 +138,8 @@ export async function handleResolver(
 ): Promise<Response> {
   const url = new URL(request.url);
 
-  // Step 1: Decode npub
-  const pubkeyHex = npubToHex(pointer.npub);
+  // Step 1: Get hex pubkey — named sites provide it directly, root sites decode from npub
+  const pubkeyHex = pointer.pubkeyHex || npubToHex(pointer.npub);
   if (!pubkeyHex) {
     return new Response("Invalid npub", { status: 400 });
   }

@@ -101,3 +101,9 @@ export const serverConfig = persistedStore('nsite_servers', {
   extraBlossoms: ['https://nostr.download', 'https://blssm.us'],
 });
 
+/**
+ * sessionStorage key used to persist the anonymous private key (as hex) across page reloads.
+ * The key is scoped to the browser tab session — it is automatically cleared when the tab closes.
+ */
+export const ANON_KEY_STORAGE_KEY = 'nsite_anon_key';
+

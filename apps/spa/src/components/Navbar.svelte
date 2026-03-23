@@ -1,7 +1,12 @@
 <script>
   import { session } from '../lib/store.js';
+  import { clearAnonymousKey } from '../lib/nostr.js';
+  import LogoutConfirmModal from './LogoutConfirmModal.svelte';
 
   export let onLoginClick = () => {};
+  export let deployNsec = null;
+
+  let showLogoutConfirm = false;
 
   function truncateNpub(npub) {
     if (!npub) return '';
@@ -9,6 +14,15 @@
   }
 
   function logout() {
+    if ($session.signerType === 'anonymous') {
+      showLogoutConfirm = true;
+      return;
+    }
+    doLogout();
+  }
+
+  function doLogout() {
+    clearAnonymousKey();
     session.set({
       pubkey: null,
       signerType: null,
@@ -16,6 +30,7 @@
       avatar: null,
       npub: null,
     });
+    showLogoutConfirm = false;
   }
 </script>
 
@@ -49,6 +64,9 @@
             {#if $session.npub}
               <span class="text-xs text-slate-400 font-mono">{truncateNpub($session.npub)}</span>
             {/if}
+            {#if $session.signerType === 'anonymous'}
+              <span class="text-[10px] font-medium text-amber-400 bg-amber-900/40 px-1.5 py-0.5 rounded-full">Anonymous</span>
+            {/if}
           </div>
         </div>
         <button
@@ -69,3 +87,11 @@
     </div>
   </div>
 </nav>
+
+<LogoutConfirmModal
+  show={showLogoutConfirm}
+  nsec={deployNsec || ''}
+  npub={$session.npub || ''}
+  on:close={() => (showLogoutConfirm = false)}
+  on:confirm={doLogout}
+/>

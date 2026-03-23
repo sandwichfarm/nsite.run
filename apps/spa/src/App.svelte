@@ -5,17 +5,26 @@
   import {
     createAnonymousSigner,
     createExtensionSigner,
+    restoreAnonymousSigner,
+    saveAnonymousKey,
     NSITE_RELAY,
     NSITE_BLOSSOM,
     DEFAULT_RELAYS,
     fetchRelayList,
     fetchBlossomList,
     fetchProfile,
+    fetchExistingManifest,
+    fetchAllManifests,
+    getManifestDTag,
+    getManifestTitle,
+    getManifestDescription,
   } from './lib/nostr.js';
   import { npubEncode } from 'nostr-tools/nip19';
   import { hashFile } from './lib/crypto.js';
   import { checkExistence, uploadBlobs } from './lib/upload.js';
   import { publishManifest } from './lib/publish.js';
+  import { base36Encode } from './lib/base36.js';
+  import { hexToBytes } from 'nostr-tools/utils';
 
   import Navbar from './components/Navbar.svelte';
   import DeployZone from './components/DeployZone.svelte';
@@ -25,12 +34,16 @@
   import LoginModal from './components/LoginModal.svelte';
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
+  import ManageSite from './components/ManageSite.svelte';
 
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
 
   let showLoginModal = false;
+
+  // Page navigation: 'deploy' | 'manage'
+  let currentPage = 'deploy';
 
   // Files & tree state (set when DeployZone fires 'files-selected')
   let selectedFiles = [];
@@ -41,6 +54,18 @@
 
   // Deploy options
   let spaFallback = false;
+
+  // Named site state
+  let siteType = 'root'; // 'root' | 'named'
+  let dTag = '';
+  let dTagError = '';
+  let dTagReadOnly = false;
+  let deployTitle = '';
+  let deployDescription = '';
+
+  // Multi-site data from fetchAllManifests
+  let allSites = { root: null, named: [] };
+  let sitesLoading = false;
 
   // Current signer (not persisted — lost on reload)
   let currentSigner = null;
@@ -59,6 +84,9 @@
   // File list expand/collapse
   let fileListExpanded = false;
 
+  // Excluded files summary expand/collapse
+  let excludedSummaryExpanded = false;
+
   // NIP-65 / 10063 pre-fetched lists
   let userRelays = [];
   let userBlossoms = [];
@@ -67,6 +95,10 @@
   let givenUpServers = new Set();
   let givenUpReactive = new Set();
   let deployBlossomUrls = [];
+
+  // Existing site info (for returning users)
+  let existingManifest = null;
+  let siteInfoLoading = false;
 
   function giveUpServer(url) {
     givenUpServers.add(url);
@@ -103,8 +135,22 @@
   // Hydrate profile + relay/blossom lists on mount
   // ---------------------------------------------------------------------------
 
-  onMount(() => {
+  onMount(async () => {
+    // Restore anonymous session from sessionStorage
     const sess = get(session);
+    if (sess.signerType === 'anonymous' && !currentSigner) {
+      const restored = await restoreAnonymousSigner();
+      if (restored) {
+        currentSigner = restored.signer;
+        deployNsec = restored.nsec;
+        // Fetch existing site info for returning anonymous users
+        fetchSiteInfo(sess.pubkey);
+      } else {
+        // Key not found in sessionStorage — session is stale, clear it
+        session.set({ pubkey: null, signerType: null, displayName: null, avatar: null, npub: null });
+      }
+    }
+
     if (sess.pubkey && !sess.displayName) {
       fetchProfile(sess.pubkey, DEFAULT_RELAYS).then((profile) => {
         if (profile) {
@@ -118,6 +164,15 @@
     }
     if (sess.pubkey && sess.signerType !== 'anonymous') {
       fetchUserServers(sess.pubkey);
+      // Fetch existing site info for returning users
+      fetchSiteInfo(sess.pubkey);
+      // Restore signer for extension users (needed for manage page actions)
+      if (sess.signerType === 'extension' && !currentSigner) {
+        try {
+          const ext = await createExtensionSigner();
+          currentSigner = ext.signer;
+        } catch { /* extension not available — signer stays null */ }
+      }
     }
   });
 
@@ -126,7 +181,30 @@
   // ---------------------------------------------------------------------------
 
   $: step = $deployState.step;
+  $: dTagValid = siteType === 'root' || /^[a-z0-9]{1,13}$/.test(dTag);
+  $: dTagError = siteType === 'named' && dTag.length > 0 && !dTagValid
+    ? 'Only lowercase letters and numbers, 1-13 characters'
+    : '';
+  $: canDeploy = siteType === 'root' || (dTag.length > 0 && dTagValid);
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
+  $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
+  $: userExcludedCount = excludedFiles.size;
+  $: userExcludedPaths = [...excludedFiles]; // array for rendering
+
+  // Derived values for site info
+  $: existingSiteUrl = (() => {
+    if (!existingManifest || !$session.npub) return '';
+    try { return `https://${$session.npub}.${new URL(NSITE_BLOSSOM).host}`; } catch { return ''; }
+  })();
+  $: existingPublishDate = existingManifest ? new Date(existingManifest.created_at * 1000) : null;
+  $: existingFileCount = existingManifest ? existingManifest.tags.filter(t => t[0] === 'path').length : 0;
+
+  // Derived values for deletion scope
+  $: deleteRelayUrls = [...new Set([NSITE_RELAY, ...userRelays])];
+  $: deleteBlossomUrls_list = [...new Set([NSITE_BLOSSOM, ...userBlossoms])];
+  $: deleteBlobCount = existingManifest
+    ? [...new Set(existingManifest.tags.filter(t => t[0] === 'path').map(t => t[2]))].length
+    : 0;
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -160,7 +238,14 @@
     excludedFiles = new Set();
     excludedCount = 0;
     fileListExpanded = false;
+    excludedSummaryExpanded = false;
     spaFallback = false;
+    siteType = 'root';
+    dTag = '';
+    dTagError = '';
+    dTagReadOnly = false;
+    deployTitle = '';
+    deployDescription = '';
     currentSigner = null;
     deployNsec = null;
     deployEvent = null;
@@ -175,6 +260,53 @@
       result: null,
       error: null,
     });
+  }
+
+  function resetForUpdate() {
+    selectedFiles = [];
+    fileTree = null;
+    fileWarnings = [];
+    excludedFiles = new Set();
+    excludedCount = 0;
+    fileListExpanded = false;
+    excludedSummaryExpanded = false;
+    spaFallback = false;
+    // NOTE: currentSigner and deployNsec are intentionally NOT cleared
+    deployEvent = null;
+    uploadResult = null;
+    uploadProgress = null;
+    checkProgress = null;
+    publishResult = null;
+    errorMessage = '';
+    givenUpServers = new Set();
+    givenUpReactive = new Set();
+    deployBlossomUrls = [];
+    deployState.set({
+      step: 'idle',
+      files: [],
+      warnings: [],
+      progress: 0,
+      result: null,
+      error: null,
+    });
+  }
+
+  async function fetchSiteInfo(pubkey) {
+    sitesLoading = true;
+    siteInfoLoading = true;
+    try {
+      const relayList = [...new Set([NSITE_RELAY, ...userRelays, ...(userRelays.length === 0 ? DEFAULT_RELAYS : [])])];
+      const result = await fetchAllManifests(pubkey, relayList);
+      allSites = result;
+      // Backward compat: keep existingManifest as root for remaining derived values
+      existingManifest = result.root;
+    } catch {
+      allSites = { root: null, named: [] };
+      existingManifest = null;
+    } finally {
+      sitesLoading = false;
+      siteInfoLoading = false;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -209,6 +341,8 @@
           avatar: null,
           npub,
         });
+
+        saveAnonymousKey(signer);
       }
 
       const sess = get(session);
@@ -299,7 +433,13 @@
       let relayUrls = [...new Set([NSITE_RELAY, ...cfg.extraRelays, ...userRelays])];
 
       const activeBlossomUrls = blossomUrls.filter(u => !givenUpServers.has(u));
-      publishResult = await publishManifest(currentSigner, hashedFiles, activeBlossomUrls, relayUrls, spaFallback);
+      publishResult = await publishManifest(currentSigner, hashedFiles, activeBlossomUrls, relayUrls, {
+        spaFallback,
+        kind: siteType === 'named' ? 35128 : 15128,
+        dTag: siteType === 'named' ? dTag : undefined,
+        title: deployTitle || undefined,
+        description: deployDescription || undefined,
+      });
       deployEvent = publishResult?.event ?? null;
 
       // Warn about partial relay failures (some accepted, some rejected)
@@ -318,6 +458,31 @@
 
       deployState.update((s) => ({ ...s, step: 'success', progress: 100 }));
       progressDetails = '';
+      // Optimistically update local state so Manage tab shows the new site immediately
+      existingManifest = deployEvent;
+      if (deployEvent.kind === 35128) {
+        // Add/replace named site in allSites
+        const dTagVal = deployEvent.tags.find(t => t[0] === 'd')?.[1];
+        if (dTagVal) {
+          allSites = {
+            ...allSites,
+            named: [
+              ...allSites.named.filter(s => {
+                const sd = s.tags.find(t => t[0] === 'd')?.[1];
+                return sd !== dTagVal;
+              }),
+              deployEvent,
+            ],
+          };
+        }
+      } else {
+        allSites = { ...allSites, root: deployEvent };
+      }
+      // Also refresh from relays after a delay to pick up any relay-side changes
+      const postDeploySess = get(session);
+      if (postDeploySess.pubkey) {
+        setTimeout(() => fetchSiteInfo(postDeploySess.pubkey), 3000);
+      }
 
     } catch (err) {
       errorMessage = err?.message ?? 'An unexpected error occurred.';
@@ -338,18 +503,26 @@
     if (sess.pubkey && sess.signerType !== 'anonymous') {
       fetchUserServers(sess.pubkey);
     }
+    // Fetch existing site info on login
+    if (sess.pubkey) {
+      fetchSiteInfo(sess.pubkey);
+    }
   }}
 />
 
 <!-- App shell -->
 <div class="min-h-screen bg-slate-900 text-gray-100">
 
-  <Navbar onLoginClick={() => (showLoginModal = true)} />
+  <Navbar
+    onLoginClick={() => (showLoginModal = true)}
+    {deployNsec}
+  />
 
   <main>
 
-    <!-- ===== IDLE / SELECTING: Deploy Zone ===== -->
+    <!-- ===== IDLE / SELECTING: Hero with tabs ===== -->
     {#if step === 'idle' || step === 'selecting'}
+
       <!-- Hero: full viewport -->
       <section class="min-h-screen flex flex-col items-center justify-center px-4">
         <div class="text-center mb-10">
@@ -362,27 +535,79 @@
         </div>
 
         <div class="w-full max-w-2xl">
-          <DeployZone on:files-selected={handleFilesSelected} />
+          <!-- Tabs (only show when manage tab is available) -->
+          {#if (allSites.root || allSites.named.length > 0) && $session.pubkey}
+            <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
+              <button
+                on:click={() => (currentPage = 'deploy')}
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  {currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+              >
+                Deploy
+              </button>
+              <button
+                on:click={() => (currentPage = 'manage')}
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  {currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+              >
+                Manage
+              </button>
+            </div>
+          {/if}
+
+          <!-- Tab content -->
+          {#if currentPage === 'manage'}
+            <ManageSite
+              sites={allSites}
+              pubkey={$session.pubkey}
+              relayUrls={deleteRelayUrls}
+              blossomUrls={deleteBlossomUrls_list}
+              signer={currentSigner}
+              on:update={(e) => {
+                const site = e.detail;
+                currentPage = 'deploy';
+                if (site.kind === 35128) {
+                  siteType = 'named';
+                  dTag = getManifestDTag(site) || '';
+                  dTagReadOnly = true;
+                } else {
+                  siteType = 'root';
+                  dTag = '';
+                  dTagReadOnly = false;
+                }
+                deployTitle = getManifestTitle(site);
+                deployDescription = getManifestDescription(site);
+                resetForUpdate();
+              }}
+              on:deleted={() => {
+                fetchSiteInfo($session.pubkey);
+              }}
+            />
+          {:else}
+            <DeployZone on:files-selected={handleFilesSelected} />
+          {/if}
         </div>
 
-        {#if $session.pubkey}
-          <div class="flex items-center gap-2 mt-6 text-sm text-slate-400">
-            <span>deploying as</span>
-            {#if $session.avatar}
-              <img src={$session.avatar} alt="" class="w-5 h-5 rounded-full" />
-            {/if}
-            <span class="text-purple-300 font-medium">{$session.displayName || $session.npub?.slice(0, 16) + '...'}</span>
-          </div>
-        {:else}
-          <p class="text-slate-500 text-sm mt-6">
-            or
-            <button
-              on:click={() => (showLoginModal = true)}
-              class="text-purple-400 hover:text-purple-300 underline"
-            >
-              login with your nostr identity
-            </button>
-          </p>
+        {#if currentPage !== 'manage'}
+          {#if $session.pubkey}
+            <div class="flex items-center gap-2 mt-6 text-sm text-slate-400">
+              <span>deploying as</span>
+              {#if $session.avatar}
+                <img src={$session.avatar} alt="" class="w-5 h-5 rounded-full" />
+              {/if}
+              <span class="text-purple-300 font-medium">{$session.displayName || $session.npub?.slice(0, 16) + '...'}</span>
+            </div>
+          {:else}
+            <p class="text-slate-500 text-sm mt-6">
+              or
+              <button
+                on:click={() => (showLoginModal = true)}
+                class="text-purple-400 hover:text-purple-300 underline"
+              >
+                login with your nostr identity
+              </button>
+            </p>
+          {/if}
         {/if}
 
         <!-- Scroll nudge -->
@@ -506,6 +731,18 @@
           </div>
         {/if}
 
+        <!-- Excluded files badge -->
+        {#if userExcludedCount > 0}
+          <div class="mb-2 flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full text-xs font-medium">
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.11 6.11m3.768 3.768l4.242 4.242m0 0L17.89 17.89M3 3l18 18" />
+              </svg>
+              {userExcludedCount} excluded
+            </span>
+          </div>
+        {/if}
+
         <!-- File tree with overflow control -->
         <div class="relative">
           <div class="{fileListExpanded ? '' : 'max-h-64 overflow-hidden'}">
@@ -513,6 +750,8 @@
               tree={fileTree}
               warnings={fileWarnings}
               onToggleExclude={toggleExclude}
+              {fileDataMap}
+              {excludedFiles}
             />
           </div>
           {#if !fileListExpanded && selectedFiles.length > 10}
@@ -534,8 +773,143 @@
           {/if}
         </div>
 
+        <!-- Ignored files summary -->
+        {#if userExcludedCount > 0}
+          {@const TRUNCATE_THRESHOLD = 10}
+          {@const showAllExcluded = userExcludedPaths.length <= TRUNCATE_THRESHOLD}
+          <div class="mt-3 bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-slate-400">
+                Excluded files ({userExcludedCount})
+              </h3>
+              {#if excludedFiles.size > 0}
+                <button
+                  on:click={() => {
+                    for (const p of [...excludedFiles]) {
+                      toggleExclude(p);
+                    }
+                  }}
+                  class="text-xs text-purple-400 hover:text-purple-300"
+                >
+                  Re-include all
+                </button>
+              {/if}
+            </div>
+            <ul class="space-y-1">
+              {#each (showAllExcluded || excludedSummaryExpanded ? userExcludedPaths : userExcludedPaths.slice(0, TRUNCATE_THRESHOLD)) as excludedPath}
+                <li class="flex items-center justify-between gap-2 text-xs">
+                  <span class="font-mono text-slate-500 truncate">{excludedPath}</span>
+                  <button
+                    on:click={() => toggleExclude(excludedPath)}
+                    class="text-purple-400 hover:text-purple-300 whitespace-nowrap flex-shrink-0"
+                  >
+                    Re-include
+                  </button>
+                </li>
+              {/each}
+            </ul>
+            {#if !showAllExcluded && !excludedSummaryExpanded}
+              <button
+                on:click={() => (excludedSummaryExpanded = true)}
+                class="mt-2 text-xs text-slate-400 hover:text-slate-300"
+              >
+                + {userExcludedPaths.length - TRUNCATE_THRESHOLD} more
+              </button>
+            {/if}
+            {#if excludedSummaryExpanded && !showAllExcluded}
+              <button
+                on:click={() => (excludedSummaryExpanded = false)}
+                class="mt-2 text-xs text-slate-400 hover:text-slate-300"
+              >
+                Show less
+              </button>
+            {/if}
+          </div>
+        {/if}
+
         <!-- Deploy options -->
-        <div class="mt-4 space-y-3">
+        <div class="mt-4 space-y-4">
+          <!-- Root/Named site selector -->
+          <div>
+            <p class="text-sm font-medium text-slate-300 mb-2">Site type</p>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="siteType"
+                  value="root"
+                  bind:group={siteType}
+                  class="w-4 h-4 border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
+                />
+                <span class="text-sm text-slate-300">Root site</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="siteType"
+                  value="named"
+                  bind:group={siteType}
+                  class="w-4 h-4 border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
+                />
+                <span class="text-sm text-slate-300">Named site</span>
+              </label>
+            </div>
+
+            {#if siteType === 'named'}
+              <div class="mt-3">
+                <label class="block text-sm text-slate-400 mb-1" for="dTagInput">
+                  Site identifier (dTag)
+                  {#if dTagReadOnly}
+                    <span class="text-slate-500 text-xs ml-1">— cannot be changed on update</span>
+                  {/if}
+                </label>
+                <input
+                  id="dTagInput"
+                  type="text"
+                  value={dTag}
+                  on:input={(e) => {
+                    dTag = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    e.target.value = dTag;
+                  }}
+                  placeholder="e.g. blog, portfolio, docs"
+                  readonly={dTagReadOnly}
+                  class="w-full px-3 py-2 rounded-lg bg-slate-700 text-white text-sm placeholder-slate-500 border transition-colors
+                    {dTagError ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-purple-500'}
+                    {dTagReadOnly ? 'opacity-60 cursor-not-allowed' : ''}
+                    focus:outline-none focus:ring-1"
+                />
+                {#if dTagError}
+                  <p class="text-xs text-red-400 mt-1">{dTagError}</p>
+                {/if}
+              </div>
+            {/if}
+          </div>
+
+          <!-- Title input (always visible) -->
+          <div>
+            <label class="block text-sm text-slate-400 mb-1" for="deployTitle">Title (optional)</label>
+            <input
+              id="deployTitle"
+              type="text"
+              bind:value={deployTitle}
+              placeholder="My Awesome Site"
+              class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+          </div>
+
+          <!-- Description input (always visible) -->
+          <div>
+            <label class="block text-sm text-slate-400 mb-1" for="deployDescription">Description (optional)</label>
+            <textarea
+              id="deployDescription"
+              bind:value={deployDescription}
+              placeholder="A brief description of your site"
+              rows="2"
+              class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+            ></textarea>
+          </div>
+
+          <!-- SPA fallback checkbox -->
           <label class="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -557,7 +931,9 @@
         <div class="mt-6">
           <button
             on:click={handleDeploy}
-            class="w-full py-3 px-6 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold text-lg transition-colors"
+            disabled={!canDeploy}
+            class="w-full py-3 px-6 bg-purple-600 text-white rounded-lg font-semibold text-lg transition-colors
+              {canDeploy ? 'hover:bg-purple-500' : 'opacity-50 cursor-not-allowed'}"
           >
             {$session.pubkey ? 'Deploy' : 'Deploy Anonymously'}
           </button>
@@ -603,6 +979,10 @@
           {uploadResult}
           {publishResult}
           givenUpServers={givenUpReactive}
+          {siteType}
+          {dTag}
+          pubkeyHex={$session.pubkey || ''}
+          on:update={resetForUpdate}
         />
         <div class="mt-4 text-center">
           <button
@@ -638,4 +1018,5 @@
     {/if}
 
   </main>
+
 </div>

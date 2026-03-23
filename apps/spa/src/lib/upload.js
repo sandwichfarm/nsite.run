@@ -351,3 +351,78 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
 
   return { uploaded, alreadyExist: fullySkippedCount, failed, total: files.length, fileResults, serverProgress };
 }
+
+/**
+ * Deletes blobs from blossom servers using BUD-02 DELETE /{sha256} with kind 24242 auth.
+ * Best-effort: partial failures are expected (some servers may not support delete or may be unreachable).
+ *
+ * @param {{ signEvent: (template: object) => Promise<object> }} signer
+ * @param {string[]} sha256List - Hex SHA-256 hashes to delete
+ * @param {string[]} blossomUrls - Blossom server URLs
+ * @param {(progress: { server: string, completed: number, total: number, successes: number, failures: number }) => void} [onProgress]
+ * @returns {Promise<{ results: { server: string, deleted: number, failed: number, errors: string[] }[] }>}
+ */
+const DELETE_CONCURRENCY = 5;
+
+export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
+  if (sha256List.length === 0) return { results: [] };
+
+  const totalOps = sha256List.length * blossomUrls.length;
+  let completedOps = 0;
+
+  // Pre-sign auth headers: one auth event per hash (BUD-02 spec requires
+  // single x tag per delete — multiple x tags must NOT be interpreted as batch)
+  const perHashAuth = new Map();
+  for (const hash of sha256List) {
+    const template = buildAuthEvent(hash, 'delete');
+    const signed = await signer.signEvent(template);
+    perHashAuth.set(hash, 'Nostr ' + btoa(JSON.stringify(signed)));
+  }
+
+  // Build flat work queue: [{server, hash}, ...]
+  const workItems = [];
+  for (const url of blossomUrls) {
+    for (const hash of sha256List) {
+      workItems.push({ url, hash });
+    }
+  }
+
+  // Track per-server results
+  const serverResults = new Map();
+  for (const url of blossomUrls) {
+    serverResults.set(url, { server: url, deleted: 0, failed: 0, errors: [] });
+  }
+
+  // Execute with concurrency
+  await parallelMap(workItems, DELETE_CONCURRENCY, async ({ url, hash }) => {
+    const base = url.replace(/\/$/, '');
+    const result = serverResults.get(url);
+    try {
+      const resp = await fetch(`${base}/${hash}`, {
+        method: 'DELETE',
+        headers: { Authorization: perHashAuth.get(hash) },
+      });
+      if (resp.ok || resp.status === 404) {
+        result.deleted++;
+      } else {
+        const body = await resp.text().catch(() => '');
+        result.failed++;
+        result.errors.push(`${hash.slice(0, 8)}...: HTTP ${resp.status} ${body}`.trim());
+      }
+    } catch (err) {
+      result.failed++;
+      result.errors.push(`${hash.slice(0, 8)}...: ${err?.message ?? String(err)}`);
+    }
+
+    completedOps++;
+    if (onProgress) {
+      onProgress({
+        completed: completedOps,
+        total: totalOps,
+        serverResults: Object.fromEntries(serverResults),
+      });
+    }
+  });
+
+  return { results: [...serverResults.values()] };
+}

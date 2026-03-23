@@ -3,7 +3,7 @@ import type { StorageClient } from "../storage/client.ts";
 import { validateAuth } from "../auth/nostr.ts";
 import { addOwner, addToIndex, isBlocked } from "../storage/metadata.ts";
 import { sha256Hex } from "@nsite/shared/sha256";
-import { errorResponse, jsonResponse } from "../util.ts";
+import { errorResponse, jsonResponse, logBlobUpload } from "../util.ts";
 
 /**
  * BUD-04: PUT /mirror — Mirror a blob from a remote URL
@@ -109,6 +109,8 @@ export async function handleMirror(
     type: contentType,
     uploaded: meta.uploaded,
   };
+
+  logBlobUpload("mirror", hash, remoteData.byteLength, contentType, auth.pubkey);
 
   return jsonResponse(descriptor);
 }

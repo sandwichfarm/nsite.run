@@ -15,20 +15,32 @@
   export let uploadResult = null;
   export let givenUpServers = new Set();
   export let publishResult = null;
+  export let siteType = 'root'; // 'root' | 'named'
+  export let dTag = '';
+  export let pubkeyHex = ''; // hex pubkey for base36 encoding
 
   let manifestExpanded = false;
   let nsecCopied = false;
   let urlCopied = false;
 
-  import { NSITE_BLOSSOM } from '../lib/nostr.js';
+  import { createEventDispatcher } from 'svelte';
+  import { downloadNsecFile, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '../lib/nostr.js';
+  import { base36Encode } from '../lib/base36.js';
+  import { hexToBytes } from 'nostr-tools/utils';
   import ActivityRings from './ActivityRings.svelte';
 
-  // Derive gateway domain from NSITE_BLOSSOM (auto-detected or VITE_ override)
-  $: gatewayHost = (() => {
-    try { return new URL(NSITE_BLOSSOM).host; } catch { return 'nsite.run'; }
+  const dispatch = createEventDispatcher();
+
+  // Build site URL using the centralized gateway host
+  $: siteUrl = (() => {
+    if (siteType === 'named' && pubkeyHex && dTag) {
+      try {
+        const encoded = base36Encode(hexToBytes(pubkeyHex));
+        return `${NSITE_GATEWAY_PROTOCOL}://${encoded}${dTag}.${NSITE_GATEWAY_HOST}`;
+      } catch { /* fall through */ }
+    }
+    return (npub && npub.startsWith('npub1')) ? `${NSITE_GATEWAY_PROTOCOL}://${npub}.${NSITE_GATEWAY_HOST}` : '';
   })();
-  // SECURITY: never construct a URL with nsec — only npub
-  $: siteUrl = (npub && npub.startsWith('npub1')) ? `https://${npub}.${gatewayHost}` : '';
 
   async function copyUrl() {
     if (!siteUrl) return;
@@ -124,6 +136,16 @@
   <!-- Share buttons -->
   <div class="flex flex-wrap gap-2 mb-5">
     <button
+      on:click={() => dispatch('update')}
+      class="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Update Site
+    </button>
+
+    <button
       on:click={copyUrl}
       class="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors"
     >
@@ -185,10 +207,16 @@
           {nsec}
         </code>
         <button
+          on:click={() => downloadNsecFile(nsec, npub)}
+          class="flex-shrink-0 px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-medium transition-colors"
+        >
+          Download
+        </button>
+        <button
           on:click={copyNsec}
           class="flex-shrink-0 px-3 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-medium transition-colors"
         >
-          {nsecCopied ? 'Copied!' : 'Copy nsec'}
+          {nsecCopied ? 'Copied!' : 'Copy'}
         </button>
       </div>
     </div>
