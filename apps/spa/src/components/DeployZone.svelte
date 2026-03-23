@@ -81,7 +81,8 @@
             files.push(...extracted);
           } else {
             const ab = await fileObj.arrayBuffer();
-            files.push({ path: '/' + fileObj.name, data: ab, size: fileObj.size });
+            const path = '/' + fileObj.name;
+            files.push({ path, data: ab, size: fileObj.size, type: fileObj.type || undefined });
           }
         }
       }
@@ -116,10 +117,12 @@
       } else if (entry.isFile) {
         const fileObj = await entryToFile(entry);
         const ab = await fileObj.arrayBuffer();
+        const path = prefix + '/' + entry.name;
         files.push({
-          path: prefix + '/' + entry.name,
+          path,
           data: ab,
           size: fileObj.size,
+          type: fileObj.type || undefined,
         });
       }
     }
