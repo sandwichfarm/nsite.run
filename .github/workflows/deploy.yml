@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
+  
 jobs:
   deploy:
     name: Build and deploy to Bunny Edge Scripting
