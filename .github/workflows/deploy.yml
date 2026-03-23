@@ -33,29 +33,6 @@ jobs:
           npm ci
           npm run build
 
-      - name: Debug storage auth
-        run: |
-          echo "STORAGE_HOSTNAME length: ${#STORAGE_HOSTNAME}"
-          echo "STORAGE_USERNAME length: ${#STORAGE_USERNAME}"
-          echo "STORAGE_PASSWORD length: ${#STORAGE_PASSWORD}"
-          echo "API_KEY length: ${#API_KEY}"
-          echo "PULLZONE_ID length: ${#PULLZONE_ID}"
-          echo "STORAGE_HOSTNAME first 5 chars: ${STORAGE_HOSTNAME:0:5}"
-          echo "Test storage list:"
-          curl -s -w "\nHTTP_CODE:%{http_code}\n" \
-            -H "AccessKey: ${STORAGE_PASSWORD}" \
-            "https://${STORAGE_HOSTNAME}/${STORAGE_USERNAME}/" | tail -5
-          echo "Test API auth:"
-          curl -s -w "\nHTTP_CODE:%{http_code}\n" \
-            -H "AccessKey: ${API_KEY}" \
-            "https://api.bunny.net/pullzone/${PULLZONE_ID}" | head -3
-        env:
-          STORAGE_HOSTNAME: ${{ secrets.BUNNY_STORAGE_HOSTNAME }}
-          STORAGE_USERNAME: ${{ secrets.BUNNY_STORAGE_USERNAME }}
-          STORAGE_PASSWORD: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
-          API_KEY: ${{ secrets.BUNNY_API_KEY }}
-          PULLZONE_ID: ${{ secrets.BUNNY_GATEWAY_PULLZONE_ID }}
-
       - name: Deploy SPA to Bunny Storage
         run: |
           cd apps/spa/dist
