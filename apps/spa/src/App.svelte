@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import { session, deployState, serverConfig } from './lib/store.js';
   import {
@@ -45,6 +45,9 @@
 
   // Page navigation: 'deploy' | 'manage'
   let currentPage = 'deploy';
+
+  // Delete-in-progress flag (set by ManageSite events)
+  let deleteInProgress = false;
 
   // Files & tree state (set when DeployZone fires 'files-selected')
   let selectedFiles = [];
@@ -182,6 +185,26 @@
   // ---------------------------------------------------------------------------
 
   $: step = $deployState.step;
+
+  // Dangerous deploy steps -- trigger beforeunload guard
+  const DANGEROUS_DEPLOY_STEPS = new Set(['hashing', 'checking', 'uploading', 'publishing']);
+  $: isDangerousStep = DANGEROUS_DEPLOY_STEPS.has(step) || deleteInProgress;
+
+  function handleBeforeUnload(event) {
+    event.preventDefault();
+    event.returnValue = true;
+  }
+
+  $: if (isDangerousStep) {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  } else {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
+
+  onDestroy(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
+
   $: dTagValid = siteType === 'root' || /^[a-z0-9]{1,13}$/.test(dTag);
   $: dTagError = siteType === 'named' && dTag.length > 0 && !dTagValid
     ? 'Only lowercase letters and numbers, 1-13 characters'
@@ -585,6 +608,8 @@
               on:deleted={() => {
                 fetchSiteInfo($session.pubkey);
               }}
+              on:delete-start={() => { deleteInProgress = true; }}
+              on:delete-end={() => { deleteInProgress = false; }}
             />
           {:else}
             <DeployZone on:files-selected={handleFilesSelected} />
