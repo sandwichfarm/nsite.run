@@ -1,0 +1,25 @@
+{
+  "name": "@nsite/stealthis",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/stealthis.js",
+  "module": "dist/stealthis.mjs",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./dist/stealthis.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "nostr-tools": "^2.23.3",
+    "qrcode-generator": "^1.4.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}
