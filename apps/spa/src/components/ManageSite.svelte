@@ -125,6 +125,7 @@
     deletingSite = null;
     deleteState = 'idle';
     deleteError = '';
+    dispatch('delete-end', { cancelled: true });
   }
 
   // Compute bar segments for a blossom server during deletion
@@ -150,6 +151,7 @@
     }
     deleteError = '';
     deleteState = 'deleting';
+    dispatch('delete-start');
     deleteStep = 'relays';
     relayProgress = 0;
     blobProgress = null;
@@ -200,6 +202,7 @@
       deleteStep = 'done';
       deleteState = 'done';
       deleteResults = { relayResults, blossomResults };
+      dispatch('delete-end', { success: true });
 
     } catch (err) {
       console.error('[delete] ERROR:', err);
@@ -209,6 +212,7 @@
         relayResults: [{ relay: 'error', success: false, message: err?.message ?? 'Unexpected error' }],
         blossomResults: [],
       };
+      dispatch('delete-end', { success: false });
     }
   }
 
