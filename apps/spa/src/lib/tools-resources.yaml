@@ -1,9 +1,9 @@
 categories:
-  - name: "Gateways"
+  - name: "Live Gateways"
     items:
-      - name: "nsite.run"
-        url: "https://nsite.run"
-        description: "reference implementation for nsite V2"
+      - name: "nsite.lol"
+        url: "https://site.lol/"
+        description: "Public nsite gateway"
         versions: [v2]
       - name: "nosto.re"
         url: "https://nosto.re"
@@ -13,6 +13,13 @@ categories:
         url: "https://nwb.tf/"
         description: "Public nsite gateway"
         versions: [v1]
+      - name: "nsite.run"
+        url: "https://nsite.run"
+        description: "reference implementation for nsite V2"
+        versions: [v2]
+
+  - name: "Gateway Projects"
+    items:
       - name: "nsite-gateway"
         url: "https://github.com/hzrd149/nsite-gateway"
         description: "TypeScript gateway for static websites — self-hostable"
@@ -21,10 +28,13 @@ categories:
         url: "https://github.com/sepehr-safari/nostr-deploy-server"
         description: "Node.js server implementation for serving nsites"
         versions: [v1]
+      - name: "nsite.run"
+        url: "https://github.com/sandwichfarm/nsite.run"
+        description: "reference implementation, not ideal for redeployment"
+        versions: [v2]
 
   - name: "Deploy Tools"
     items:
-    
       - name: "nsite-cli"
         url: "https://github.com/flox1an/nsite-cli"
         description: "CLI deployment tool by flox1an — supports private key signing"
