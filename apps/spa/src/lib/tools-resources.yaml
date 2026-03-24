@@ -8,7 +8,7 @@ categories:
       - name: "nosto.re"
         url: "https://nosto.re"
         description: "Public nsite gateway by nosto.re"
-        versions: [v1]
+        versions: [v2]
       - name: "nwb.tf"
         url: "https://nwb.tf/"
         description: "Public nsite gateway"
