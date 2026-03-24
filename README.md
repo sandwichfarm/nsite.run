@@ -6,9 +6,7 @@ The nsite ecosystem directory and reference gateway implementation for [nsite v2
 
 The best way to contribute is by adding your project to the **nsite software directory**. This is a YAML file that powers the Tools & Resources section on [nsite.run](https://nsite.run):
 
-```
-apps/spa/src/lib/tools-resources.yaml
-```
+[apps/spa/src/lib/tools-resources.yaml](apps/spa/src/lib/tools-resources.yaml)
 
 ### Adding your project
 
