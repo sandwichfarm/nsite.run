@@ -175,6 +175,19 @@ export class StorageClient {
     }
   }
 
+  /** Delete a blob from storage. Returns true on success. */
+  async delete(path: string): Promise<boolean> {
+    try {
+      const resp = await fetch(`${this.baseUrl}/${path}`, {
+        method: "DELETE",
+        headers: this.headers(),
+      });
+      return resp.status === 200;
+    } catch {
+      return false;
+    }
+  }
+
   /** Get the storage path for a blob (used for put and get). */
   blobPath(sha256: string): string {
     const pre = sha256.substring(0, 2);

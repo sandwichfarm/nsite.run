@@ -2,7 +2,12 @@ import type { BlobDescriptor, Config } from "../types.ts";
 import type { StorageClient } from "../storage/client.ts";
 import { getMeta } from "../storage/metadata.ts";
 import { isBlocked } from "../storage/metadata.ts";
+import { sha256Hex } from "@nsite/shared/sha256";
 import { errorResponse, isValidSha256, jsonResponse } from "../util.ts";
+
+/** Maximum blob size for full SHA-256 verification on read (10 MB).
+ * Larger blobs use size-check only to avoid excessive memory/CPU on the edge. */
+const HASH_VERIFY_LIMIT = 10 * 1024 * 1024;
 
 /**
  * BUD-01: GET/HEAD /<sha256> — Retrieve a blob
@@ -90,7 +95,7 @@ export async function handleBlobGet(
     });
   }
 
-  // GET — proxy from Bunny Storage
+  // GET — fetch from Bunny Storage and verify integrity
   const blobResp = await storage.get(storage.blobPath(sha256));
   if (!blobResp) {
     return errorResponse("Blob data not found", 404);
@@ -101,28 +106,35 @@ export async function handleBlobGet(
   const contentType = meta?.type || headResp.headers.get("Content-Type") ||
     "application/octet-stream";
 
+  // Buffer blob data for integrity verification
+  const blobData = new Uint8Array(await blobResp.arrayBuffer());
+
+  // Integrity verification: hash check for small blobs, size check for large blobs
+  if (blobData.byteLength <= HASH_VERIFY_LIMIT) {
+    const actualHash = sha256Hex(blobData);
+    if (actualHash !== sha256) {
+      console.error(
+        `[blossom] hash mismatch: sha256=${sha256} actual=${actualHash} size=${blobData.byteLength}`,
+      );
+      storage.delete(storage.blobPath(sha256)).catch(() => {});
+      return errorResponse("Blob not found", 404);
+    }
+  } else if (meta && blobData.byteLength !== meta.size) {
+    console.error(
+      `[blossom] size mismatch: sha256=${sha256} expected=${meta.size} actual=${blobData.byteLength}`,
+    );
+    storage.delete(storage.blobPath(sha256)).catch(() => {});
+    return errorResponse("Blob not found", 404);
+  }
+
   const headers = new Headers();
   headers.set("Content-Type", contentType);
   headers.set("X-Content-Type", contentType);
   headers.set("X-SHA-256", sha256);
   headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  headers.set("Content-Length", String(blobData.byteLength));
 
-  // Forward content-length from storage
-  const cl = blobResp.headers.get("Content-Length");
-  if (cl) headers.set("Content-Length", cl);
-
-  // Support range requests
-  const rangeHeader = request.headers.get("Range");
-  if (rangeHeader) {
-    const contentRange = blobResp.headers.get("Content-Range");
-    if (contentRange) headers.set("Content-Range", contentRange);
-    return new Response(blobResp.body, {
-      status: 206,
-      headers,
-    });
-  }
-
-  return new Response(blobResp.body, {
+  return new Response(blobData, {
     status: 200,
     headers,
   });
