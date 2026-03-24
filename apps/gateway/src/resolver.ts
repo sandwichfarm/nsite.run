@@ -758,7 +758,9 @@ async function fetchBlob(
         const data = await resp.arrayBuffer();
         const verified = await verifySha256(data, sha256);
         if (verified) return { data };
-        // Hash mismatch — try external servers
+        // Hash mismatch — delete corrupted blob and try external servers
+        console.error(`[gateway] hash mismatch in own storage: sha256=${sha256} size=${data.byteLength}`);
+        storageClient.delete(storageClient.blobPath(sha256)).catch(() => {});
       }
     } catch {
       // Continue to external servers
