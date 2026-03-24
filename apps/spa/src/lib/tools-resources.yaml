@@ -23,7 +23,7 @@ categories:
       - name: "nsite-gateway"
         url: "https://github.com/hzrd149/nsite-gateway"
         description: "TypeScript gateway for static websites — self-hostable"
-        versions: [v1]
+        versions: [v2]
       - name: "nostr-deploy-server"
         url: "https://github.com/sepehr-safari/nostr-deploy-server"
         description: "Node.js server implementation for serving nsites"
