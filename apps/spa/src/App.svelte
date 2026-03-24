@@ -36,6 +36,7 @@
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
   import ManageSite from './components/ManageSite.svelte';
+  import OperationBanner from './components/OperationBanner.svelte';
 
   // ---------------------------------------------------------------------------
   // State
@@ -48,6 +49,11 @@
 
   // Delete-in-progress flag (set by ManageSite events)
   let deleteInProgress = false;
+
+  // Banner completion state: null while in-progress, 'success'/'error' after operation ends
+  let bannerCompletionState = null;
+  // Which operation the banner is tracking: 'deploy' | 'delete'
+  let bannerOperationType = 'deploy';
 
   // Files & tree state (set when DeployZone fires 'files-selected')
   let selectedFiles = [];
@@ -189,6 +195,19 @@
   // Dangerous deploy steps -- trigger beforeunload guard
   const DANGEROUS_DEPLOY_STEPS = new Set(['hashing', 'checking', 'uploading', 'publishing']);
   $: isDangerousStep = DANGEROUS_DEPLOY_STEPS.has(step) || deleteInProgress;
+
+  // Track deploy completion for banner auto-dismiss
+  let prevStep = 'idle';
+  $: {
+    if (DANGEROUS_DEPLOY_STEPS.has(prevStep) && (step === 'success' || step === 'error')) {
+      bannerCompletionState = step === 'success' ? 'success' : 'error';
+      bannerOperationType = 'deploy';
+    }
+    prevStep = step;
+  }
+
+  // Derive whether banner should be visible at all
+  $: showBanner = isDangerousStep || bannerCompletionState !== null;
 
   function handleBeforeUnload(event) {
     event.preventDefault();
@@ -339,6 +358,8 @@
 
   async function handleDeploy() {
     errorMessage = '';
+    bannerCompletionState = null;
+    bannerOperationType = 'deploy';
 
     try {
       // 1. Ensure we have a signer
@@ -561,6 +582,21 @@
         </div>
 
         <div class="w-full max-w-2xl">
+          <!-- Background operation banner -->
+          {#if showBanner}
+            <div class="mb-3">
+              <OperationBanner
+                operationType={bannerOperationType}
+                progress={bannerOperationType === 'deploy' ? $deployState.progress : 0}
+                step={bannerOperationType === 'deploy' ? step : 'deleting'}
+                completionState={bannerCompletionState}
+                onNavigateBack={() => {
+                  currentPage = bannerOperationType === 'deploy' ? 'deploy' : 'manage';
+                }}
+              />
+            </div>
+          {/if}
+
           <!-- Tabs (only show when manage tab is available) -->
           {#if (allSites.root || allSites.named.length > 0) && $session.pubkey}
             <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
@@ -608,8 +644,18 @@
               on:deleted={() => {
                 fetchSiteInfo($session.pubkey);
               }}
-              on:delete-start={() => { deleteInProgress = true; }}
-              on:delete-end={() => { deleteInProgress = false; }}
+              on:delete-start={() => {
+                deleteInProgress = true;
+                bannerCompletionState = null;
+                bannerOperationType = 'delete';
+              }}
+              on:delete-end={(e) => {
+                deleteInProgress = false;
+                if (e.detail && !e.detail.cancelled) {
+                  bannerCompletionState = e.detail.success ? 'success' : 'error';
+                  bannerOperationType = 'delete';
+                }
+              }}
             />
           {:else}
             <DeployZone on:files-selected={handleFilesSelected} />
