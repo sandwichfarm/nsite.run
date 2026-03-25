@@ -189,18 +189,16 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
   const filesToUploadList = files.filter(f => filesToUpload.has(f.sha256));
   const fullySkippedCount = files.length - filesToUploadList.length;
 
-  // Sign auth for files that need uploading
-  const AUTH_BATCH_SIZE = 50;
+  // Sign auth for files that need uploading — one auth event per file.
+  // The blossom server uses xTags[0][1] as the storage path, so each auth event
+  // must contain exactly the hash of the blob being uploaded as its first (and only) x tag.
+  // Batching multiple hashes into one auth event causes all blobs in the batch to be
+  // stored at the first hash's path, corrupting the upload.
   const authHeaders = new Map();
-  for (let i = 0; i < filesToUploadList.length; i += AUTH_BATCH_SIZE) {
-    const batch = filesToUploadList.slice(i, i + AUTH_BATCH_SIZE);
-    const hashes = batch.map(f => f.sha256);
-    const template = buildAuthEvent(hashes, 'upload');
+  for (const file of filesToUploadList) {
+    const template = buildAuthEvent(file.sha256, 'upload');
     const signed = await signer.signEvent(template);
-    const header = 'Nostr ' + btoa(JSON.stringify(signed));
-    for (const hash of hashes) {
-      authHeaders.set(hash, header);
-    }
+    authHeaders.set(file.sha256, 'Nostr ' + btoa(JSON.stringify(signed)));
   }
 
   // Pre-populate per-server progress
