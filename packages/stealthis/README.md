@@ -28,7 +28,7 @@ If you want to control where the button appears, add the element yourself (the a
 |-----------|---------|-------------|
 | `button-text` | `"Borrow this nsite"` | Button text |
 | `stat-text` | `"%s npubs borrowed this nsite"` | Paper trail summary. `%s` is replaced with the count. |
-| `no-trail` | _(absent)_ | Boolean attribute. When present, hides the paper trail. |
+| `no-trail` | _(absent)_ | Boolean attribute. When present, disables the paper trail entirely -- no `muse` tags are written and the trail UI is not rendered. |
 
 The button's `trigger` part is exposed via `::part(trigger)` for CSS customization.
 
