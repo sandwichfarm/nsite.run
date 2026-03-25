@@ -182,9 +182,9 @@
   // ---------------------------------------------------------------------------
 
   $: step = $deployState.step;
-  $: dTagValid = siteType === 'root' || /^[a-z0-9]{1,13}$/.test(dTag);
+  $: dTagValid = siteType === 'root' || /^[a-z0-9](?:[a-z0-9-]{0,11}[a-z0-9])?$/.test(dTag);
   $: dTagError = siteType === 'named' && dTag.length > 0 && !dTagValid
-    ? 'Only lowercase letters and numbers, 1-13 characters'
+    ? 'Lowercase letters, numbers, and hyphens, 1-13 chars. Cannot start or end with a hyphen.'
     : '';
   $: canDeploy = siteType === 'root' || (dTag.length > 0 && dTagValid);
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
@@ -871,7 +871,7 @@
                   type="text"
                   value={dTag}
                   on:input={(e) => {
-                    dTag = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    dTag = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                     e.target.value = dTag;
                   }}
                   placeholder="e.g. blog, portfolio, docs"

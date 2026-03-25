@@ -89,6 +89,31 @@ Deno.test("extractNpubAndIdentifier: label 64 chars (too long) returns null", ()
   assertEquals(extractNpubAndIdentifier(host), null);
 });
 
+Deno.test("extractNpubAndIdentifier: named site with hyphenated dTag parses correctly", () => {
+  const host = `${ZEROS_PUBKEY_B36}my-blog.nsite.run`;
+  assertEquals(extractNpubAndIdentifier(host), {
+    kind: "named",
+    npub: "",
+    pubkeyHex: ZEROS_PUBKEY_HEX,
+    identifier: "my-blog",
+  });
+});
+
+Deno.test("extractNpubAndIdentifier: dTag ending with hyphen returns null (invalid subdomain)", () => {
+  const host = `${ZEROS_PUBKEY_B36}blog-.nsite.run`;
+  assertEquals(extractNpubAndIdentifier(host), null);
+});
+
+Deno.test("extractNpubAndIdentifier: dTag with consecutive hyphens parses correctly", () => {
+  const host = `${ZEROS_PUBKEY_B36}my--site.nsite.run`;
+  assertEquals(extractNpubAndIdentifier(host), {
+    kind: "named",
+    npub: "",
+    pubkeyHex: ZEROS_PUBKEY_HEX,
+    identifier: "my--site",
+  });
+});
+
 Deno.test("extractNpubAndIdentifier: old double-wildcard format returns null (GATE-15)", () => {
   // Old format: identifier.npub1xxx.nsite.run — 4 parts, no longer supported
   assertEquals(extractNpubAndIdentifier("blog.npub1abc.nsite.run"), null);
