@@ -16,7 +16,7 @@ Deno.env.set("BUNNY_DB_URL", "file:./dev-relay.db");
 Deno.env.set("BUNNY_DB_AUTH_TOKEN", "");
 
 // Step 2: Inject Bunny.v1.serve polyfill into globalThis
-const PORT = parseInt(Deno.env.get("RELAY_PORT") ?? "8081");
+const PORT = parseInt(Deno.env.get("RELAY_PORT") ?? "3101");
 (globalThis as Record<string, unknown>).Bunny = {
   v1: {
     serve: (handler: (req: Request) => Response | Promise<Response>) => {
