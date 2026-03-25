@@ -13,7 +13,8 @@
  * 5. getManifestFiles parser — cache.ts tag parsing
  * 6. getManifestServers parser — cache.ts tag parsing
  * 7. getRelayUrls parser — cache.ts NIP-65 tag parsing
- * 8. SPA fallback: gateway default 404 returns 404 status when /404.html not in manifest
+ * 8. getManifestRelays parser — cache.ts site manifest relay-hint parsing
+ * 9. SPA fallback: gateway default 404 returns 404 status when /404.html not in manifest
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
@@ -31,6 +32,7 @@ import { handleResolver, isHtmlLikePath } from "./resolver.ts";
 import {
   cacheKey,
   getManifestFiles,
+  getManifestRelays,
   getManifestServers,
   getRelayUrls,
   siteCache,
@@ -389,7 +391,48 @@ Deno.test("getRelayUrls: empty tags returns empty array", () => {
   assertEquals(getRelayUrls(event), []);
 });
 
-// --- Test 8: SPA fallback — gateway default 404 status ---
+// --- Test 8: getManifestRelays parser ---
+
+Deno.test("getManifestRelays: parses relay tags", () => {
+  const event = makeEvent({
+    tags: [
+      ["relay", "wss://relay.example.com"],
+      ["relay", "wss://other.com"],
+    ],
+  });
+  const urls = getManifestRelays(event);
+  assertEquals(urls, ["wss://relay.example.com", "wss://other.com"]);
+});
+
+Deno.test("getManifestRelays: ignores non-'relay' tags", () => {
+  const event = makeEvent({
+    tags: [
+      ["server", "https://blossom.example.com"],
+      ["relay", "wss://relay.example.com"],
+      ["r", "wss://outbox.example.com"],
+    ],
+  });
+  const urls = getManifestRelays(event);
+  assertEquals(urls, ["wss://relay.example.com"]);
+});
+
+Deno.test("getManifestRelays: ignores relay tags without URL", () => {
+  const event = makeEvent({
+    tags: [
+      ["relay"],
+      ["relay", "wss://valid.com"],
+    ],
+  });
+  const urls = getManifestRelays(event);
+  assertEquals(urls, ["wss://valid.com"]);
+});
+
+Deno.test("getManifestRelays: empty tags returns empty array", () => {
+  const event = makeEvent({ tags: [] });
+  assertEquals(getManifestRelays(event), []);
+});
+
+// --- Test 9: SPA fallback — gateway default 404 status ---
 
 Deno.test("SPA fallback: missing path with no /404.html in manifest returns gateway default 404 (status 404)", async () => {
   // Pre-load a ready cache entry with no /404.html and no blossom servers

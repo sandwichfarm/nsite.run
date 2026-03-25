@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildManifest, publishEmptyManifest } from '../publish.js';
+import { buildManifest, publishEmptyManifest, publishManifest } from '../publish.js';
 
 const sampleFiles = [
   { path: '/index.html', sha256: 'aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888' },
@@ -8,6 +8,7 @@ const sampleFiles = [
 ];
 
 const sampleServers = ['https://nsite.run'];
+const sampleRelays = ['wss://relay.one', 'wss://relay.two'];
 
 describe('buildManifest', () => {
   it('returns an event template with kind 15128', () => {
@@ -59,6 +60,13 @@ describe('buildManifest', () => {
     expect(serverTags.length).toBe(2);
     expect(serverTags.map((t) => t[1])).toContain('https://nsite.run');
     expect(serverTags.map((t) => t[1])).toContain('https://cdn.example.com');
+  });
+
+  it('includes a relay tag for each relay hint', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { relays: sampleRelays });
+    const relayTags = event.tags.filter((t) => t[0] === 'relay');
+    expect(relayTags.length).toBe(2);
+    expect(relayTags.map((t) => t[1])).toEqual(sampleRelays);
   });
 
   it('with spaFallback=true adds /404.html path tag pointing to index.html sha256', () => {
@@ -113,6 +121,12 @@ describe('buildManifest', () => {
     expect(serverTags.length).toBe(0);
   });
 
+  it('handles empty relay list gracefully', () => {
+    const event = buildManifest(sampleFiles, sampleServers, { relays: [] });
+    const relayTags = event.tags.filter((t) => t[0] === 'relay');
+    expect(relayTags.length).toBe(0);
+  });
+
   // --- Options object backward compat ---
 
   it('accepts spaFallback as options object { spaFallback: true }', () => {
@@ -151,13 +165,15 @@ describe('buildManifest', () => {
   });
 
   it('with options.kind=35128 and dTag includes all standard tags too', () => {
-    const event = buildManifest(sampleFiles, sampleServers, { kind: 35128, dTag: 'myblog' });
+    const event = buildManifest(sampleFiles, sampleServers, { kind: 35128, dTag: 'myblog', relays: sampleRelays });
     const pathTags = event.tags.filter((t) => t[0] === 'path');
     const serverTags = event.tags.filter((t) => t[0] === 'server');
+    const relayTags = event.tags.filter((t) => t[0] === 'relay');
     const clientTag = event.tags.find((t) => t[0] === 'client');
     const dTag = event.tags.find((t) => t[0] === 'd');
     expect(pathTags.length).toBe(3);
     expect(serverTags.length).toBe(1);
+    expect(relayTags.length).toBe(2);
     expect(clientTag).toBeDefined();
     expect(dTag).toBeDefined();
     expect(dTag[1]).toBe('myblog');
@@ -206,11 +222,13 @@ describe('buildManifest', () => {
       title: 'My Portfolio',
       description: 'A showcase of my work',
       spaFallback: true,
+      relays: sampleRelays,
     });
     expect(event.kind).toBe(35128);
     expect(event.tags.find((t) => t[0] === 'd')?.[1]).toBe('portfolio');
     expect(event.tags.find((t) => t[0] === 'title')?.[1]).toBe('My Portfolio');
     expect(event.tags.find((t) => t[0] === 'description')?.[1]).toBe('A showcase of my work');
+    expect(event.tags.filter((t) => t[0] === 'relay').map((t) => t[1])).toEqual(sampleRelays);
     const pathTags = event.tags.filter((t) => t[0] === 'path');
     // spaFallback adds /404.html
     expect(pathTags.length).toBe(sampleFiles.length + 1);
@@ -254,5 +272,98 @@ describe('publishEmptyManifest', () => {
     const dTag = template.tags.find((t) => t[0] === 'd');
     expect(dTag).toBeDefined();
     expect(dTag[1]).toBe('blog');
+  });
+});
+
+describe('publishManifest', () => {
+  function makeMockSigner() {
+    return {
+      signEvent: vi.fn(async (template) => ({
+        ...template,
+        id: `mock-id-${template.kind}`,
+        sig: 'mock-sig',
+        pubkey: 'mock-pubkey',
+      })),
+    };
+  }
+
+  class MockWebSocket {
+    static sent = [];
+
+    constructor(url) {
+      this.url = url;
+      this.onopen = null;
+      this.onmessage = null;
+      this.onerror = null;
+      this.onclose = null;
+      queueMicrotask(() => {
+        this.onopen?.();
+      });
+    }
+
+    send(payload) {
+      MockWebSocket.sent.push({ url: this.url, payload: JSON.parse(payload) });
+      const [, event] = JSON.parse(payload);
+      queueMicrotask(() => {
+        this.onmessage?.({
+          data: JSON.stringify(['OK', event.id, true, 'accepted']),
+        });
+      });
+    }
+
+    close() {}
+  }
+
+  it('publishes only the site manifest and does not sign a 10002 relay list', async () => {
+    const signer = makeMockSigner();
+    MockWebSocket.sent = [];
+    global.WebSocket = MockWebSocket;
+
+    const result = await publishManifest(
+      signer,
+      sampleFiles,
+      ['https://nsite.run'],
+      ['wss://relay.one', 'wss://relay.two'],
+      false,
+    );
+
+    expect(signer.signEvent).toHaveBeenCalledTimes(1);
+    expect(signer.signEvent.mock.calls[0][0].kind).toBe(15128);
+    expect(signer.signEvent.mock.calls[0][0].tags.filter((t) => t[0] === 'relay').map((t) => t[1])).toEqual(['wss://relay.one', 'wss://relay.two']);
+    expect(MockWebSocket.sent).toHaveLength(2);
+    expect(MockWebSocket.sent.every(({ payload }) => payload[0] === 'EVENT')).toBe(true);
+    expect(MockWebSocket.sent.every(({ payload }) => payload[1].kind === 15128)).toBe(true);
+    expect(result.results.every((entry) => !('relayListAccepted' in entry))).toBe(true);
+  });
+
+  it('throws only when the manifest is rejected by every relay', async () => {
+    const signer = makeMockSigner();
+
+    global.WebSocket = class {
+      constructor() {
+        this.onopen = null;
+        this.onmessage = null;
+        this.onerror = null;
+        this.onclose = null;
+        queueMicrotask(() => {
+          this.onopen?.();
+        });
+      }
+
+      send(payload) {
+        const [, event] = JSON.parse(payload);
+        queueMicrotask(() => {
+          this.onmessage?.({
+            data: JSON.stringify(['OK', event.id, false, 'blocked']),
+          });
+        });
+      }
+
+      close() {}
+    };
+
+    await expect(
+      publishManifest(signer, sampleFiles, ['https://nsite.run'], ['wss://relay.one'], false),
+    ).rejects.toThrow('Manifest rejected by all 1 relay(s):\nwss://relay.one: blocked');
   });
 });
