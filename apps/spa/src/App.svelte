@@ -611,9 +611,9 @@
                 progress={bannerOperationType === 'deploy' ? $deployState.progress : 0}
                 step={bannerOperationType === 'deploy' ? step : 'deleting'}
                 completionState={bannerCompletionState}
-                onNavigateBack={() => {
-                  currentPage = bannerOperationType === 'deploy' ? 'deploy' : 'manage';
-                }}
+                onNavigateBack={(bannerOperationType === 'deploy' && currentPage !== 'deploy') || (bannerOperationType === 'delete' && currentPage !== 'manage')
+                  ? () => { currentPage = bannerOperationType === 'deploy' ? 'deploy' : 'manage'; }
+                  : null}
               />
             </div>
           {/if}
@@ -677,7 +677,9 @@
                 existingManifest = allSites.root;
               }}
               on:deleted={() => {
-                fetchSiteInfo($session.pubkey);
+                // Delay re-fetch to give relays time to process kind 5 deletion.
+                // on:site-removed already optimistically removed from allSites.
+                setTimeout(() => fetchSiteInfo($session.pubkey), 5000);
               }}
               on:delete-start={() => {
                 deleteInProgress = true;
