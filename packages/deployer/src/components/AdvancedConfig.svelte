@@ -1,8 +1,8 @@
 <script>
-  import { createDeployerStores } from '@nsite/deployer/store';
+  import { getContext } from 'svelte';
   import { NSITE_RELAY, NSITE_BLOSSOM } from '@nsite/deployer/nostr';
 
-  const { serverConfig } = createDeployerStores();
+  const { serverConfig } = getContext('deployer-stores');
 
   let relayInput = '';
   let blossomInput = '';

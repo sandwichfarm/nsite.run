@@ -1,9 +1,8 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, getContext } from 'svelte';
   import { createExtensionSigner, fetchProfile, DEFAULT_RELAYS } from '@nsite/deployer/nostr';
-  import { createDeployerStores } from '@nsite/deployer/store';
 
-  const { session } = createDeployerStores();
+  const { session } = getContext('deployer-stores');
   import { npubEncode } from 'nostr-tools/nip19';
   import NIP46Dialog from './NIP46Dialog.svelte';
 
