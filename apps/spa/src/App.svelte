@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
-  import { session, deployState, serverConfig } from './lib/store.js';
+  import { createDeployerStores } from '@nsite/deployer/store';
   import {
     createAnonymousSigner,
     createExtensionSigner,
@@ -19,12 +19,14 @@
     getManifestDTag,
     getManifestTitle,
     getManifestDescription,
-  } from './lib/nostr.js';
+  } from '@nsite/deployer/nostr';
   import { npubEncode } from 'nostr-tools/nip19';
-  import { hashFile } from './lib/crypto.js';
-  import { checkExistence, uploadBlobs } from './lib/upload.js';
-  import { publishManifest } from './lib/publish.js';
-  import { base36Encode } from './lib/base36.js';
+  import { hashFile } from '@nsite/deployer/crypto';
+  import { checkExistence, uploadBlobs } from '@nsite/deployer/upload';
+  import { publishManifest } from '@nsite/deployer/publish';
+  import { base36Encode } from '@nsite/deployer/base36';
+
+  const { session, deployState, serverConfig } = createDeployerStores();
   import { hexToBytes } from 'nostr-tools/utils';
 
   import Navbar from './components/Navbar.svelte';
