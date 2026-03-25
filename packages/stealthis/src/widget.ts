@@ -54,12 +54,14 @@ export class NsiteDeployButton extends HTMLElement {
     this.ctx = nostr.parseContext();
     if (this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
-      this.manifestPromise.then((manifest) => {
-        if (manifest) {
-          this.muses = nostr.extractMuses(manifest);
-          if (this.muses.length > 0 && this.state === 'idle') this.render();
-        }
-      });
+      if (!this.hasAttribute('no-trail')) {
+        this.manifestPromise.then((manifest) => {
+          if (manifest) {
+            this.muses = nostr.extractMuses(manifest);
+            if (this.muses.length > 0 && this.state === 'idle') this.render();
+          }
+        });
+      }
       this.render();
     }
   }
@@ -608,7 +610,8 @@ export class NsiteDeployButton extends HTMLElement {
         title: this.siteTitle || undefined,
         description: this.siteDescription || undefined,
         deployerPubkey: this.userPubkey,
-        deployerRelays: this.userRelays
+        deployerRelays: this.userRelays,
+        noTrail: this.hasAttribute('no-trail')
       });
 
       this.statusMsg = 'Waiting for signature...';

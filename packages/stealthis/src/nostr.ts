@@ -249,6 +249,7 @@ export function createDeployEvent(
     description?: string;
     deployerPubkey: string;
     deployerRelays: string[];
+    noTrail?: boolean;
   }
 ): EventTemplate {
   const tags: string[][] = [];
@@ -257,25 +258,27 @@ export function createDeployEvent(
     if (t[0] === 'path' || t[0] === 'server') tags.push([...t]);
   }
 
-  // Paper trail: copy muse tags, add new one, enforce max 9
-  const sourceMuses = source.tags
-    .filter((t) => t[0] === 'muse' && t[1] && t[2])
-    .map((t) => [...t])
-    .sort((a, b) => parseInt(a[1], 10) - parseInt(b[1], 10));
+  if (!options.noTrail) {
+    // Paper trail: copy muse tags, add new one, enforce max 9
+    const sourceMuses = source.tags
+      .filter((t) => t[0] === 'muse' && t[1] && t[2])
+      .map((t) => [...t])
+      .sort((a, b) => parseInt(a[1], 10) - parseInt(b[1], 10));
 
-  const maxIndex = sourceMuses.length > 0
-    ? Math.max(...sourceMuses.map((t) => parseInt(t[1], 10)))
-    : -1;
-  const newMuse = ['muse', String(maxIndex + 1), options.deployerPubkey, ...options.deployerRelays];
-  const allMuses = [...sourceMuses, newMuse];
+    const maxIndex = sourceMuses.length > 0
+      ? Math.max(...sourceMuses.map((t) => parseInt(t[1], 10)))
+      : -1;
+    const newMuse = ['muse', String(maxIndex + 1), options.deployerPubkey, ...options.deployerRelays];
+    const allMuses = [...sourceMuses, newMuse];
 
-  // Keep index 0 (originator) + newest, FIFO truncate the middle
-  if (allMuses.length > MAX_MUSE_TAGS) {
-    const originator = allMuses[0];
-    const keep = allMuses.slice(allMuses.length - (MAX_MUSE_TAGS - 1));
-    tags.push(originator, ...keep);
-  } else {
-    for (const t of allMuses) tags.push(t);
+    // Keep index 0 (originator) + newest, FIFO truncate the middle
+    if (allMuses.length > MAX_MUSE_TAGS) {
+      const originator = allMuses[0];
+      const keep = allMuses.slice(allMuses.length - (MAX_MUSE_TAGS - 1));
+      tags.push(originator, ...keep);
+    } else {
+      for (const t of allMuses) tags.push(t);
+    }
   }
 
   if (options.title) tags.push(['title', options.title]);

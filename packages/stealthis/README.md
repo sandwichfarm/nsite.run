@@ -8,17 +8,11 @@ When loaded on an nsite, `<nsite-deploy>` detects the site owner's pubkey from t
 
 ## Install
 
-Add a script tag to your nsite. The widget auto-injects a fixed-position button in the bottom-right corner.
-
-```html
-<script src="https://unpkg.com/@nsite/stealthis/dist/stealthis.js"></script>
-```
-
-Or use the ES module:
-
 ```js
 import '@nsite/stealthis';
 ```
+
+The widget auto-injects a fixed-position button in the bottom-right corner.
 
 ## Manual placement
 
