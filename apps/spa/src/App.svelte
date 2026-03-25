@@ -670,6 +670,10 @@
                   bannerOperationType = 'delete';
                 }
               }}
+              on:deploy-new={() => {
+                currentPage = 'deploy';
+                resetForUpdate();
+              }}
             />
           {:else}
             <DeployZone on:files-selected={handleFilesSelected} />
