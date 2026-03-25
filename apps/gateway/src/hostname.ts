@@ -16,9 +16,9 @@ import { base36Decode } from "@nsite/shared/base36";
 
 export interface SitePointer {
   kind: "root" | "named";
-  npub: string;           // bech32 npub for root sites; empty string for named sites
-  pubkeyHex?: string;     // hex pubkey for named sites (base36-decoded)
-  identifier?: string;    // dTag for named sites
+  npub: string; // bech32 npub for root sites; empty string for named sites
+  pubkeyHex?: string; // hex pubkey for named sites (base36-decoded)
+  identifier?: string; // dTag for named sites
 }
 
 const PUBKEY_B36_LENGTH = 50;

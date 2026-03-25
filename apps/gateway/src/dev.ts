@@ -127,4 +127,8 @@ Deno.serve({ port: GATEWAY_PORT, hostname: "0.0.0.0" }, async (request: Request)
 });
 
 console.log(`[gateway] Dev server running on http://localhost:${GATEWAY_PORT}`);
-console.log(`[gateway] Routes: relay=${Deno.env.get("RELAY_PORT") ?? "3101"} blossom=${Deno.env.get("BLOSSOM_PORT") ?? "3102"} spa=${Deno.env.get("SPA_PORT") ?? "5173"} db=${DEV_DB_PATH}`);
+console.log(
+  `[gateway] Routes: relay=${Deno.env.get("RELAY_PORT") ?? "3101"} blossom=${
+    Deno.env.get("BLOSSOM_PORT") ?? "3102"
+  } spa=${Deno.env.get("SPA_PORT") ?? "5173"} db=${DEV_DB_PATH}`,
+);
