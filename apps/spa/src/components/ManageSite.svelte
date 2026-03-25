@@ -462,6 +462,19 @@
       {/each}
     </div>
   {/if}
+
+  <!-- Deploy new site button (always visible in manage view) -->
+  <div class="mt-4">
+    <button
+      on:click={() => dispatch('deploy-new')}
+      class="w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Deploy new site
+    </button>
+  </div>
 </div>
 
 <style>
