@@ -5,7 +5,7 @@
  *
  * @param {{ path: string, sha256: string }[]} files - List of files with path and sha256
  * @param {string[]} servers - Blossom server URLs for server hints
- * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string }} options
+ * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string, relays?: string[] }} options
  *   - If boolean (legacy), treated as `{ spaFallback: options }` for backward compatibility.
  *   - spaFallback: If true and /index.html exists, adds /404.html path tag
  *   - kind: Event kind, defaults to 15128. Use 35128 for named sites.
@@ -17,7 +17,7 @@
 export function buildManifest(files, servers, options) {
   // Backward compat: if options is a boolean, treat it as { spaFallback: options }
   const opts = typeof options === 'boolean' ? { spaFallback: options } : (options ?? {});
-  const { spaFallback = false, kind = 15128, dTag, title, description } = opts;
+  const { spaFallback = false, kind = 15128, dTag, title, description, relays = [] } = opts;
 
   const pathTags = files.map((f) => ['path', f.path, f.sha256]);
 
@@ -30,6 +30,7 @@ export function buildManifest(files, servers, options) {
   }
 
   const serverTags = servers.map((url) => ['server', url]);
+  const relayTags = relays.map((url) => ['relay', url]);
 
   // Optional metadata tags
   const metaTags = [];
@@ -46,7 +47,7 @@ export function buildManifest(files, servers, options) {
   return {
     kind,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [...pathTags, ...serverTags, ...metaTags, ['client', 'nsite.run']],
+    tags: [...pathTags, ...serverTags, ...relayTags, ...metaTags, ['client', 'nsite.run']],
     content: '',
   };
 }
@@ -112,13 +113,13 @@ export function publishToRelay(signedEvent, relayUrl) {
  * @param {{ path: string, sha256: string }[]} files
  * @param {string[]} servers - Blossom server URLs
  * @param {string[]} relays - Relay WebSocket URLs to publish to
- * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string }} options
+ * @param {boolean | { spaFallback?: boolean, kind?: number, dTag?: string, title?: string, description?: string, relays?: string[] }} options
  *   - Passed through to buildManifest. See buildManifest for full options documentation.
  *   - If boolean (legacy), treated as { spaFallback: options } for backward compatibility.
  * @returns {Promise<{ event: object, results: { relay: string, success: boolean, message?: string }[] }>}
  */
 /**
- * Publishes manifest + relay list to all configured relays.
+ * Publishes the site manifest to all configured relays.
  * Returns detailed per-relay results. Throws if manifest accepted by zero relays.
  *
  * Success model (matches nsyte):
@@ -126,29 +127,18 @@ export function publishToRelay(signedEvent, relayUrl) {
  * - Manifest accepted by 0 relays = failure (throw with rejection messages)
  */
 export async function publishManifest(signer, files, servers, relays, options) {
-  const template = buildManifest(files, servers, options);
+  const buildOptions = typeof options === 'boolean'
+    ? { spaFallback: options, relays }
+    : { ...(options ?? {}), relays };
+  const template = buildManifest(files, servers, buildOptions);
   const event = await signer.signEvent(template);
-
-  // Also publish a kind 10002 relay list so the resolver can discover this user's relays.
-  // Critical for anonymous deploys where no relay list exists yet.
-  const relayListTemplate = {
-    kind: 10002,
-    created_at: Math.floor(Date.now() / 1000),
-    tags: [...relays.map(r => ['r', r]), ['client', 'nsite.run']],
-    content: '',
-  };
-  const relayListEvent = await signer.signEvent(relayListTemplate);
 
   const results = [];
   for (const relay of relays) {
-    // Publish relay list first, then manifest
-    const rlResult = await publishToRelay(relayListEvent, relay).catch(() => ({ success: false, message: 'connection failed' }));
-
     const result = await publishToRelay(event, relay).catch(() => ({ success: false, message: 'connection failed' }));
     results.push({
       relay,
       ...result,
-      relayListAccepted: rlResult.success,
     });
   }
 

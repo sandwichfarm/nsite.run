@@ -98,6 +98,16 @@ export function getRelayUrls(relayListEvent: NostrEvent): string[] {
     .map((t) => t[1]);
 }
 
+/**
+ * Parse relay hint tags from a site manifest event.
+ * Tags with format ["relay", "wss://relay.example.com"] → [url, ...]
+ */
+export function getManifestRelays(manifest: NostrEvent): string[] {
+  return manifest.tags
+    .filter((t) => t[0] === "relay" && t.length >= 2 && t[1])
+    .map((t) => t[1]);
+}
+
 // --- Minimal StorageClient for Bunny Storage blob persistence ---
 
 /**
