@@ -1070,16 +1070,9 @@
           {siteType}
           {dTag}
           pubkeyHex={$session.pubkey || ''}
-          on:update={resetForUpdate}
+          on:manage={() => (currentPage = 'manage')}
+          on:deploy-another={resetForUpdate}
         />
-        <div class="mt-4 text-center">
-          <button
-            on:click={resetDeploy}
-            class="text-sm text-slate-400 hover:text-white transition-colors"
-          >
-            Deploy another site
-          </button>
-        </div>
       </section>
 
     <!-- ===== ERROR ===== -->
