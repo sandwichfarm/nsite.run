@@ -1,0 +1,27 @@
+{
+  "name": "@nsite/deployer",
+  "version": "0.1.0",
+  "type": "module",
+  "private": false,
+  "exports": {
+    ".": {
+      "svelte": "./src/index.js",
+      "import": "./dist/deployer.mjs",
+      "default": "./dist/deployer.js"
+    }
+  },
+  "main": "dist/deployer.js",
+  "module": "dist/deployer.mjs",
+  "scripts": {
+    "build:widget": "vite build --config vite.widget.config.js",
+    "dev:widget": "vite build --config vite.widget.config.js --watch"
+  },
+  "peerDependencies": {
+    "svelte": "^4.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "publint": "^0.3.18",
+    "vite": "^5.4.0"
+  }
+}
