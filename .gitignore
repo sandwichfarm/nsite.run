@@ -17,8 +17,7 @@ dev-relay.db
 dev-relay.db-*
 .dev-blossom-storage/
 
-# Planning and tooling (local only)
-.planning/
+# Tooling (local only)
 docs/superpowers/
 
 # Editor directories and files
