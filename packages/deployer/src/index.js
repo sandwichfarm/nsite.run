@@ -1,6 +1,9 @@
 // Core lib re-exports — packages/deployer barrel file
 // Consumers can also use sub-path imports: '@nsite/deployer/store', '@nsite/deployer/nostr', etc.
 
+// Svelte components
+export { default as DeployerWidget } from './components/DeployerWidget.svelte';
+
 // Store
 export { persistedStore, createDeployerStores, ANON_KEY_STORAGE_KEY, DEFAULT_SESSION } from './lib/store.js';
 
