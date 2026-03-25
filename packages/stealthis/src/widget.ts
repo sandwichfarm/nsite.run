@@ -22,7 +22,7 @@ type State =
   | 'error';
 
 export class NsiteDeployButton extends HTMLElement {
-  static observedAttributes = ['button-text', 'stat-text'];
+  static observedAttributes = ['button-text', 'stat-text', 'no-trail'];
 
   private shadow: ShadowRoot;
   private state: State = 'idle';
@@ -176,7 +176,7 @@ export class NsiteDeployButton extends HTMLElement {
   // --- Content builders ---
 
   private paperTrailContent(): string {
-    if (this.muses.length === 0) return '';
+    if (this.hasAttribute('no-trail') || this.muses.length === 0) return '';
 
     let html = `<div class="nd-trail">
       <button class="nd-trail-toggle" data-action="toggle-trail">${this.esc(this.statText.replace('%s', String(this.muses.length)))}</button>`;
