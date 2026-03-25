@@ -601,16 +601,18 @@
           {#if (allSites.root || allSites.named.length > 0) && $session.pubkey}
             <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
               <button
-                on:click={() => (currentPage = 'deploy')}
+                on:click={() => { if (!isDangerousStep) currentPage = 'deploy'; }}
+                disabled={isDangerousStep}
                 class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  {currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                  {isDangerousStep ? 'opacity-40 cursor-not-allowed text-slate-500' : currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
               >
                 Deploy
               </button>
               <button
-                on:click={() => (currentPage = 'manage')}
+                on:click={() => { if (!isDangerousStep) currentPage = 'manage'; }}
+                disabled={isDangerousStep}
                 class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  {currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                  {isDangerousStep ? 'opacity-40 cursor-not-allowed text-slate-500' : currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
               >
                 Manage
               </button>
