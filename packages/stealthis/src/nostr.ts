@@ -15,9 +15,22 @@ export interface Muse {
   relays: string[];
 }
 
+export interface MuseProfile {
+  npub: string;
+  name?: string;
+  nsiteUrl?: string;
+}
+
 export { npubEncode };
 
 const BOOTSTRAP_RELAYS = ['wss://purplepag.es', 'wss://relay.damus.io', 'wss://nos.lol'];
+const PROFILE_RELAYS = [
+  'wss://purplepag.es',
+  'wss://user.kindpag.es',
+  'wss://indexer.hzrd149.com',
+  'wss://profiles.nostr1.com',
+  'wss://nos.lol'
+];
 const B36_LEN = 50;
 const D_TAG_RE = /^[a-z0-9-]{1,13}$/;
 const NAMED_LABEL_RE = /^[0-9a-z]{50}[a-z0-9-]{1,13}$/;
@@ -289,6 +302,83 @@ export function createDeployEvent(
     tags,
     content: ''
   };
+}
+
+// --- Muse profile enrichment (streaming, non-blocking) ---
+
+export function fetchMuseProfiles(
+  muses: Muse[],
+  baseDomain: string,
+  onUpdate: (pubkey: string, profile: MuseProfile) => void
+): void {
+  const pubkeys = [...new Set(muses.map((m) => m.pubkey))];
+  if (pubkeys.length === 0) return;
+
+  // Track best kind-0 per pubkey (highest created_at wins)
+  const bestK0 = new Map<string, { created_at: number; profile: MuseProfile }>();
+  const profileResolved = new Set<string>();
+
+  const handleEvent = (event: RelayEvent) => {
+    if (event.kind === 0) {
+      const existing = bestK0.get(event.pubkey);
+      if (existing && existing.created_at >= event.created_at) return;
+      try {
+        const meta = JSON.parse(event.content);
+        const name = meta.display_name || meta.name || meta.displayName;
+        if (!name) return;
+        const profile: MuseProfile = { npub: npubEncode(event.pubkey), name };
+        bestK0.set(event.pubkey, { created_at: event.created_at, profile });
+        profileResolved.add(event.pubkey);
+        onUpdate(event.pubkey, { ...profile });
+      } catch { /* invalid json */ }
+    }
+  };
+
+  // Stream kind 0 from profile relays — fire all in parallel, callback per event
+  const subId = Math.random().toString(36).slice(2, 8);
+  const filter = { kinds: [0], authors: pubkeys };
+
+  Promise.allSettled(
+    PROFILE_RELAYS.map((url) =>
+      withSocket(url, ['REQ', subId, filter], (msg) => {
+        if (msg[0] === 'EVENT' && msg[1] === subId) {
+          handleEvent(msg[2] as RelayEvent);
+        }
+        return msg[0] === 'EOSE' && msg[1] === subId;
+      })
+    )
+  ).then(() => {
+    // After profiles are gathered, check for nsites on bootstrap relays
+    const resolved = [...profileResolved];
+    if (resolved.length === 0) return;
+
+    queryRelays(BOOTSTRAP_RELAYS, {
+      kinds: [15128, 35128],
+      authors: resolved,
+    }).then((events) => {
+      // Group by pubkey — prefer root (15128), fall back to first named (35128)
+      const nsiteMap = new Map<string, string>();
+      for (const e of events) {
+        if (e.kind === 15128 && !nsiteMap.has(e.pubkey)) {
+          nsiteMap.set(e.pubkey, buildSiteUrl(baseDomain, e.pubkey));
+        }
+      }
+      for (const e of events) {
+        if (e.kind === 35128 && !nsiteMap.has(e.pubkey)) {
+          const dTag = e.tags.find((t) => t[0] === 'd')?.[1];
+          if (dTag) nsiteMap.set(e.pubkey, buildSiteUrl(baseDomain, e.pubkey, dTag));
+        }
+      }
+
+      for (const [pk, url] of nsiteMap) {
+        const entry = bestK0.get(pk);
+        if (entry) {
+          entry.profile.nsiteUrl = url;
+          onUpdate(pk, { ...entry.profile });
+        }
+      }
+    });
+  });
 }
 
 export function buildSiteUrl(baseDomain: string, pubkey: string, slug?: string): string {

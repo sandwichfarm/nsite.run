@@ -22,7 +22,7 @@ type State =
   | 'error';
 
 export class NsiteDeployButton extends HTMLElement {
-  static observedAttributes = ['button-text', 'stat-text', 'no-trail'];
+  static observedAttributes = ['button-text', 'stat-text', 'no-trail', 'obfuscate-npubs', 'do-not-fetch-muse-data'];
 
   private shadow: ShadowRoot;
   private state: State = 'idle';
@@ -46,6 +46,7 @@ export class NsiteDeployButton extends HTMLElement {
   private manifestPromise: Promise<nostr.SignedEvent | null> | null = null;
   private relaysPromise: Promise<string[]> | null = null;
   private muses: nostr.Muse[] = [];
+  private museProfiles = new Map<string, nostr.MuseProfile>();
   private musesExpanded = false;
 
   constructor() {
@@ -59,6 +60,17 @@ export class NsiteDeployButton extends HTMLElement {
           if (manifest) {
             this.muses = nostr.extractMuses(manifest);
             if (this.muses.length > 0 && this.state === 'idle') this.render();
+            // Start streaming profile enrichment unless opted out
+            if (
+              this.muses.length > 0 &&
+              !this.hasAttribute('do-not-fetch-muse-data') &&
+              !this.hasAttribute('obfuscate-npubs')
+            ) {
+              nostr.fetchMuseProfiles(this.muses, this.ctx!.baseDomain, (pubkey, profile) => {
+                this.museProfiles.set(pubkey, profile);
+                if (this.state === 'idle' && this.musesExpanded) this.render();
+              });
+            }
           }
         });
       }
@@ -210,10 +222,31 @@ export class NsiteDeployButton extends HTMLElement {
 
   private museItem(muse: nostr.Muse): string {
     const npub = nostr.npubEncode(muse.pubkey);
-    const short = npub.slice(0, 12) + '...' + npub.slice(-4);
+
+    // obfuscate-npubs: truncated npub, no link (legacy behavior)
+    if (this.hasAttribute('obfuscate-npubs')) {
+      const short = npub.slice(0, 12) + '...' + npub.slice(-4);
+      return `<div class="nd-trail-item">
+        <span class="nd-trail-idx">#${muse.index}</span>
+        <span class="nd-trail-pk">${short}</span>
+      </div>`;
+    }
+
+    // do-not-fetch-muse-data (without obfuscate): full npub linked to njump
+    if (this.hasAttribute('do-not-fetch-muse-data')) {
+      return `<div class="nd-trail-item">
+        <span class="nd-trail-idx">#${muse.index}</span>
+        <a class="nd-trail-link" href="https://njump.me/${this.esc(npub)}" target="_blank" rel="noopener">${this.esc(npub)}</a>
+      </div>`;
+    }
+
+    // Default: enriched display — name + link to nsite or njump
+    const profile = this.museProfiles.get(muse.pubkey);
+    const displayName = profile?.name || npub;
+    const href = profile?.nsiteUrl || `https://njump.me/${npub}`;
     return `<div class="nd-trail-item">
       <span class="nd-trail-idx">#${muse.index}</span>
-      <span class="nd-trail-pk">${short}</span>
+      <a class="nd-trail-link" href="${this.esc(href)}" target="_blank" rel="noopener">${this.esc(displayName)}</a>
     </div>`;
   }
 
