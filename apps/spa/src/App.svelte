@@ -27,6 +27,7 @@
   import { hexToBytes } from 'nostr-tools/utils';
 
   import Navbar from './components/Navbar.svelte';
+  import NIP5ABanner from './components/NIP5ABanner.svelte';
   import DeployZone from './components/DeployZone.svelte';
   import FileTree from './components/FileTree.svelte';
   import ProgressIndicator from './components/ProgressIndicator.svelte';
@@ -512,6 +513,8 @@
 
 <!-- App shell -->
 <div class="min-h-screen bg-slate-900 text-gray-100">
+
+  <NIP5ABanner />
 
   <Navbar
     onLoginClick={() => (showLoginModal = true)}
