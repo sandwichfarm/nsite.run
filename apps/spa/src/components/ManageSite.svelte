@@ -152,6 +152,24 @@
     removeCard(siteId);
   }
 
+  function animateCardExit(siteId, site) {
+    // Phase 1: opacity fade starts immediately via card-exit-fade CSS class
+
+    // Phase 2: after fade, collapse height
+    setTimeout(() => {
+      updateCard(siteId, { _collapsing: true });
+    }, 600);
+
+    // Phase 3: after collapse, remove and notify
+    setTimeout(() => {
+      removeCard(siteId);
+      dispatch('site-removed', site);
+      dispatch('deleted');
+    }, 900);
+  }
+
+  let activeDeleteCount = 0;
+
   async function handleConfirmDelete(siteId) {
     const card = deletingCards.get(siteId);
     if (!card || card.phase === 'deleting') return;
@@ -169,7 +187,10 @@
       error: '',
     });
 
-    dispatch('delete-start');
+    activeDeleteCount++;
+    if (activeDeleteCount === 1) {
+      dispatch('delete-start');
+    }
 
     try {
       const site = card.site;
@@ -208,6 +229,7 @@
 
       if (anyRelaySuccess) {
         updateCard(siteId, { phase: 'success', step: null, results });
+        animateCardExit(siteId, card.site);
       } else {
         updateCard(siteId, {
           phase: 'failure',
@@ -227,7 +249,10 @@
         error: err?.message ?? 'Unexpected error during deletion',
       });
     } finally {
-      dispatch('delete-end');
+      activeDeleteCount--;
+      if (activeDeleteCount === 0) {
+        dispatch('delete-end');
+      }
 
       // Auto-recover failed cards after delay
       const finalCard = deletingCards.get(siteId);
@@ -254,9 +279,12 @@
       {#each siteList as site (site.id)}
         {@const cardState = deletingCards.get(site.id)}
         {@const isDeleting = cardState && cardState.phase !== 'confirm'}
-        <div class="bg-slate-800 rounded-lg overflow-hidden transition-all duration-300
-          {isDeleting ? 'opacity-60' : ''}
-          {cardState?.phase === 'failure' ? 'animate-shake' : ''}"
+        <div
+          class="bg-slate-800 rounded-lg overflow-hidden transition-all duration-300
+            {cardState?.phase === 'success' ? 'card-exit-fade' : ''}
+            {isDeleting && cardState?.phase !== 'success' ? 'opacity-60' : ''}
+            {cardState?.phase === 'failure' ? 'animate-shake' : ''}"
+          class:card-exit-collapse={cardState?._collapsing}
         >
           <!-- Card header -->
           <button
@@ -270,10 +298,17 @@
               {siteLabel(site)}
             </span>
 
-            {#if isDeleting}
-              <span class="text-xs text-red-400 font-medium">
-                {cardState.phase === 'deleting' ? 'Deleting...' : cardState.phase === 'success' ? 'Deleted' : 'Delete failed'}
+            {#if cardState?.phase === 'success'}
+              <span class="text-xs text-green-400 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Deleted
               </span>
+            {:else if cardState?.phase === 'deleting'}
+              <span class="text-xs text-red-400 font-medium">Deleting...</span>
+            {:else if cardState?.phase === 'failure'}
+              <span class="text-xs text-red-400 font-medium">Delete failed</span>
             {/if}
 
             <span class="flex-1"></span>
@@ -437,5 +472,20 @@
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-4px); }
     40%, 80% { transform: translateX(4px); }
+  }
+
+  :global(.card-exit-fade) {
+    opacity: 0 !important;
+    transition: opacity 500ms ease-out !important;
+  }
+
+  :global(.card-exit-collapse) {
+    max-height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 300ms ease-out, margin 300ms ease-out, padding 300ms ease-out !important;
   }
 </style>

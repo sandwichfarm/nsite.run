@@ -641,6 +641,18 @@
                 deployDescription = getManifestDescription(site);
                 resetForUpdate();
               }}
+              on:site-removed={(e) => {
+                const site = e.detail;
+                if (site.kind === 35128) {
+                  allSites = {
+                    ...allSites,
+                    named: allSites.named.filter(s => s.id !== site.id),
+                  };
+                } else {
+                  allSites = { ...allSites, root: null };
+                }
+                existingManifest = allSites.root;
+              }}
               on:deleted={() => {
                 fetchSiteInfo($session.pubkey);
               }}
