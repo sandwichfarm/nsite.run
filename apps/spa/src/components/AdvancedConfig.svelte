@@ -1,6 +1,8 @@
 <script>
-  import { serverConfig } from '../lib/store.js';
-  import { NSITE_RELAY, NSITE_BLOSSOM } from '../lib/nostr.js';
+  import { createDeployerStores } from '@nsite/deployer/store';
+  import { NSITE_RELAY, NSITE_BLOSSOM } from '@nsite/deployer/nostr';
+
+  const { serverConfig } = createDeployerStores();
 
   let relayInput = '';
   let blossomInput = '';

@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { pickDirectory, pickArchive, autoExcludeVCS, buildFileTree, extractZip, extractTarGz } from '../lib/files.js';
-  import { scanFiles } from '../lib/scanner.js';
+  import { pickDirectory, pickArchive, autoExcludeVCS, buildFileTree, extractZip, extractTarGz } from '@nsite/deployer/files';
+  import { scanFiles } from '@nsite/deployer/scanner';
 
   const dispatch = createEventDispatcher();
 

@@ -1,8 +1,10 @@
 <script>
   import { onMount, tick, createEventDispatcher } from 'svelte';
   import QRCode from 'qrcode';
-  import { createNostrConnectSigner, connectFromBunkerURI, fetchProfile, DEFAULT_RELAYS } from '../lib/nostr.js';
-  import { session } from '../lib/store.js';
+  import { createNostrConnectSigner, connectFromBunkerURI, fetchProfile, DEFAULT_RELAYS } from '@nsite/deployer/nostr';
+  import { createDeployerStores } from '@nsite/deployer/store';
+
+  const { session } = createDeployerStores();
   import { npubEncode } from 'nostr-tools/nip19';
 
   export let show = false;

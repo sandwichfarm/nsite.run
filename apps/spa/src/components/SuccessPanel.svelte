@@ -24,8 +24,8 @@
   let urlCopied = false;
 
   import { createEventDispatcher } from 'svelte';
-  import { downloadNsecFile, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '../lib/nostr.js';
-  import { base36Encode } from '../lib/base36.js';
+  import { downloadNsecFile, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '@nsite/deployer/nostr';
+  import { base36Encode } from '@nsite/deployer/base36';
   import { hexToBytes } from 'nostr-tools/utils';
   import ActivityRings from './ActivityRings.svelte';
 

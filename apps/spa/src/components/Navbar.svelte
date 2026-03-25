@@ -1,6 +1,8 @@
 <script>
-  import { session } from '../lib/store.js';
-  import { clearAnonymousKey } from '../lib/nostr.js';
+  import { createDeployerStores } from '@nsite/deployer/store';
+  import { clearAnonymousKey } from '@nsite/deployer/nostr';
+
+  const { session } = createDeployerStores();
   import LogoutConfirmModal from './LogoutConfirmModal.svelte';
 
   export let onLoginClick = () => {};
