@@ -22,7 +22,7 @@ type State =
   | 'error';
 
 export class NsiteDeployButton extends HTMLElement {
-  static observedAttributes = ['label'];
+  static observedAttributes = ['button-text', 'stat-text'];
 
   private shadow: ShadowRoot;
   private state: State = 'idle';
@@ -68,8 +68,12 @@ export class NsiteDeployButton extends HTMLElement {
     if (this.state === 'idle') this.render();
   }
 
-  private get buttonLabel(): string {
-    return this.getAttribute('label') || 'Borrow this';
+  private get buttonText(): string {
+    return this.getAttribute('button-text') || 'Borrow this nsite';
+  }
+
+  private get statText(): string {
+    return this.getAttribute('stat-text') || '%s npubs borrowed this nsite';
   }
 
   private esc(s: string): string {
@@ -90,12 +94,12 @@ export class NsiteDeployButton extends HTMLElement {
 
     switch (this.state) {
       case 'idle':
-        html += `<button class="nd-trigger" part="trigger">${this.esc(this.buttonLabel)}</button>`;
+        html += `<button class="nd-trigger" part="trigger">${this.esc(this.buttonText)}</button>`;
         html += this.paperTrailContent();
         break;
 
       case 'auth':
-        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonLabel)}</button>`;
+        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonText)}</button>`;
         html += this.modal(this.authContent());
         break;
 
@@ -118,12 +122,12 @@ export class NsiteDeployButton extends HTMLElement {
         break;
 
       case 'form':
-        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonLabel)}</button>`;
+        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonText)}</button>`;
         html += this.modal(this.formContent());
         break;
 
       case 'confirm':
-        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonLabel)}</button>`;
+        html += `<button class="nd-trigger" disabled>${this.esc(this.buttonText)}</button>`;
         html += this.modal(this.confirmContent());
         break;
 
@@ -151,7 +155,7 @@ export class NsiteDeployButton extends HTMLElement {
         break;
 
       case 'error':
-        html += `<button class="nd-trigger" part="trigger">${this.esc(this.buttonLabel)}</button>`;
+        html += `<button class="nd-trigger" part="trigger">${this.esc(this.buttonText)}</button>`;
         html += this.modal(`
           <div class="nd-header">
             <h2 class="nd-title">Error</h2>
@@ -175,7 +179,7 @@ export class NsiteDeployButton extends HTMLElement {
     if (this.muses.length === 0) return '';
 
     let html = `<div class="nd-trail">
-      <button class="nd-trail-toggle" data-action="toggle-trail">Inspired ${this.muses.length} npub${this.muses.length === 1 ? '' : 's'}</button>`;
+      <button class="nd-trail-toggle" data-action="toggle-trail">${this.esc(this.statText.replace('%s', String(this.muses.length)))}</button>`;
 
     if (this.musesExpanded) {
       html += `<div class="nd-trail-list">`;
