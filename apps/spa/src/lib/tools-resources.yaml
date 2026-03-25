@@ -82,7 +82,7 @@ categories:
       - name: "relay.nosto.re"
         url: "https://relay.nosto.re"
         description: "Relay optimized for nsite manifests by nosto.re"
-        versions: [v1]
+        versions: [v1,v2]
       - name: "nsite.run"
         url: "https://nsite.run"
         description: "relay for nsites"
