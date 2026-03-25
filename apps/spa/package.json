@@ -10,6 +10,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
+    "@nsite/deployer": "*",
     "@std/media-types": "npm:@jsr/std__media-types@^1.1.0",
     "applesauce-core": "^5.1.0",
     "applesauce-relay": "^5.1.0",
