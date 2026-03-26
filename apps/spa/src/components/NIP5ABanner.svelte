@@ -21,7 +21,7 @@
     <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center gap-3 text-sm">
       <span class="text-purple-300 flex-shrink-0">✦</span>
       <span class="text-purple-100 flex-1">
-        <strong class="text-purple-200">NIP-5A</strong> (Static Websites) has been merged!
+        <strong class="text-purple-200">NIP-5A</strong> (Static Websites) has been merged into the nostr NIPs!
         <a href="https://github.com/nostr-protocol/nips/blob/master/5A.md"
            target="_blank"
            rel="noopener noreferrer"

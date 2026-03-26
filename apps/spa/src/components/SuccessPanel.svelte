@@ -133,16 +133,26 @@
     </p>
   {/if}
 
-  <!-- Share buttons -->
+  <!-- Navigation & share buttons -->
   <div class="flex flex-wrap gap-2 mb-5">
     <button
-      on:click={() => dispatch('update')}
+      on:click={() => dispatch('manage')}
       class="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
       </svg>
-      Update Site
+      Manage sites
+    </button>
+
+    <button
+      on:click={() => dispatch('deploy-another')}
+      class="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Deploy another
     </button>
 
     <button
