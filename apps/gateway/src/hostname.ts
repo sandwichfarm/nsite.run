@@ -6,7 +6,7 @@
  *   Root site:   npub1xxx.nsite.run  → { kind: "root", npub: "npub1xxx" }
  *   Named site:  <pubkeyB36><dTag>.nsite.run  → { kind: "named", pubkeyHex: "...", identifier: "..." }
  *
- * Named site label is a single subdomain, 51-63 chars, all [a-z0-9].
+ * Named site label is a single subdomain, 51-63 chars, [a-z0-9-] (no trailing hyphen).
  * First 50 chars are the pubkey encoded as base36, remaining chars are the dTag.
  *
  * Old double-wildcard format (identifier.npub1xxx.nsite.run) returns null — no longer supported.
@@ -24,7 +24,7 @@ export interface SitePointer {
 const PUBKEY_B36_LENGTH = 50;
 const NAMED_SITE_MIN_LENGTH = 51; // 50 pubkey + at least 1 dTag char
 const NAMED_SITE_MAX_LENGTH = 63; // 50 pubkey + max 13 dTag chars
-const NAMED_SITE_RE = /^[a-z0-9]+$/;
+const NAMED_SITE_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
 /**
  * Parse subdomain from host string into a SitePointer.
@@ -64,7 +64,7 @@ export function extractNpubAndIdentifier(
     return { kind: "root", npub: label };
   }
 
-  // Named site: exactly one subdomain label beyond base domain, length 51-63, all [a-z0-9]
+  // Named site: exactly one subdomain label beyond base domain, length 51-63, [a-z0-9-] (no trailing hyphen)
   if (
     parts.length === baseParts + 1 &&
     label.length >= NAMED_SITE_MIN_LENGTH &&
