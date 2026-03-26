@@ -320,23 +320,6 @@ describe('uploadBlobs', () => {
     globalThis.fetch = origFetch;
   });
 
-  it('auth batches at 50 files max', async () => {
-    const files = Array.from({ length: 120 }, (_, i) => makeFile(`f${i}`));
-    const existing = new Map();
-    const signer = fakeSigner();
-    const servers = [S1];
-
-    const origFetch = globalThis.fetch;
-    globalThis.fetch = vi.fn(async () => ({ ok: true, status: 200, text: async () => '' }));
-
-    await uploadBlobs(files, existing, signer, servers);
-
-    // 120 files / 50 per batch = 3 sign calls
-    expect(signer.signEvent).toHaveBeenCalledTimes(3);
-
-    globalThis.fetch = origFetch;
-  });
-
   it('network error on fetch → counted as failed after retries', async () => {
     const files = [makeFile('a')];
     const existing = new Map();

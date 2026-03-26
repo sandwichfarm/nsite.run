@@ -19,6 +19,7 @@ dev-relay.db-*
 
 # Planning and tooling (local only)
 .planning/
+.worktrees/
 docs/superpowers/
 
 # Editor directories and files

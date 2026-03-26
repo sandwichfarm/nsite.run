@@ -12,7 +12,7 @@ let _config: Config | null = null;
 
 function init(): { storage: LocalStorageClient; config: Config } {
   if (!_storage || !_config) {
-    const port = Deno.env.get("BLOSSOM_PORT") ?? "8082";
+    const port = Deno.env.get("BLOSSOM_PORT") ?? "3102";
     const storageDir = Deno.env.get("BLOSSOM_STORAGE_DIR") ?? ".dev-blossom-storage";
     const serverUrl = `http://localhost:${port}`;
     _config = {
