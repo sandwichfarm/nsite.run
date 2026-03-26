@@ -8,11 +8,15 @@
  */
 
 // --- 1. Set environment variables for local routing ---
-const GATEWAY_PORT = parseInt(Deno.env.get("GATEWAY_PORT") ?? "8080");
-Deno.env.set("RELAY_URL", `http://localhost:${Deno.env.get("RELAY_PORT") ?? "8081"}`);
-Deno.env.set("BLOSSOM_URL", `http://localhost:${Deno.env.get("BLOSSOM_PORT") ?? "8082"}`);
+const GATEWAY_PORT = parseInt(Deno.env.get("GATEWAY_PORT") ?? "3100");
+Deno.env.set("RELAY_URL", `http://localhost:${Deno.env.get("RELAY_PORT") ?? "3101"}`);
+// In dev, the gateway serves blossom endpoints inline (blossom-dev.ts), so
+// BLOSSOM_URL points back at the gateway itself — NOT the standalone blossom.
+// This ensures the resolver fetches blobs from the same process that stored them.
+Deno.env.set("BLOSSOM_URL", `http://localhost:${GATEWAY_PORT}`);
 Deno.env.set("SPA_ASSETS_URL", `http://localhost:${Deno.env.get("SPA_PORT") ?? "5173"}`);
-Deno.env.set("SERVER_URL", `http://localhost:${Deno.env.get("BLOSSOM_PORT") ?? "8082"}`);
+Deno.env.set("SERVER_URL", `http://localhost:${GATEWAY_PORT}`);
+Deno.env.set("GATEWAY_URL", `http://localhost:${GATEWAY_PORT}`);
 Deno.env.set("BASE_DOMAIN", "localhost");
 
 // --- 2. Inject Bunny.v1.serve polyfill ---
@@ -36,7 +40,9 @@ if (!(Request.prototype as unknown as Record<string, unknown>).upgradeWebSocket)
 // --- 4. Set up local SQLite DB for the gateway resolver ---
 import { createClient as createNodeClient } from "npm:@libsql/client@0.17.0/node";
 
-const DEV_DB_PATH = Deno.env.get("DEV_DB_PATH") ?? "dev-gateway.db";
+// Share the relay's SQLite DB so the gateway can see manifests published via the SPA.
+// In production, both services share the same Bunny DB.
+const DEV_DB_PATH = Deno.env.get("DEV_DB_PATH") ?? "dev-relay.db";
 const localDb = createNodeClient({ url: `file:${DEV_DB_PATH}` });
 
 // --- 5. Import routing dependencies ---

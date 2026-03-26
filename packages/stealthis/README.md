@@ -4,7 +4,7 @@ A drop-in web component that adds a "Borrow this" button to any nsite. Visitors 
 
 ## How it works
 
-When loaded on an nsite, `<nsite-deploy>` detects the site owner's pubkey from the subdomain, fetches the site manifest from nostr relays, and lets authenticated visitors publish a copy under their own npub. Each deployment appends a `muse` tag to the manifest, creating a paper trail of who was inspired by the site.
+When loaded on an nsite, `<steal-this>` detects the site owner's pubkey from the subdomain, fetches the site manifest from nostr relays, and lets authenticated visitors publish a copy under their own npub. Each deployment appends a `muse` tag to the manifest, creating a paper trail of who was inspired by the site.
 
 ## Install
 
@@ -19,7 +19,7 @@ The widget auto-injects a fixed-position button in the bottom-right corner.
 If you want to control where the button appears, add the element yourself (the auto-inject will skip if one already exists):
 
 ```html
-<nsite-deploy button-text="Cop this joint" stat-text="%s npubs copped this"></nsite-deploy>
+<steal-this button-text="Cop this joint" stat-text="%s npubs copped this"></steal-this>
 ```
 
 ## Attributes

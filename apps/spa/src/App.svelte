@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import { session, deployState, serverConfig } from './lib/store.js';
   import {
@@ -9,6 +9,7 @@
     saveAnonymousKey,
     NSITE_RELAY,
     NSITE_BLOSSOM,
+    NSITE_GATEWAY_HOST,
     DEFAULT_RELAYS,
     fetchRelayList,
     fetchBlossomList,
@@ -36,6 +37,7 @@
   import AdvancedConfig from './components/AdvancedConfig.svelte';
   import ToolsResources from './components/ToolsResources.svelte';
   import ManageSite from './components/ManageSite.svelte';
+  import OperationBanner from './components/OperationBanner.svelte';
 
   // ---------------------------------------------------------------------------
   // State
@@ -45,6 +47,14 @@
 
   // Page navigation: 'deploy' | 'manage'
   let currentPage = 'deploy';
+
+  // Delete-in-progress flag (set by ManageSite events)
+  let deleteInProgress = false;
+
+  // Banner completion state: null while in-progress, 'success'/'error' after operation ends
+  let bannerCompletionState = null;
+  // Which operation the banner is tracking: 'deploy' | 'delete'
+  let bannerOperationType = 'deploy';
 
   // Files & tree state (set when DeployZone fires 'files-selected')
   let selectedFiles = [];
@@ -182,11 +192,44 @@
   // ---------------------------------------------------------------------------
 
   $: step = $deployState.step;
+
+  // Dangerous deploy steps -- trigger beforeunload guard
+  const DANGEROUS_DEPLOY_STEPS = new Set(['hashing', 'checking', 'uploading', 'publishing']);
+  $: isDangerousStep = DANGEROUS_DEPLOY_STEPS.has(step) || deleteInProgress;
+
+  // Track deploy completion for banner auto-dismiss
+  let prevStep = 'idle';
+  $: {
+    if (DANGEROUS_DEPLOY_STEPS.has(prevStep) && (step === 'success' || step === 'error')) {
+      bannerCompletionState = step === 'success' ? 'success' : 'error';
+      bannerOperationType = 'deploy';
+    }
+    prevStep = step;
+  }
+
+  // Derive whether banner should be visible at all
+  $: showBanner = isDangerousStep || bannerCompletionState !== null;
+
+  function handleBeforeUnload(event) {
+    event.preventDefault();
+    event.returnValue = true;
+  }
+
+  $: if (isDangerousStep) {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  } else {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
+
+  onDestroy(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
+
   $: dTagValid = siteType === 'root' || /^[a-z0-9](?:[a-z0-9-]{0,11}[a-z0-9])?$/.test(dTag);
   $: dTagError = siteType === 'named' && dTag.length > 0 && !dTagValid
     ? 'Lowercase letters, numbers, and hyphens, 1-13 chars. Cannot start or end with a hyphen.'
     : '';
-  $: canDeploy = siteType === 'root' || (dTag.length > 0 && dTagValid);
+  $: canDeploy = ($session.pubkey ? !sitesLoading : true) && (siteType === 'root' || (dTag.length > 0 && dTagValid));
   $: includedFiles = selectedFiles.filter((f) => !excludedFiles.has(f.path));
   $: fileDataMap = new Map(selectedFiles.map(f => [f.path, f.data]));
   $: userExcludedCount = excludedFiles.size;
@@ -199,6 +242,11 @@
   })();
   $: existingPublishDate = existingManifest ? new Date(existingManifest.created_at * 1000) : null;
   $: existingFileCount = existingManifest ? existingManifest.tags.filter(t => t[0] === 'path').length : 0;
+
+  // Deploy guard: detect if entered dTag matches an existing named site
+  $: matchingNamedSite = siteType === 'named' && dTag && dTagValid && !dTagReadOnly
+    ? allSites.named.find(s => getManifestDTag(s) === dTag)
+    : null;
 
   // Derived values for deletion scope
   $: deleteRelayUrls = [...new Set([NSITE_RELAY, ...userRelays])];
@@ -230,6 +278,21 @@
       next.add(path);
     }
     excludedFiles = next;
+  }
+
+  function handleGuardUpdate(site) {
+    if (site.kind === 35128) {
+      siteType = 'named';
+      dTag = getManifestDTag(site) || '';
+      dTagReadOnly = true;
+    } else {
+      siteType = 'root';
+      dTag = '';
+      dTagReadOnly = false;
+    }
+    deployTitle = getManifestTitle(site);
+    deployDescription = getManifestDescription(site);
+    resetForUpdate();
   }
 
   function resetDeploy() {
@@ -316,6 +379,8 @@
 
   async function handleDeploy() {
     errorMessage = '';
+    bannerCompletionState = null;
+    bannerOperationType = 'deploy';
 
     try {
       // 1. Ensure we have a signer
@@ -538,20 +603,37 @@
         </div>
 
         <div class="w-full max-w-2xl">
+          <!-- Background operation banner -->
+          {#if showBanner}
+            <div class="mb-3">
+              <OperationBanner
+                operationType={bannerOperationType}
+                progress={bannerOperationType === 'deploy' ? $deployState.progress : 0}
+                step={bannerOperationType === 'deploy' ? step : 'deleting'}
+                completionState={bannerCompletionState}
+                onNavigateBack={(bannerOperationType === 'deploy' && currentPage !== 'deploy') || (bannerOperationType === 'delete' && currentPage !== 'manage')
+                  ? () => { currentPage = bannerOperationType === 'deploy' ? 'deploy' : 'manage'; }
+                  : null}
+              />
+            </div>
+          {/if}
+
           <!-- Tabs (only show when manage tab is available) -->
           {#if (allSites.root || allSites.named.length > 0) && $session.pubkey}
             <div class="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
               <button
-                on:click={() => (currentPage = 'deploy')}
+                on:click={() => { if (!isDangerousStep) currentPage = 'deploy'; }}
+                disabled={isDangerousStep}
                 class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  {currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                  {isDangerousStep ? 'opacity-40 cursor-not-allowed text-slate-500' : currentPage === 'deploy' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
               >
                 Deploy
               </button>
               <button
-                on:click={() => (currentPage = 'manage')}
+                on:click={() => { if (!isDangerousStep) currentPage = 'manage'; }}
+                disabled={isDangerousStep}
                 class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  {currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                  {isDangerousStep ? 'opacity-40 cursor-not-allowed text-slate-500' : currentPage === 'manage' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
               >
                 Manage
               </button>
@@ -582,8 +664,38 @@
                 deployDescription = getManifestDescription(site);
                 resetForUpdate();
               }}
+              on:site-removed={(e) => {
+                const site = e.detail;
+                if (site.kind === 35128) {
+                  allSites = {
+                    ...allSites,
+                    named: allSites.named.filter(s => s.id !== site.id),
+                  };
+                } else {
+                  allSites = { ...allSites, root: null };
+                }
+                existingManifest = allSites.root;
+              }}
               on:deleted={() => {
-                fetchSiteInfo($session.pubkey);
+                // Delay re-fetch to give relays time to process kind 5 deletion.
+                // on:site-removed already optimistically removed from allSites.
+                setTimeout(() => fetchSiteInfo($session.pubkey), 5000);
+              }}
+              on:delete-start={() => {
+                deleteInProgress = true;
+                bannerCompletionState = null;
+                bannerOperationType = 'delete';
+              }}
+              on:delete-end={(e) => {
+                deleteInProgress = false;
+                if (e.detail && !e.detail.cancelled) {
+                  bannerCompletionState = e.detail.success ? 'success' : 'error';
+                  bannerOperationType = 'delete';
+                }
+              }}
+              on:deploy-new={() => {
+                currentPage = 'deploy';
+                resetForUpdate();
               }}
             />
           {:else}
@@ -858,6 +970,30 @@
               </label>
             </div>
 
+            {#if siteType === 'root' && allSites.root && $session.pubkey && !dTagReadOnly}
+              <div class="mt-3 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-amber-300">You already have a root site deployed</p>
+                    <p class="text-xs text-amber-200/70 mt-1">
+                      {$session.npub}.{NSITE_GATEWAY_HOST} &mdash;
+                      {allSites.root.tags.filter(t => t[0] === 'path').length} files,
+                      last published {new Date(allSites.root.created_at * 1000).toLocaleDateString()}
+                    </p>
+                    <button
+                      on:click={() => handleGuardUpdate(allSites.root)}
+                      class="mt-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      Update existing site
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {/if}
+
             {#if siteType === 'named'}
               <div class="mt-3">
                 <label class="block text-sm text-slate-400 mb-1" for="dTagInput">
@@ -883,6 +1019,29 @@
                 />
                 {#if dTagError}
                   <p class="text-xs text-red-400 mt-1">{dTagError}</p>
+                {/if}
+                {#if matchingNamedSite}
+                  <div class="mt-2 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
+                    <div class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-amber-300">You already have a named site with this identifier</p>
+                        <p class="text-xs text-amber-200/70 mt-1">
+                          {base36Encode(hexToBytes($session.pubkey))}.{NSITE_GATEWAY_HOST}/{dTag} &mdash;
+                          {matchingNamedSite.tags.filter(t => t[0] === 'path').length} files,
+                          last published {new Date(matchingNamedSite.created_at * 1000).toLocaleDateString()}
+                        </p>
+                        <button
+                          on:click={() => handleGuardUpdate(matchingNamedSite)}
+                          class="mt-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+                        >
+                          Update existing site
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 {/if}
               </div>
             {/if}
@@ -938,7 +1097,7 @@
             class="w-full py-3 px-6 bg-purple-600 text-white rounded-lg font-semibold text-lg transition-colors
               {canDeploy ? 'hover:bg-purple-500' : 'opacity-50 cursor-not-allowed'}"
           >
-            {$session.pubkey ? 'Deploy' : 'Deploy Anonymously'}
+            {#if sitesLoading}Checking existing sites...{:else if $session.pubkey}Deploy{:else}Deploy Anonymously{/if}
           </button>
           {#if !$session.pubkey}
             <p class="text-center text-sm text-slate-500 mt-2">
@@ -985,16 +1144,9 @@
           {siteType}
           {dTag}
           pubkeyHex={$session.pubkey || ''}
-          on:update={resetForUpdate}
+          on:manage={() => (currentPage = 'manage')}
+          on:deploy-another={resetForUpdate}
         />
-        <div class="mt-4 text-center">
-          <button
-            on:click={resetDeploy}
-            class="text-sm text-slate-400 hover:text-white transition-colors"
-          >
-            Deploy another site
-          </button>
-        </div>
       </section>
 
     <!-- ===== ERROR ===== -->

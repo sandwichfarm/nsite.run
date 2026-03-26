@@ -1,10 +1,10 @@
 import { NsiteDeployButton } from './widget';
 
-customElements.define('nsite-deploy', NsiteDeployButton);
+customElements.define('steal-this', NsiteDeployButton);
 
 function autoInject() {
-  if (!document.querySelector('nsite-deploy')) {
-    const el = document.createElement('nsite-deploy');
+  if (!document.querySelector('steal-this')) {
+    const el = document.createElement('steal-this');
     el.classList.add('nd-fixed');
     document.body.appendChild(el);
   }
