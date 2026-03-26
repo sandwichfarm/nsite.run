@@ -41,6 +41,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        run: deno install
+
       - name: Build all bundles
         run: deno task build
 

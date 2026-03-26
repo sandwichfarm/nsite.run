@@ -13,14 +13,24 @@
 
 import { unzip, gunzip } from 'fflate';
 import { parseTar } from 'nanotar';
-import { contentType } from '@std/media-types/content-type';
+/** Common web file extension → MIME type mapping (browser-compatible replacement for @std/media-types) */
+const MIME_TYPES = {
+  '.html': 'text/html', '.htm': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+  '.mjs': 'application/javascript', '.json': 'application/json', '.xml': 'application/xml',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif', '.webp': 'image/webp', '.avif': 'image/avif', '.ico': 'image/x-icon',
+  '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.otf': 'font/otf',
+  '.eot': 'application/vnd.ms-fontobject', '.txt': 'text/plain', '.md': 'text/markdown',
+  '.pdf': 'application/pdf', '.zip': 'application/zip', '.wasm': 'application/wasm',
+  '.webmanifest': 'application/manifest+json', '.map': 'application/json',
+};
 
 export function inferMimeType(path) {
   if (!path) return undefined;
   const dotIndex = path.lastIndexOf('.');
   if (dotIndex === -1) return undefined;
   const ext = path.slice(dotIndex).toLowerCase();
-  return contentType(ext);
+  return MIME_TYPES[ext];
 }
 
 // ---------------------------------------------------------------------------

@@ -16,7 +16,7 @@ import type { Config } from "./types.ts";
 import type { StorageClient } from "./storage/client.ts";
 
 // Step 1: Configure local server settings
-const PORT = parseInt(Deno.env.get("BLOSSOM_PORT") ?? "8082");
+const PORT = parseInt(Deno.env.get("BLOSSOM_PORT") ?? "3102");
 const STORAGE_DIR = Deno.env.get("BLOSSOM_STORAGE_DIR") ?? ".dev-blossom-storage";
 const SERVER_URL = `http://localhost:${PORT}`;
 

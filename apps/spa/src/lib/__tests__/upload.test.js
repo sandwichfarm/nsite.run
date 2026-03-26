@@ -320,7 +320,7 @@ describe('uploadBlobs', () => {
     globalThis.fetch = origFetch;
   });
 
-  it('auth batches at 50 files max', async () => {
+  it('signs one auth event per file (BUD-02 single x-tag per blob)', async () => {
     const files = Array.from({ length: 120 }, (_, i) => makeFile(`f${i}`));
     const existing = new Map();
     const signer = fakeSigner();
@@ -331,8 +331,8 @@ describe('uploadBlobs', () => {
 
     await uploadBlobs(files, existing, signer, servers);
 
-    // 120 files / 50 per batch = 3 sign calls
-    expect(signer.signEvent).toHaveBeenCalledTimes(3);
+    // One signEvent call per file (BUD-02 requires single x tag per auth event)
+    expect(signer.signEvent).toHaveBeenCalledTimes(120);
 
     globalThis.fetch = origFetch;
   });

@@ -10,12 +10,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@std/media-types": "npm:@jsr/std__media-types@^1.1.0",
-    "applesauce-core": "^5.1.0",
-    "applesauce-relay": "^5.1.0",
-    "applesauce-signers": "^5.1.0",
-    "fflate": "^0.8.2",
-    "nanotar": "^0.1.1",
+    "@nsite/deployer": "*",
     "nostr-tools": "^2.10.0",
     "qrcode": "^1.5.4",
     "svelte": "^4.2.20"

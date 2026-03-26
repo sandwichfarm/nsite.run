@@ -92,7 +92,7 @@ describe('extractZip', () => {
   it('infers MIME type from extracted ZIP file paths', async () => {
     const buf = await makeZip({ 'index.html': '<html></html>', 'assets/logo.png': 'png' });
     const files = await extractZip(buf);
-    expect(files.find(f => f.path === '/index.html').type).toBe('text/html; charset=UTF-8');
+    expect(files.find(f => f.path === '/index.html').type).toBe('text/html');
     expect(files.find(f => f.path === '/assets/logo.png').type).toBe('image/png');
   });
 });
@@ -172,14 +172,14 @@ describe('extractTarGz', () => {
     });
 
     const files = await extractTarGz(gzBuf);
-    expect(files.find(f => f.path === '/styles/site.css').type).toBe('text/css; charset=UTF-8');
+    expect(files.find(f => f.path === '/styles/site.css').type).toBe('text/css');
   });
 });
 
 describe('inferMimeType', () => {
   it('returns known MIME types from file extensions', () => {
-    expect(inferMimeType('/index.html')).toBe('text/html; charset=UTF-8');
-    expect(inferMimeType('/app.js')).toBe('text/javascript; charset=UTF-8');
+    expect(inferMimeType('/index.html')).toBe('text/html');
+    expect(inferMimeType('/app.js')).toBe('application/javascript');
     expect(inferMimeType('/image.webp')).toBe('image/webp');
   });
 
