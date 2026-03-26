@@ -29,6 +29,8 @@ If you want to control where the button appears, add the element yourself (the a
 | `button-text` | `"Borrow this nsite"` | Button text |
 | `stat-text` | `"%s npubs borrowed this nsite"` | Paper trail summary. `%s` is replaced with the count. |
 | `no-trail` | _(absent)_ | Boolean attribute. When present, disables the paper trail entirely -- no `muse` tags are written and the trail UI is not rendered. |
+| `obfuscate-npubs` | _(absent)_ | Boolean attribute. Shows truncated npubs with no links in the paper trail. Disables profile fetching. |
+| `do-not-fetch-muse-data` | _(absent)_ | Boolean attribute. Skips profile enrichment but still shows full npubs linked to njump. |
 
 The button's `trigger` part is exposed via `::part(trigger)` for CSS customization.
 
@@ -50,6 +52,8 @@ If the visitor already has a root site, the form defaults to a named site. Overw
 ## Paper trail
 
 Each deployment adds a `muse` tag with the deployer's pubkey and relay list. The widget shows an expandable "Inspired N npubs" counter when muse tags are present. A maximum of 9 muse tags are kept per manifest (originator + 8 most recent), with FIFO truncation of the middle.
+
+By default, the trail streams kind-0 profiles from relays to show display names and links to each muse's nsite (or njump fallback). Use `obfuscate-npubs` to show only truncated npubs, or `do-not-fetch-muse-data` to skip profile fetching while still linking to njump.
 
 ## Development
 
