@@ -12,7 +12,7 @@ categories:
       - name: "nwb.tf"
         url: "https://nwb.tf/"
         description: "Public nsite gateway"
-        versions: [v1]
+        versions: [v2]
       - name: "nsite.run"
         url: "https://nsite.run"
         description: "reference implementation for nsite V2"
