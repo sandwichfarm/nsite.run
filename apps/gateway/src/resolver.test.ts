@@ -434,7 +434,7 @@ Deno.test("getManifestRelays: empty tags returns empty array", () => {
 
 // --- Test 9: SPA fallback — gateway default 404 status ---
 
-Deno.test("SPA fallback: missing path with no /404.html in manifest returns gateway default 404 (status 404)", async () => {
+Deno.test("SPA fallback: missing path with no /404.html in manifest returns gateway default 404 (status 404)", () => {
   // Pre-load a ready cache entry with no /404.html and no blossom servers
   // so the fallback path falls through to renderDefault404().
   // This verifies the gateway default 404 still uses status 404.

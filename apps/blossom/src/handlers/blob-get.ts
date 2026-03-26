@@ -22,7 +22,7 @@ const HASH_VERIFY_LIMIT = 10 * 1024 * 1024;
 export async function handleBlobGet(
   request: Request,
   storage: StorageClient,
-  config: Config,
+  _config: Config,
 ): Promise<Response> {
   const url = new URL(request.url);
   // Extract sha256 from path, ignoring optional extension

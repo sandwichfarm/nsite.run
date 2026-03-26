@@ -19,13 +19,13 @@ function makeStorage(
   overrides: Partial<Record<keyof StorageClient, unknown>> = {},
 ): StorageClient {
   return {
-    get: async (_path: string) => null,
-    head: async (_path: string) => null,
-    put: async (_path: string, _body: BodyInit) => true,
-    delete: async (_path: string) => true,
-    getJson: async (_path: string) => null,
-    putJson: async (_path: string, _data: unknown) => true,
-    getToml: async (_path: string) => null,
+    get: (_path: string) => Promise.resolve(null),
+    head: (_path: string) => Promise.resolve(null),
+    put: (_path: string, _body: BodyInit) => Promise.resolve(true),
+    delete: (_path: string) => Promise.resolve(true),
+    getJson: (_path: string) => Promise.resolve(null),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    getToml: (_path: string) => Promise.resolve(null),
     blobPath: (sha256: string) => `blobs/${sha256.substring(0, 2)}/${sha256}`,
     blobUrl: (sha256: string) => `https://cdn.test/blobs/${sha256.substring(0, 2)}/${sha256}`,
     metaPath: (sha256: string) => `meta/${sha256.substring(0, 2)}/${sha256}.json`,
@@ -37,7 +37,7 @@ function makeStorage(
 
 Deno.test("blob-list: returns empty array when no blobs", async () => {
   const storage = makeStorage({
-    getJson: async (_path: string) => [],
+    getJson: (_path: string) => Promise.resolve([]),
   });
   const url = new URL(`https://blossom.test/list/${testPubkey}`);
   const req = new Request(url.href);
@@ -61,7 +61,7 @@ Deno.test("blob-list: returns array of BlobDescriptors", async () => {
     uploaded: 1700001000,
   };
   const storage = makeStorage({
-    getJson: async (_path: string) => [entry1, entry2],
+    getJson: (_path: string) => Promise.resolve([entry1, entry2]),
   });
   const url = new URL(`https://blossom.test/list/${testPubkey}`);
   const req = new Request(url.href);
@@ -82,7 +82,7 @@ Deno.test("blob-list: respects since/until query params", async () => {
     { sha256: "c".repeat(64), size: 300, type: "text/plain", uploaded: 1700002000 }, // after until
   ];
   const storage = makeStorage({
-    getJson: async (_path: string) => entries,
+    getJson: (_path: string) => Promise.resolve(entries),
   });
   const url = new URL(
     `https://blossom.test/list/${testPubkey}?since=${since}&until=${until}`,

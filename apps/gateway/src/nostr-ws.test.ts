@@ -88,17 +88,26 @@ Deno.test("npubToHex: returns null for hex string (not bech32)", () => {
 
 // --- queryRelayOnce structural tests ---
 
-Deno.test("queryRelayOnce: returns a Promise", () => {
-  // We don't actually connect — just verify it returns a Promise
-  // Using an invalid URL ensures it fails fast
-  const result = queryRelayOnce("wss://invalid.example.test", { kinds: [15128] }, 100);
-  assertExists(result);
-  assertEquals(result instanceof Promise, true);
-  // Clean up the promise to avoid unhandled rejection warnings
-  return result.then((events) => {
-    // Should resolve with empty array on connection error
-    assertEquals(Array.isArray(events), true);
-  });
+Deno.test({
+  name: "queryRelayOnce: returns a Promise",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn() {
+    // We don't actually connect — just verify it returns a Promise
+    // Using an invalid URL ensures it fails fast
+    const result = queryRelayOnce(
+      "wss://invalid.example.test",
+      { kinds: [15128] },
+      100,
+    );
+    assertExists(result);
+    assertEquals(result instanceof Promise, true);
+    // Clean up the promise to avoid unhandled rejection warnings
+    return result.then((events) => {
+      // Should resolve with empty array on connection error
+      assertEquals(Array.isArray(events), true);
+    });
+  },
 });
 
 Deno.test("queryRelayOnce: resolves with array (never rejects) on bad URL", async () => {

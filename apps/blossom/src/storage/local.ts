@@ -106,7 +106,7 @@ export class LocalStorageClient {
   }
 
   /** Write JSON to local filesystem */
-  async putJson(path: string, data: unknown): Promise<boolean> {
+  putJson(path: string, data: unknown): Promise<boolean> {
     const body = new TextEncoder().encode(JSON.stringify(data));
     return this.put(path, body, "application/json");
   }

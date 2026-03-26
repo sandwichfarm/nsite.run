@@ -24,5 +24,8 @@
       "tags": ["recommended"]
     },
     "exclude": [".planning/", ".git/", "apps/spa/", ".github/", "docs/", "test-results/", ".nsite/"]
+  },
+  "test": {
+    "exclude": [".planning/", ".git/", "apps/spa/", ".github/", "docs/", "test-results/", ".nsite/"]
   }
 }

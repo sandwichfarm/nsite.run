@@ -28,8 +28,7 @@ function init(): { storage: LocalStorageClient; config: Config } {
   return { storage: _storage as LocalStorageClient, config: _config };
 }
 
-// deno-lint-ignore no-explicit-any
-export async function handleBlossom(request: Request): Promise<Response> {
+export function handleBlossom(request: Request): Promise<Response> {
   const { storage, config } = init();
   // LocalStorageClient is structurally compatible with StorageClient — dev-only cast
   // deno-lint-ignore no-explicit-any

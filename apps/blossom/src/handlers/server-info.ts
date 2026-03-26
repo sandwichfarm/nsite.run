@@ -7,10 +7,10 @@ import { jsonResponse } from "../util.ts";
  *
  * Returns simplified server config for nsite blossom (no payment/access aggregation).
  */
-export async function handleServerInfo(
+export function handleServerInfo(
   _storage: StorageClient,
   config: Config,
-): Promise<Response> {
+): Response {
   const info = {
     name: "nsite.run blossom",
     description: "nsite-only blossom server for nsite manifests",

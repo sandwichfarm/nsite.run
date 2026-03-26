@@ -20,13 +20,13 @@ function makeStorage(
   overrides: Partial<Record<keyof StorageClient, unknown>> = {},
 ): StorageClient {
   return {
-    get: async (_path: string) => null,
-    head: async (_path: string) => null,
-    put: async (_path: string, _body: BodyInit) => true,
-    delete: async (_path: string) => true,
-    getJson: async (_path: string) => null,
-    putJson: async (_path: string, _data: unknown) => true,
-    getToml: async (_path: string) => null,
+    get: (_path: string) => Promise.resolve(null),
+    head: (_path: string) => Promise.resolve(null),
+    put: (_path: string, _body: BodyInit) => Promise.resolve(true),
+    delete: (_path: string) => Promise.resolve(true),
+    getJson: (_path: string) => Promise.resolve(null),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    getToml: (_path: string) => Promise.resolve(null),
     blobPath: (sha256: string) => `blobs/${sha256.substring(0, 2)}/${sha256}`,
     blobUrl: (sha256: string) => `https://cdn.test/blobs/${sha256.substring(0, 2)}/${sha256}`,
     metaPath: (sha256: string) => `meta/${sha256.substring(0, 2)}/${sha256}.json`,
@@ -66,13 +66,14 @@ Deno.test("blob-delete: returns 403 when pubkey is not an owner", async () => {
   const authHeader = makeDeleteAuth(testSha256, secretKey);
 
   const storage = makeStorage({
-    getJson: async (_path: string) => ({
-      sha256: testSha256,
-      size: 100,
-      type: "text/plain",
-      uploaded: 1700000000,
-      owners: ["other_pubkey_" + "0".repeat(52)], // does not include authed pubkey
-    }),
+    getJson: (_path: string) =>
+      Promise.resolve({
+        sha256: testSha256,
+        size: 100,
+        type: "text/plain",
+        uploaded: 1700000000,
+        owners: ["other_pubkey_" + "0".repeat(52)], // does not include authed pubkey
+      }),
   });
 
   const req = new Request(`https://blossom.test/${testSha256}`, {
@@ -97,9 +98,9 @@ Deno.test("blob-delete: removes ownership and returns updated descriptor", async
   };
 
   const storage = makeStorage({
-    getJson: async (_path: string) => meta,
-    putJson: async (_path: string, _data: unknown) => true,
-    delete: async (_path: string) => true,
+    getJson: (_path: string) => Promise.resolve(meta),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    delete: (_path: string) => Promise.resolve(true),
   });
 
   const req = new Request(`https://blossom.test/${testSha256}`, {
@@ -127,11 +128,11 @@ Deno.test("blob-delete: deletes blob from storage when last owner removes", asyn
   };
 
   const storage = makeStorage({
-    getJson: async (_path: string) => meta,
-    putJson: async (_path: string, _data: unknown) => true,
-    delete: async (path: string) => {
+    getJson: (_path: string) => Promise.resolve(meta),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    delete: (path: string) => {
       deleteCalledPath = path;
-      return true;
+      return Promise.resolve(true);
     },
   });
 

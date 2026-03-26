@@ -37,7 +37,7 @@ const PORT = parseInt(Deno.env.get("RELAY_PORT") ?? "8081");
 // Step 4: Import the relay logic using @libsql/client/node which supports file: URLs.
 // We duplicate ~25 lines from main.ts to avoid the import map conflict where
 // main.ts uses "@libsql/client/web" (mapped in deno.json) which rejects file: URLs.
-import { createClient } from "npm:@libsql/client/node";
+import { createClient } from "npm:@libsql/client@0.17.0/node";
 import { initSchema } from "./db.ts";
 import { buildNip11Response } from "./nip11.ts";
 import { handleWebSocketUpgrade } from "./relay.ts";

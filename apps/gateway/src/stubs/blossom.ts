@@ -26,7 +26,7 @@ function init(): { storage: StorageClient; config: Config } {
   return { storage: _storage, config: _config };
 }
 
-export async function handleBlossom(request: Request): Promise<Response> {
+export function handleBlossom(request: Request): Promise<Response> {
   const { storage, config } = init();
   return blossomRoute(request, storage, config);
 }

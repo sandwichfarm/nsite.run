@@ -34,7 +34,7 @@ if (!(Request.prototype as unknown as Record<string, unknown>).upgradeWebSocket)
 }
 
 // --- 4. Set up local SQLite DB for the gateway resolver ---
-import { createClient as createNodeClient } from "npm:@libsql/client/node";
+import { createClient as createNodeClient } from "npm:@libsql/client@0.17.0/node";
 
 const DEV_DB_PATH = Deno.env.get("DEV_DB_PATH") ?? "dev-gateway.db";
 const localDb = createNodeClient({ url: `file:${DEV_DB_PATH}` });

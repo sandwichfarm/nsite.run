@@ -47,7 +47,7 @@ const config: Config = {
 };
 
 // Step 6: Start the server using the existing blossom router
-Deno.serve({ port: PORT, hostname: "0.0.0.0" }, async (request: Request) => {
+Deno.serve({ port: PORT, hostname: "0.0.0.0" }, (request: Request) => {
   return route(request, storage, config);
 });
 

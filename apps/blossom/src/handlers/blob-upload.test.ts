@@ -18,13 +18,13 @@ function makeStorage(
   overrides: Partial<Record<keyof StorageClient, unknown>> = {},
 ): StorageClient {
   return {
-    get: async (_path: string) => null,
-    head: async (_path: string) => null,
-    put: async (_path: string, _body: BodyInit) => true,
-    delete: async (_path: string) => true,
-    getJson: async (_path: string) => null,
-    putJson: async (_path: string, _data: unknown) => true,
-    getToml: async (_path: string) => null,
+    get: (_path: string) => Promise.resolve(null),
+    head: (_path: string) => Promise.resolve(null),
+    put: (_path: string, _body: BodyInit) => Promise.resolve(true),
+    delete: (_path: string) => Promise.resolve(true),
+    getJson: (_path: string) => Promise.resolve(null),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    getToml: (_path: string) => Promise.resolve(null),
     blobPath: (sha256: string) => `blobs/${sha256.substring(0, 2)}/${sha256}`,
     blobUrl: (sha256: string) => `https://cdn.test/blobs/${sha256.substring(0, 2)}/${sha256}`,
     metaPath: (sha256: string) => `meta/${sha256.substring(0, 2)}/${sha256}.json`,
@@ -97,9 +97,9 @@ Deno.test("blob-upload: returns 403 for blocked hash", async () => {
   const secretKey = generateSecretKey();
   // We can't know the actual hash upfront, so use a storage that always reports blocked
   // regardless of the hash passed
-  const blockedConfig = { hashes: [] }; // will be overridden by getToml mock
+  const _blockedConfig = { hashes: [] }; // will be overridden by getToml mock
   const storage = makeStorage({
-    getToml: async (_path: string) => ({ hashes: ["a".repeat(64)] }),
+    getToml: (_path: string) => Promise.resolve({ hashes: ["a".repeat(64)] }),
   });
   const dummyHash = "a".repeat(64);
   const authHeader = makeUploadAuth(dummyHash, secretKey);
@@ -117,7 +117,7 @@ Deno.test("blob-upload: returns 403 for blocked hash", async () => {
 
 Deno.test("blob-upload: returns 200 with BlobDescriptor on valid upload", async () => {
   const secretKey = generateSecretKey();
-  const pubkey = getPublicKey(secretKey);
+  const _pubkey = getPublicKey(secretKey);
   // Create a body and compute its real sha256 to produce a valid auth event
   const bodyBytes = new TextEncoder().encode("hello blob content");
   const hashBuffer = await crypto.subtle.digest("SHA-256", bodyBytes);
@@ -127,10 +127,10 @@ Deno.test("blob-upload: returns 200 with BlobDescriptor on valid upload", async 
   const authHeader = makeUploadAuth(realHash, secretKey);
 
   const storage = makeStorage({
-    put: async (_path: string, _body: BodyInit) => true,
-    getJson: async (_path: string) => null,
-    putJson: async (_path: string, _data: unknown) => true,
-    getToml: async (_path: string) => ({ hashes: [] }),
+    put: (_path: string, _body: BodyInit) => Promise.resolve(true),
+    getJson: (_path: string) => Promise.resolve(null),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    getToml: (_path: string) => Promise.resolve({ hashes: [] }),
   });
 
   const req = new Request("https://blossom.test/upload", {
@@ -161,10 +161,10 @@ Deno.test("blob-upload: accepts upload without manifest check (BLSM-05)", async 
 
   // Storage that never calls any relay/manifest lookup — verified by successful upload
   const storage = makeStorage({
-    put: async (_path: string, _body: BodyInit) => true,
-    getJson: async (_path: string) => null,
-    putJson: async (_path: string, _data: unknown) => true,
-    getToml: async (_path: string) => ({ hashes: [] }),
+    put: (_path: string, _body: BodyInit) => Promise.resolve(true),
+    getJson: (_path: string) => Promise.resolve(null),
+    putJson: (_path: string, _data: unknown) => Promise.resolve(true),
+    getToml: (_path: string) => Promise.resolve({ hashes: [] }),
   });
 
   const req = new Request("https://blossom.test/upload", {
