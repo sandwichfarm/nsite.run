@@ -265,7 +265,7 @@ interface ProfileData {
   avatarUrl: string;
 }
 
-async function fetchProfile(pubkeyHex: string): Promise<ProfileData | null> {
+async function _fetchProfile(pubkeyHex: string): Promise<ProfileData | null> {
   try {
     const events = await queryMultipleRelays(
       getSeedRelays(),
@@ -811,7 +811,7 @@ async function fetchBlob(
   return null;
 }
 
-async function verifySha256(data: ArrayBuffer, expectedSha256: string): Promise<boolean> {
+function verifySha256(data: ArrayBuffer, expectedSha256: string): boolean {
   try {
     const actual = sha256Hex(new Uint8Array(data));
     return actual === expectedSha256;

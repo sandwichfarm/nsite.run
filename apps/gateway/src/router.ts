@@ -14,8 +14,6 @@ import { handleRelay } from "./stubs/relay.ts";
 import { handleBlossom } from "./stubs/blossom.ts";
 import { handleResolver } from "./resolver.ts";
 import { handleSpa } from "./stubs/spa.ts";
-import { renderNotFoundPage } from "./pages.ts";
-import { securityHeaders } from "./security-headers.ts";
 
 /** Pre-compiled blossom blob path regex (from apps/blossom/src/router.ts) */
 const BLOSSOM_PATH_RE = /^\/[0-9a-f]{64}/;

@@ -43,83 +43,89 @@ Deno.test("route: WebSocket upgrade on npub host routes to relay (not resolver)"
   assertEquals(body, "Relay not configured");
 });
 
-// ---- Blossom paths → blossom ----
+// ---- Blossom paths → blossom (direct integration, not proxy) ----
 
-Deno.test("route: GET /upload routes to blossom", async () => {
+Deno.test("route: GET /upload routes to blossom (404 Not Found)", async () => {
   const req = makeRequest("/upload", "nsite.run", { method: "GET" });
   const res = await route(req);
-  // Without BLOSSOM_URL configured, returns 503
-  assertEquals(res.status, 503);
-  const body = await res.text();
-  assertEquals(body, "Blossom not configured");
+  // Blossom has no GET /upload handler — returns 404
+  assertEquals(res.status, 404);
 });
 
-Deno.test("route: PUT /upload routes to blossom", async () => {
+Deno.test("route: PUT /upload routes to blossom (401 without auth)", async () => {
   const req = makeRequest("/upload", "nsite.run", { method: "PUT" });
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Blossom requires auth for upload — returns 401
+  assertEquals(res.status, 401);
 });
 
-Deno.test("route: GET /list/abc123 routes to blossom", async () => {
+Deno.test("route: GET /list/abc123 routes to blossom (400 invalid pubkey)", async () => {
   const req = makeRequest("/list/abc123", "nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // "abc123" is not a valid 64-char hex pubkey — returns 400
+  assertEquals(res.status, 400);
 });
 
-Deno.test("route: GET /mirror routes to blossom", async () => {
+Deno.test("route: GET /mirror routes to blossom (404 Not Found)", async () => {
   const req = makeRequest("/mirror", "nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Blossom has no GET /mirror handler — returns 404
+  assertEquals(res.status, 404);
 });
 
-Deno.test("route: GET /report routes to blossom", async () => {
+Deno.test("route: GET /report routes to blossom (404 Not Found)", async () => {
   const req = makeRequest("/report", "nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Blossom has no GET /report handler — returns 404
+  assertEquals(res.status, 404);
 });
 
-Deno.test("route: GET /server-info routes to blossom", async () => {
+Deno.test("route: GET /server-info routes to blossom (200 OK)", async () => {
   const req = makeRequest("/server-info", "nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Server info is a public endpoint — returns 200
+  assertEquals(res.status, 200);
 });
 
-Deno.test("route: GET /{64 hex chars} routes to blossom", async () => {
+Deno.test("route: GET /{64 hex chars} routes to blossom (500 storage error)", async () => {
   const sha256 = "a".repeat(64);
   const req = makeRequest(`/${sha256}`, "nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Storage not configured with real credentials — handler errors → 500
+  assertEquals(res.status, 500);
 });
 
-Deno.test("route: HEAD /{64 hex chars} routes to blossom", async () => {
+Deno.test("route: HEAD /{64 hex chars} routes to blossom (500 storage error)", async () => {
   const sha256 = "b".repeat(64);
   const req = makeRequest(`/${sha256}`, "nsite.run", { method: "HEAD" });
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Storage not configured with real credentials — handler errors → 500
+  assertEquals(res.status, 500);
 });
 
-Deno.test("route: DELETE /{64 hex chars} routes to blossom", async () => {
+Deno.test("route: DELETE /{64 hex chars} routes to blossom (401 without auth)", async () => {
   const sha256 = "c".repeat(64);
   const req = makeRequest(`/${sha256}`, "nsite.run", { method: "DELETE" });
   const res = await route(req);
-  assertEquals(res.status, 503);
+  // Blossom requires auth for delete — returns 401
+  assertEquals(res.status, 401);
 });
 
 // ---- Blossom OPTIONS: CORS preflight ----
 
-Deno.test("route: OPTIONS /upload returns 200 with CORS headers", async () => {
+Deno.test("route: OPTIONS /upload returns 204 with CORS headers", async () => {
   const req = makeRequest("/upload", "nsite.run", { method: "OPTIONS" });
   const res = await route(req);
-  assertEquals(res.status, 200);
+  assertEquals(res.status, 204);
   assertEquals(res.headers.get("Access-Control-Allow-Origin"), "*");
   assertEquals(
     res.headers.get("Access-Control-Allow-Methods"),
     "GET, HEAD, PUT, DELETE, OPTIONS",
   );
-  assertEquals(
-    res.headers.get("Access-Control-Allow-Headers"),
-    "Authorization, Content-Type",
-  );
+  // Blossom CORS includes additional headers beyond just Authorization and Content-Type
+  const allowHeaders = res.headers.get("Access-Control-Allow-Headers") ?? "";
+  assertEquals(allowHeaders.includes("Authorization"), true);
+  assertEquals(allowHeaders.includes("Content-Type"), true);
 });
 
 // ---- npub subdomain → resolver ----
@@ -136,18 +142,20 @@ Deno.test("route: npub subdomain non-blossom path dispatches to live resolver", 
   assertEquals(res.status, 400);
 });
 
-// ---- named-site subdomain → resolver ----
+// ---- named-site subdomain → redirect for invalid npub ----
 
-Deno.test("route: named subdomain dispatches to live resolver (400 for invalid npub)", async () => {
+Deno.test("route: named subdomain with invalid npub redirects to base domain", async () => {
   const req = makeRequest("/", "blog.npub1abc.nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 400);
+  // Invalid npub in named subdomain results in redirect to base domain
+  assertEquals(res.status, 302);
 });
 
-Deno.test("route: named subdomain with hyphen dispatches to live resolver", async () => {
+Deno.test("route: named subdomain with hyphen and invalid npub redirects to base domain", async () => {
   const req = makeRequest("/", "my-site.npub1abc.nsite.run");
   const res = await route(req);
-  assertEquals(res.status, 400);
+  // Invalid npub in named subdomain results in redirect to base domain
+  assertEquals(res.status, 302);
 });
 
 // ---- Root domain → SPA ----

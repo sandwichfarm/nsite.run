@@ -1,14 +1,11 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
 import { LocalStorageClient } from "./local.ts";
 
-let tempDir: string;
-let client: LocalStorageClient;
 const SERVER_URL = "http://localhost:8082";
 
 // Set up temp dir for test isolation
-const tempSetup = await Deno.makeTempDir({ prefix: "blossom-local-test-" });
-tempDir = tempSetup;
-client = new LocalStorageClient(tempDir, SERVER_URL);
+const tempDir = await Deno.makeTempDir({ prefix: "blossom-local-test-" });
+const client = new LocalStorageClient(tempDir, SERVER_URL);
 
 // Cleanup after all tests
 addEventListener("unload", async () => {

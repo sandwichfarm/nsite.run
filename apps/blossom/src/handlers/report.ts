@@ -14,7 +14,7 @@ import { errorResponse, isValidSha256, jsonResponse } from "../util.ts";
 export async function handleReport(
   request: Request,
   storage: StorageClient,
-  config: Config,
+  _config: Config,
 ): Promise<Response> {
   // Parse request body as a Nostr event
   let event: NostrEvent;

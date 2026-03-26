@@ -15,10 +15,10 @@ import { errorResponse, isValidPubkey, jsonResponse } from "../util.ts";
  * Returns an array of BlobDescriptors sorted by upload date descending.
  */
 export async function handleBlobList(
-  request: Request,
+  _request: Request,
   url: URL,
   storage: StorageClient,
-  config: Config,
+  _config: Config,
 ): Promise<Response> {
   const pubkey = url.pathname.split("/list/")[1];
   if (!pubkey || !isValidPubkey(pubkey)) {

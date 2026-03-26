@@ -14,14 +14,14 @@ import { computeEventId, verifySignature } from "./schnorr.ts";
  * - Event ID matches SHA-256 of serialized event
  * - Schnorr signature is valid
  */
-export async function validateAuth(
+export function validateAuth(
   request: Request,
   options: {
     verb: string;
     sha256?: string;
     serverUrl?: string;
   },
-): Promise<AuthResult> {
+): AuthResult {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) {
     return { authorized: false, error: "Missing Authorization header" };

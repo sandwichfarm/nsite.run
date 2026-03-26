@@ -14,7 +14,7 @@ function makeValidAuthEvent(
   verb: string,
   sha256?: string,
 ): object {
-  const pubkey = getPublicKey(secretKey);
+  const _pubkey = getPublicKey(secretKey);
   const tags: string[][] = [
     ["t", verb],
     ["expiration", String(Math.floor(Date.now() / 1000) + 600)],

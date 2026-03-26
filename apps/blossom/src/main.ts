@@ -63,6 +63,6 @@ function getConfig(): Config {
 const config = getConfig();
 const storage = new StorageClient(config);
 
-Bunny.v1.serve(async (request: Request): Promise<Response> => {
+Bunny.v1.serve((request: Request): Promise<Response> => {
   return route(request, storage, config);
 });

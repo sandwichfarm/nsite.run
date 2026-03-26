@@ -8,12 +8,12 @@ import type {
 import type { StorageClient } from "./client.ts";
 
 /** Read blob metadata, returns null if not found */
-export async function getMeta(storage: StorageClient, sha256: string): Promise<BlobMeta | null> {
+export function getMeta(storage: StorageClient, sha256: string): Promise<BlobMeta | null> {
   return storage.getJson<BlobMeta>(storage.metaPath(sha256));
 }
 
 /** Write blob metadata */
-export async function putMeta(storage: StorageClient, meta: BlobMeta): Promise<boolean> {
+export function putMeta(storage: StorageClient, meta: BlobMeta): Promise<boolean> {
   return storage.putJson(storage.metaPath(meta.sha256), meta);
 }
 
