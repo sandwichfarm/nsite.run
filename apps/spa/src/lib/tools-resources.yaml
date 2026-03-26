@@ -2,7 +2,7 @@ categories:
   - name: "Live Gateways"
     items:
       - name: "nsite.lol"
-        url: "https://site.lol/"
+        url: "https://nsite.lol/"
         description: "Public nsite gateway"
         versions: [v2]
       - name: "nosto.re"
