@@ -1,8 +1,7 @@
 # nsite.run
 
 The nsite ecosystem directory and reference gateway implementation for
-[nsite v2](https://github.com/hzrd149/nips/blob/cbe90dbcf7e492c7bc7bf04cd64c84598b435421/nsite.md).
-
+[NIP-5A](https://github.com/hzrd149/nips/blob/cbe90dbcf7e492c7bc7bf04cd64c84598b435421/nsite.md).
 ## Contributing to the Software Directory
 
 The best way to contribute is by adding your project to the **nsite software directory**. This is a
