@@ -417,6 +417,19 @@
 .nd-trail-pk {
 	color: #9b59b6;
 }
+.nd-trail-link {
+	color: #9b59b6;
+	text-decoration: none;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 220px;
+	transition: color 0.2s;
+}
+.nd-trail-link:hover {
+	color: #c39bd3;
+	text-decoration: underline;
+}
 .nd-trail-gap {
 	padding: 3px 0;
 	color: #555;
