@@ -42,7 +42,7 @@ categories:
       - name: "nsyte"
         url: "https://github.com/sandwichfarm/nsyte"
         description: "CLI deployment tool with bunker and private key support"
-        versions: []
+        versions: [v2]
       - name: "nous-cli"
         url: "https://gitlab.com/soapbox-pub/nous-cli"
         description: "CLI deployment tool by Soapbox"
