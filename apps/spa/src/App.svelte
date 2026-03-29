@@ -133,12 +133,26 @@
       // Also query user's own relays for 10063
       if (r.length > 0) {
         fetchBlossomList(pubkey, r).then((b) => {
-          if (b.length > 0) userBlossoms = [...new Set([...userBlossoms, ...b])];
+          if (b.length > 0) {
+            userBlossoms = [...new Set([...userBlossoms, ...b])];
+            // Merge into serverConfig so AdvancedConfig shows them and they are removable
+            serverConfig.update((c) => ({
+              ...c,
+              extraBlossoms: [...new Set([...c.extraBlossoms, ...b])],
+            }));
+          }
         }).catch(() => {});
       }
     }).catch(() => {});
     fetchBlossomList(pubkey, DEFAULT_RELAYS).then((b) => {
       userBlossoms = b;
+      // Merge into serverConfig so AdvancedConfig shows them and they are removable
+      if (b.length > 0) {
+        serverConfig.update((c) => ({
+          ...c,
+          extraBlossoms: [...new Set([...c.extraBlossoms, ...b])],
+        }));
+      }
     }).catch(() => {});
   }
 
@@ -430,8 +444,10 @@
         deployState.update((s) => ({ ...s, progress: pct }));
       }
 
-      // 3. Determine blossom URLs (use pre-fetched lists, filter out abandoned servers)
-      let blossomUrls = [...new Set([NSITE_BLOSSOM, ...cfg.extraBlossoms, ...userBlossoms])];
+      // 3. Determine blossom URLs (use user-editable list from serverConfig)
+      // Kind 10063 servers are merged into cfg.extraBlossoms when fetched so the user
+      // can see and remove them in AdvancedConfig before deploying.
+      let blossomUrls = [...new Set([NSITE_BLOSSOM, ...cfg.extraBlossoms])];
       deployBlossomUrls = blossomUrls;
       givenUpServers = new Set();
       givenUpReactive = new Set();
