@@ -15,6 +15,6 @@ export function securityHeaders(): Record<string, string> {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Content-Security-Policy":
-      "default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https:; worker-src 'self' blob:; img-src * data: blob:; media-src * data: blob:; font-src * data: https:; connect-src 'self' wss: https:; frame-src 'none'; object-src 'none'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https:; style-src 'self' 'unsafe-inline' https:; worker-src 'self' blob:; img-src * data: blob:; media-src * data: blob:; font-src * data: https:; connect-src 'self' wss: https:; frame-src 'none'; object-src 'none'",
   };
 }
