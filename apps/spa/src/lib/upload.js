@@ -189,16 +189,20 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
   const filesToUploadList = files.filter(f => filesToUpload.has(f.sha256));
   const fullySkippedCount = files.length - filesToUploadList.length;
 
-  // Sign auth for files that need uploading — one auth event per file.
-  // The blossom server uses xTags[0][1] as the storage path, so each auth event
-  // must contain exactly the hash of the blob being uploaded as its first (and only) x tag.
-  // Batching multiple hashes into one auth event causes all blobs in the batch to be
-  // stored at the first hash's path, corrupting the upload.
+  // Sign auth in batches — BUD-11 allows multiple x tags per auth event.
+  // Each signed event covers up to AUTH_BATCH_SIZE hashes; the same auth header
+  // is reused for every PUT whose hash appears in that batch.
+  const AUTH_BATCH_SIZE = 50;
   const authHeaders = new Map();
-  for (const file of filesToUploadList) {
-    const template = buildAuthEvent(file.sha256, 'upload');
+  for (let i = 0; i < filesToUploadList.length; i += AUTH_BATCH_SIZE) {
+    const batch = filesToUploadList.slice(i, i + AUTH_BATCH_SIZE);
+    const hashes = batch.map(f => f.sha256);
+    const template = buildAuthEvent(hashes, 'upload');
     const signed = await signer.signEvent(template);
-    authHeaders.set(file.sha256, 'Nostr ' + btoa(JSON.stringify(signed)));
+    const header = 'Nostr ' + btoa(JSON.stringify(signed));
+    for (const hash of hashes) {
+      authHeaders.set(hash, header);
+    }
   }
 
   // Pre-populate per-server progress
@@ -368,13 +372,17 @@ export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
   const totalOps = sha256List.length * blossomUrls.length;
   let completedOps = 0;
 
-  // Pre-sign auth headers: one auth event per hash (BUD-02 spec requires
-  // single x tag per delete — multiple x tags must NOT be interpreted as batch)
+  // Pre-sign auth headers in batches — BUD-11 allows multiple x tags per auth event.
+  const AUTH_BATCH_SIZE = 50;
   const perHashAuth = new Map();
-  for (const hash of sha256List) {
-    const template = buildAuthEvent(hash, 'delete');
+  for (let i = 0; i < sha256List.length; i += AUTH_BATCH_SIZE) {
+    const batch = sha256List.slice(i, i + AUTH_BATCH_SIZE);
+    const template = buildAuthEvent(batch, 'delete');
     const signed = await signer.signEvent(template);
-    perHashAuth.set(hash, 'Nostr ' + btoa(JSON.stringify(signed)));
+    const header = 'Nostr ' + btoa(JSON.stringify(signed));
+    for (const hash of batch) {
+      perHashAuth.set(hash, header);
+    }
   }
 
   // Build flat work queue: [{server, hash}, ...]

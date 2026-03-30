@@ -73,13 +73,13 @@ export function validateAuth(
     return { authorized: false, error: `Invalid verb: ${tTag[1]}, expected ${options.verb}` };
   }
 
-  // Validate `x` tag (hash) if expected
+  // Validate `x` tag (hash) if expected — BUD-11 allows multiple x tags
   if (options.sha256) {
-    const xTag = event.tags.find((t) => t[0] === "x");
-    if (!xTag) {
+    const xTags = event.tags.filter((t) => t[0] === "x");
+    if (xTags.length === 0) {
       return { authorized: false, error: "Missing 'x' (hash) tag" };
     }
-    if (xTag[1] !== options.sha256) {
+    if (!xTags.some((t) => t[1] === options.sha256)) {
       return { authorized: false, error: "Hash mismatch in 'x' tag" };
     }
   }
