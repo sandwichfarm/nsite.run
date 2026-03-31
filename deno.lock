@@ -13,6 +13,7 @@
     "jsr:@std/path@^1.0.6": "1.1.4",
     "jsr:@std/toml@1": "1.0.11",
     "npm:@libsql/client@*": "0.17.0",
+    "npm:@libsql/client@0.17.0": "0.17.0",
     "npm:@noble/curves@1.6.0": "1.6.0",
     "npm:@noble/curves@1.8.1": "1.8.1",
     "npm:@noble/curves@1.8.2": "1.8.2",
