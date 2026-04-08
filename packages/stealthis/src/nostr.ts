@@ -431,10 +431,26 @@ export function buildSiteUrl(
 
 // --- Ditto theme resolution ---
 
+export interface DittoThemeFont {
+  family: string;
+  url: string;
+  role: "body" | "title";
+}
+
+export interface DittoThemeBg {
+  url: string;
+  mode: "cover" | "tile";
+  mime: string;
+  dim?: string;
+  blurhash?: string;
+}
+
 export interface DittoTheme {
-  primary: string;
-  background: string;
-  text: string;
+  title?: string;
+  colors: { primary: string; background: string; text: string };
+  fonts: DittoThemeFont[];
+  bg?: DittoThemeBg;
+  event: RelayEvent;
 }
 
 export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null> {
@@ -461,20 +477,99 @@ export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null>
 
     const event = events.sort((a, b) => b.created_at - a.created_at)[0];
 
-    // Ditto themes store colors in c tags: ["c", "#rrggbb", "primary"|"text"|"background"]
+    // Colors: c tags — ["c", "#rrggbb", "primary"|"text"|"background"]
     let primary: string | undefined;
     let background: string | undefined;
     let text: string | undefined;
+    // Fonts: f tags — ["f", "family", "url", "role"]
+    const fonts: DittoThemeFont[] = [];
+    // Background: bg tag — ["bg", "url <url>", "mode <mode>", "m <mime>", ...]
+    let bg: DittoThemeBg | undefined;
+    // Title: title tag
+    let title: string | undefined;
+
     for (const tag of event.tags) {
       if (tag[0] === "c" && tag[1] && tag[2]) {
         if (tag[2] === "primary") primary = tag[1];
         else if (tag[2] === "background") background = tag[1];
         else if (tag[2] === "text") text = tag[1];
+      } else if (tag[0] === "f" && tag[1] && tag[2]) {
+        const role = (tag[3] || "body") as "body" | "title";
+        if (role === "body" || role === "title") {
+          fonts.push({ family: tag[1], url: tag[2], role });
+        }
+      } else if (tag[0] === "bg") {
+        // Imeta-style variadic: each element after index 0 is "key value"
+        const kv: Record<string, string> = {};
+        for (let i = 1; i < tag.length; i++) {
+          const space = tag[i].indexOf(" ");
+          if (space > 0) kv[tag[i].slice(0, space)] = tag[i].slice(space + 1);
+        }
+        if (kv.url && kv.mode && kv.m) {
+          bg = {
+            url: kv.url,
+            mode: kv.mode as "cover" | "tile",
+            mime: kv.m,
+            dim: kv.dim,
+            blurhash: kv.blurhash,
+          };
+        }
+      } else if (tag[0] === "title" && tag[1]) {
+        title = tag[1];
       }
     }
+
     if (!primary || !background || !text) return null;
-    return { primary, background, text };
+    return {
+      title,
+      colors: { primary, background, text },
+      fonts,
+      bg,
+      event,
+    };
   } catch {
     return null;
   }
+}
+
+export function createActiveThemeEvent(theme: DittoTheme): EventTemplate {
+  const tags: string[][] = [];
+  // Colors (required)
+  tags.push(["c", theme.colors.primary, "primary"]);
+  tags.push(["c", theme.colors.text, "text"]);
+  tags.push(["c", theme.colors.background, "background"]);
+  // Fonts (optional, preserve order: body before title)
+  const bodyFont = theme.fonts.find((f) => f.role === "body");
+  const titleFont = theme.fonts.find((f) => f.role === "title");
+  if (bodyFont) tags.push(["f", bodyFont.family, bodyFont.url, "body"]);
+  if (titleFont) tags.push(["f", titleFont.family, titleFont.url, "title"]);
+  // Background (optional)
+  if (theme.bg) {
+    const parts = [`url ${theme.bg.url}`, `mode ${theme.bg.mode}`, `m ${theme.bg.mime}`];
+    if (theme.bg.dim) parts.push(`dim ${theme.bg.dim}`);
+    if (theme.bg.blurhash) parts.push(`blurhash ${theme.bg.blurhash}`);
+    tags.push(["bg", ...parts]);
+  }
+  // Title (optional)
+  if (theme.title) tags.push(["title", theme.title]);
+  // Alt (required per NIP-31)
+  tags.push(["alt", "Active profile theme"]);
+  return {
+    kind: 16767,
+    created_at: Math.floor(Date.now() / 1000),
+    tags,
+    content: "",
+  };
+}
+
+export async function checkExistingTheme(
+  relays: string[],
+  pubkey: string,
+): Promise<boolean> {
+  const events = await queryRelays(relays, {
+    kinds: [16767],
+    authors: [pubkey],
+    limit: 1,
+  });
+  return events.length > 0;
 }
