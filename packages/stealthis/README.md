@@ -31,6 +31,11 @@ If you want to control where the button appears, add the element yourself (the a
 | `no-trail` | _(absent)_ | Boolean attribute. When present, disables the paper trail entirely -- no `muse` tags are written and the trail UI is not rendered. |
 | `obfuscate-npubs` | _(absent)_ | Boolean attribute. Shows truncated npubs with no links in the paper trail. Disables profile fetching. |
 | `do-not-fetch-muse-data` | _(absent)_ | Boolean attribute. Skips profile enrichment but still shows full npubs linked to njump. |
+| `accent` | `#9b59b6` | Accent color for buttons, links, active states, and spinner. When set without `background`, modal surfaces are also derived from this color. |
+| `background` | `#1a1a2e` | Modal background color. Input fills and borders are derived as darker shades. |
+| `text` | `#e0e0e0` | Text color. Muted and dim variants are derived at 50% and 65% transparency. |
+| `radius` | `8px` | Border radius for buttons, modal, and inputs. Inner elements scale proportionally. |
+| `copy-ditto-theme` | _(absent)_ | An `naddr` pointing to a Ditto theme event (kind 36767 or 16767). When set, the deploy flow includes a step to copy the theme to the user's profile. See [Ditto NIP](https://github.com/soapbox-pub/ditto/blob/main/NIP.md). |
 
 The button's `trigger` part is exposed via `::part(trigger)` for CSS customization.
 
