@@ -28,6 +28,10 @@ export class NsiteDeployButton extends HTMLElement {
     "no-trail",
     "obfuscate-npubs",
     "do-not-fetch-muse-data",
+    "accent",
+    "background",
+    "text",
+    "radius",
   ];
 
   private shadow: ShadowRoot;
@@ -94,6 +98,36 @@ export class NsiteDeployButton extends HTMLElement {
     if (this.state === "idle") this.render();
   }
 
+  private get themeVars(): string {
+    const accent = this.getAttribute("accent");
+    const background = this.getAttribute("background");
+    const text = this.getAttribute("text");
+    const radius = this.getAttribute("radius");
+
+    const vars: string[] = [];
+    if (accent) {
+      vars.push(`--steal-this-accent: ${accent};`);
+      vars.push(`--steal-this-accent-hover: color-mix(in srgb, ${accent}, black 15%);`);
+    }
+    if (background) {
+      // Derive input-bg as slightly darker, border as darker still
+      vars.push(`--steal-this-bg: ${background};`);
+      vars.push(`--steal-this-input-bg: color-mix(in srgb, ${background}, black 20%);`);
+      vars.push(`--steal-this-border: color-mix(in srgb, ${background}, black 45%);`);
+    }
+    if (text) {
+      vars.push(`--steal-this-text: ${text};`);
+      vars.push(`--steal-this-muted: color-mix(in srgb, ${text}, transparent 50%);`);
+      vars.push(`--steal-this-dim: color-mix(in srgb, ${text}, transparent 65%);`);
+    }
+    if (radius) {
+      vars.push(`--steal-this-radius: ${radius};`);
+    }
+
+    if (vars.length === 0) return "";
+    return `:host { ${vars.join(" ")} }`;
+  }
+
   private get buttonText(): string {
     return this.getAttribute("button-text") || "Borrow this nsite";
   }
@@ -116,7 +150,8 @@ export class NsiteDeployButton extends HTMLElement {
 
   private render() {
     this.preserveFormValues();
-    let html = `<style>${STYLES}</style>`;
+    const themeBlock = this.themeVars;
+    let html = `<style>${themeBlock ? themeBlock + "\n" : ""}${STYLES}</style>`;
 
     switch (this.state) {
       case "idle":
