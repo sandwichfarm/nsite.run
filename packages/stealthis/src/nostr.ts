@@ -432,10 +432,9 @@ export function buildSiteUrl(
 // --- Ditto theme resolution ---
 
 export interface DittoTheme {
-  accent?: string;
-  background?: string;
-  text?: string;
-  radius?: string;
+  primary: string;
+  background: string;
+  text: string;
 }
 
 export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null> {
@@ -461,13 +460,20 @@ export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null>
     if (events.length === 0) return null;
 
     const event = events.sort((a, b) => b.created_at - a.created_at)[0];
-    const meta = JSON.parse(event.content);
-    const theme: DittoTheme = {};
-    if (typeof meta.accent === "string" && meta.accent) theme.accent = meta.accent;
-    if (typeof meta.background === "string" && meta.background) theme.background = meta.background;
-    if (typeof meta.text === "string" && meta.text) theme.text = meta.text;
-    if (typeof meta.radius === "string" && meta.radius) theme.radius = meta.radius;
-    return theme;
+
+    // Ditto themes store colors in c tags: ["c", "#rrggbb", "primary"|"text"|"background"]
+    let primary: string | undefined;
+    let background: string | undefined;
+    let text: string | undefined;
+    for (const tag of event.tags) {
+      if (tag[0] === "c" && tag[1] && tag[2]) {
+        if (tag[2] === "primary") primary = tag[1];
+        else if (tag[2] === "background") background = tag[1];
+        else if (tag[2] === "text") text = tag[1];
+      }
+    }
+    if (!primary || !background || !text) return null;
+    return { primary, background, text };
   } catch {
     return null;
   }
