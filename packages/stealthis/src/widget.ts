@@ -136,6 +136,22 @@ export class NsiteDeployButton extends HTMLElement {
         "--steal-this-accent-hover",
         `color-mix(in srgb, ${accent}, black 15%)`,
       );
+      // If no explicit background set, derive border/input-bg from accent
+      // so the modal feels cohesive with just an accent color
+      if (!background) {
+        this.style.setProperty(
+          "--steal-this-border",
+          `color-mix(in srgb, ${accent}, black 70%)`,
+        );
+        this.style.setProperty(
+          "--steal-this-input-bg",
+          `color-mix(in srgb, ${accent}, black 80%)`,
+        );
+        this.style.setProperty(
+          "--steal-this-bg",
+          `color-mix(in srgb, ${accent}, black 85%)`,
+        );
+      }
     }
     if (background) {
       this.style.setProperty("--steal-this-bg", background);
