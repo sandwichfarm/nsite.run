@@ -428,3 +428,47 @@ export function buildSiteUrl(
   }
   return `https://${npubEncode(pubkey)}.${baseDomain}`;
 }
+
+// --- Ditto theme resolution ---
+
+export interface DittoTheme {
+  accent?: string;
+  background?: string;
+  text?: string;
+  radius?: string;
+}
+
+export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null> {
+  if (!naddr) return null;
+  try {
+    const result = decode(naddr);
+    if (result.type !== "naddr") return null;
+    const { identifier, pubkey, kind, relays: naddrRelays } = result.data;
+
+    // Build deduped relay list: naddr hints first, then bootstrap fallback
+    const seen = new Set<string>();
+    const urls: string[] = [];
+    for (const r of [...(naddrRelays ?? []), ...BOOTSTRAP_RELAYS]) {
+      if (!seen.has(r)) { seen.add(r); urls.push(r); }
+    }
+
+    const events = await queryRelays(urls, {
+      kinds: [kind],
+      authors: [pubkey],
+      "#d": [identifier],
+      limit: 1,
+    });
+    if (events.length === 0) return null;
+
+    const event = events.sort((a, b) => b.created_at - a.created_at)[0];
+    const meta = JSON.parse(event.content);
+    const theme: DittoTheme = {};
+    if (typeof meta.accent === "string" && meta.accent) theme.accent = meta.accent;
+    if (typeof meta.background === "string" && meta.background) theme.background = meta.background;
+    if (typeof meta.text === "string" && meta.text) theme.text = meta.text;
+    if (typeof meta.radius === "string" && meta.radius) theme.radius = meta.radius;
+    return theme;
+  } catch {
+    return null;
+  }
+}
