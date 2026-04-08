@@ -71,6 +71,7 @@ export class NsiteDeployButton extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: "open" });
+    this.applyThemeVars();
     this.ctx = nostr.parseContext();
     if (this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
@@ -110,38 +111,57 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(name: string) {
+    if (
+      name === "accent" || name === "background" ||
+      name === "text" || name === "radius"
+    ) {
+      this.applyThemeVars();
+    }
     if (this.state === "idle") this.render();
   }
 
-  private get themeVars(): string {
+  private applyThemeVars() {
     const accent = this.getAttribute("accent");
     const background = this.getAttribute("background");
     const text = this.getAttribute("text");
     const radius = this.getAttribute("radius");
 
-    const vars: string[] = [];
+    // Set CSS custom properties directly on the host element.
+    // These persist across shadow.innerHTML rewrites and inherit
+    // into all shadow DOM children via CSS custom property inheritance.
     if (accent) {
-      vars.push(`--steal-this-accent: ${accent};`);
-      vars.push(`--steal-this-accent-hover: color-mix(in srgb, ${accent}, black 15%);`);
+      this.style.setProperty("--steal-this-accent", accent);
+      this.style.setProperty(
+        "--steal-this-accent-hover",
+        `color-mix(in srgb, ${accent}, black 15%)`,
+      );
     }
     if (background) {
-      // Derive input-bg as slightly darker, border as darker still
-      vars.push(`--steal-this-bg: ${background};`);
-      vars.push(`--steal-this-input-bg: color-mix(in srgb, ${background}, black 20%);`);
-      vars.push(`--steal-this-border: color-mix(in srgb, ${background}, black 45%);`);
+      this.style.setProperty("--steal-this-bg", background);
+      this.style.setProperty(
+        "--steal-this-input-bg",
+        `color-mix(in srgb, ${background}, black 20%)`,
+      );
+      this.style.setProperty(
+        "--steal-this-border",
+        `color-mix(in srgb, ${background}, black 45%)`,
+      );
     }
     if (text) {
-      vars.push(`--steal-this-text: ${text};`);
-      vars.push(`--steal-this-muted: color-mix(in srgb, ${text}, transparent 50%);`);
-      vars.push(`--steal-this-dim: color-mix(in srgb, ${text}, transparent 65%);`);
+      this.style.setProperty("--steal-this-text", text);
+      this.style.setProperty(
+        "--steal-this-muted",
+        `color-mix(in srgb, ${text}, transparent 50%)`,
+      );
+      this.style.setProperty(
+        "--steal-this-dim",
+        `color-mix(in srgb, ${text}, transparent 65%)`,
+      );
     }
     if (radius) {
-      vars.push(`--steal-this-radius: ${radius};`);
+      this.style.setProperty("--steal-this-radius", radius);
     }
-
-    if (vars.length === 0) return "";
-    return `:host { ${vars.join(" ")} }`;
   }
 
   private get buttonText(): string {
@@ -166,8 +186,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   private render() {
     this.preserveFormValues();
-    const themeBlock = this.themeVars;
-    let html = `<style>${themeBlock ? themeBlock + "\n" : ""}${STYLES}</style>`;
+    let html = `<style>${STYLES}</style>`;
 
     switch (this.state) {
       case "idle":
