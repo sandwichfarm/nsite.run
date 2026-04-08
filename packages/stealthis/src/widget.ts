@@ -32,6 +32,7 @@ export class NsiteDeployButton extends HTMLElement {
     "background",
     "text",
     "radius",
+    "copy-ditto-theme",
   ];
 
   private shadow: ShadowRoot;
@@ -58,6 +59,12 @@ export class NsiteDeployButton extends HTMLElement {
   private muses: nostr.Muse[] = [];
   private museProfiles = new Map<string, nostr.MuseProfile>();
   private musesExpanded = false;
+  private dittoThemePromise: Promise<nostr.DittoTheme | null> | null = null;
+  private _dittoTheme: nostr.DittoTheme | null = null;
+
+  get dittoTheme(): nostr.DittoTheme | null {
+    return this._dittoTheme;
+  }
 
   constructor() {
     super();
@@ -65,6 +72,13 @@ export class NsiteDeployButton extends HTMLElement {
     this.ctx = nostr.parseContext();
     if (this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
+      const dittoNaddr = this.getAttribute("copy-ditto-theme");
+      if (dittoNaddr) {
+        this.dittoThemePromise = nostr.fetchDittoTheme(dittoNaddr).then((theme) => {
+          this._dittoTheme = theme;
+          return theme;
+        });
+      }
       if (!this.hasAttribute("no-trail")) {
         this.manifestPromise.then((manifest) => {
           if (manifest) {
