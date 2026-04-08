@@ -436,6 +436,59 @@
 	font-style: italic;
 }
 
+/* Ditto theme preview */
+.nd-theme-name {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--steal-this-text, #e0e0e0);
+	margin-bottom: 12px;
+}
+.nd-theme-section {
+	margin-bottom: 12px;
+}
+.nd-theme-label {
+	font-size: 11px;
+	color: var(--steal-this-muted, #888);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: 6px;
+}
+.nd-theme-colors {
+	display: flex;
+	gap: 12px;
+}
+.nd-theme-swatch {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.nd-swatch {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border-radius: calc(var(--steal-this-radius, 8px) * 0.5);
+	border: 1px solid var(--steal-this-border, #0f3460);
+}
+.nd-swatch-label {
+	font-size: 11px;
+	color: var(--steal-this-muted, #888);
+	font-family: monospace;
+}
+.nd-theme-font {
+	font-size: 13px;
+	color: var(--steal-this-text, #e0e0e0);
+	padding: 2px 0;
+}
+.nd-theme-role {
+	font-size: 11px;
+	color: var(--steal-this-muted, #888);
+	margin-left: 4px;
+}
+.nd-theme-bg-info {
+	font-size: 13px;
+	color: var(--steal-this-muted, #888);
+}
+
 @keyframes nd-spin {
 	to { transform: rotate(360deg); }
 }
