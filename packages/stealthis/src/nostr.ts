@@ -459,6 +459,7 @@ export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null>
     const result = decode(naddr);
     if (result.type !== "naddr") return null;
     const { identifier, pubkey, kind, relays: naddrRelays } = result.data;
+    if (kind !== 36767 && kind !== 16767) return null;
 
     // Build deduped relay list: naddr hints first, then bootstrap fallback
     const seen = new Set<string>();
