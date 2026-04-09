@@ -15,6 +15,7 @@ type State =
   | "auth"
   | "connecting"
   | "loading"
+  | "ditto-theme"
   | "form"
   | "confirm"
   | "deploying"
@@ -28,6 +29,11 @@ export class NsiteDeployButton extends HTMLElement {
     "no-trail",
     "obfuscate-npubs",
     "do-not-fetch-muse-data",
+    "accent",
+    "background",
+    "text",
+    "radius",
+    "copy-ditto-theme",
   ];
 
   private shadow: ShadowRoot;
@@ -54,13 +60,28 @@ export class NsiteDeployButton extends HTMLElement {
   private muses: nostr.Muse[] = [];
   private museProfiles = new Map<string, nostr.MuseProfile>();
   private musesExpanded = false;
+  private dittoThemePromise: Promise<nostr.DittoTheme | null> | null = null;
+  private _dittoTheme: nostr.DittoTheme | null = null;
+  private hasExistingTheme: boolean | null = null;
+
+  get dittoTheme(): nostr.DittoTheme | null {
+    return this._dittoTheme;
+  }
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: "open" });
+    this.applyThemeVars();
     this.ctx = nostr.parseContext();
     if (this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
+      const dittoNaddr = this.getAttribute("copy-ditto-theme");
+      if (dittoNaddr) {
+        this.dittoThemePromise = nostr.fetchDittoTheme(dittoNaddr).then((theme) => {
+          this._dittoTheme = theme;
+          return theme;
+        });
+      }
       if (!this.hasAttribute("no-trail")) {
         this.manifestPromise.then((manifest) => {
           if (manifest) {
@@ -90,8 +111,73 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(name: string) {
+    if (
+      name === "accent" || name === "background" ||
+      name === "text" || name === "radius"
+    ) {
+      this.applyThemeVars();
+    }
     if (this.state === "idle") this.render();
+  }
+
+  private applyThemeVars() {
+    const accent = this.getAttribute("accent");
+    const background = this.getAttribute("background");
+    const text = this.getAttribute("text");
+    const radius = this.getAttribute("radius");
+
+    // Set CSS custom properties directly on the host element.
+    // These persist across shadow.innerHTML rewrites and inherit
+    // into all shadow DOM children via CSS custom property inheritance.
+    if (accent) {
+      this.style.setProperty("--steal-this-accent", accent);
+      this.style.setProperty(
+        "--steal-this-accent-hover",
+        `color-mix(in srgb, ${accent}, black 15%)`,
+      );
+      // If no explicit background set, derive border/input-bg from accent
+      // so the modal feels cohesive with just an accent color
+      if (!background) {
+        this.style.setProperty(
+          "--steal-this-border",
+          `color-mix(in srgb, ${accent}, black 70%)`,
+        );
+        this.style.setProperty(
+          "--steal-this-input-bg",
+          `color-mix(in srgb, ${accent}, black 80%)`,
+        );
+        this.style.setProperty(
+          "--steal-this-bg",
+          `color-mix(in srgb, ${accent}, black 85%)`,
+        );
+      }
+    }
+    if (background) {
+      this.style.setProperty("--steal-this-bg", background);
+      this.style.setProperty(
+        "--steal-this-input-bg",
+        `color-mix(in srgb, ${background}, black 20%)`,
+      );
+      this.style.setProperty(
+        "--steal-this-border",
+        `color-mix(in srgb, ${background}, black 45%)`,
+      );
+    }
+    if (text) {
+      this.style.setProperty("--steal-this-text", text);
+      this.style.setProperty(
+        "--steal-this-muted",
+        `color-mix(in srgb, ${text}, transparent 50%)`,
+      );
+      this.style.setProperty(
+        "--steal-this-dim",
+        `color-mix(in srgb, ${text}, transparent 65%)`,
+      );
+    }
+    if (radius) {
+      this.style.setProperty("--steal-this-radius", radius);
+    }
   }
 
   private get buttonText(): string {
@@ -151,6 +237,13 @@ export class NsiteDeployButton extends HTMLElement {
         html += this.modal(`
           <div class="nd-msg"><span class="nd-spinner"></span>Fetching site manifest...</div>
         `);
+        break;
+
+      case "ditto-theme":
+        html += `<button class="nd-trigger" disabled>${
+          this.esc(this.buttonText)
+        }</button>`;
+        html += this.modal(this.dittoThemeContent());
         break;
 
       case "form":
@@ -411,6 +504,63 @@ export class NsiteDeployButton extends HTMLElement {
       </div>`;
   }
 
+  private dittoThemeContent(): string {
+    const theme = this._dittoTheme!;
+    const title = theme.title ? this.esc(theme.title) : "Ditto Theme";
+
+    let html = `
+      <div class="nd-header">
+        <h2 class="nd-title">Copy Theme</h2>
+        <button class="nd-close" data-action="close">&times;</button>
+      </div>
+      <div class="nd-theme-name">${title}</div>
+      <div class="nd-theme-section">
+        <div class="nd-theme-label">Colors</div>
+        <div class="nd-theme-colors">
+          <div class="nd-theme-swatch">
+            <span class="nd-swatch" style="background:${this.esc(theme.colors.primary)}"></span>
+            <span class="nd-swatch-label">Primary ${this.esc(theme.colors.primary)}</span>
+          </div>
+          <div class="nd-theme-swatch">
+            <span class="nd-swatch" style="background:${this.esc(theme.colors.background)}"></span>
+            <span class="nd-swatch-label">Background ${this.esc(theme.colors.background)}</span>
+          </div>
+          <div class="nd-theme-swatch">
+            <span class="nd-swatch" style="background:${this.esc(theme.colors.text)}"></span>
+            <span class="nd-swatch-label">Text ${this.esc(theme.colors.text)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    if (theme.fonts.length > 0) {
+      html += `<div class="nd-theme-section">
+        <div class="nd-theme-label">Fonts</div>`;
+      for (const f of theme.fonts) {
+        html += `<div class="nd-theme-font">${this.esc(f.family)} <span class="nd-theme-role">${this.esc(f.role)}</span></div>`;
+      }
+      html += `</div>`;
+    }
+
+    if (theme.bg) {
+      html += `<div class="nd-theme-section">
+        <div class="nd-theme-label">Background</div>
+        <div class="nd-theme-bg-info">${this.esc(theme.bg.mode)} &middot; ${this.esc(theme.bg.mime)}</div>
+      </div>`;
+    }
+
+    if (this.hasExistingTheme === true) {
+      html += `<div class="nd-warn">This will replace your current Ditto theme.</div>`;
+    }
+
+    html += `
+      <div class="nd-actions">
+        <button class="nd-btn nd-btn-secondary" data-action="skip-theme">Skip</button>
+        <button class="nd-btn nd-btn-primary" data-action="copy-theme">Copy theme</button>
+      </div>`;
+
+    return html;
+  }
+
   // --- Bindings ---
 
   private bind() {
@@ -426,6 +576,12 @@ export class NsiteDeployButton extends HTMLElement {
     this.shadow
       .querySelector('[data-action="confirm-deploy"]')
       ?.addEventListener("click", () => this.executeDeploy());
+    this.shadow
+      .querySelector('[data-action="copy-theme"]')
+      ?.addEventListener("click", () => this.copyDittoTheme());
+    this.shadow
+      .querySelector('[data-action="skip-theme"]')
+      ?.addEventListener("click", () => this.setState("form"));
     this.shadow
       .querySelector('[data-action="back"]')
       ?.addEventListener("click", () => this.setState("form"));
@@ -628,23 +784,70 @@ export class NsiteDeployButton extends HTMLElement {
       this.slug = this.ctx!.identifier ?? "";
       this.deployAsRoot = true;
       this.hasRootSite = null;
+      this.hasExistingTheme = null;
 
-      // Show form immediately — don't block on relay discovery
-      this.setState("form");
+      // If a Ditto theme was resolved, show the copy step before the form
+      if (this._dittoTheme) {
+        this.setState("ditto-theme");
+      } else {
+        this.setState("form");
+      }
 
-      // Background: fetch relays, then check if root site exists
+      // Background: fetch relays, then check if root site exists + existing theme
       this.relaysPromise = nostr.getWriteRelays(this.userPubkey);
       this.relaysPromise.then(async (relays) => {
         this.userRelays = relays;
-        const hasRoot = await nostr.checkExistingSite(relays, this.userPubkey);
+        const [hasRoot, hasTheme] = await Promise.all([
+          nostr.checkExistingSite(relays, this.userPubkey),
+          nostr.checkExistingTheme(relays, this.userPubkey),
+        ]);
         this.hasRootSite = hasRoot;
+        this.hasExistingTheme = hasTheme;
         if (hasRoot && this.state === "form" && this.deployAsRoot) {
           this.deployAsRoot = false;
         }
-        if (this.state === "form") this.render();
+        if (this.state === "form" || this.state === "ditto-theme") this.render();
       });
     } catch (err) {
       this.showError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  // --- Ditto theme copy ---
+
+  private async copyDittoTheme() {
+    if (!this._dittoTheme || !this.signer) return;
+
+    this.statusMsg = "Creating theme event...";
+    this.setState("deploying");
+
+    try {
+      // Ensure relays are ready
+      if (this.relaysPromise) {
+        this.userRelays = await this.relaysPromise;
+      }
+      if (this.userRelays.length === 0) {
+        this.userRelays = await nostr.getWriteRelays(this.userPubkey);
+      }
+
+      const unsigned = nostr.createActiveThemeEvent(this._dittoTheme);
+
+      this.statusMsg = "Waiting for signature...";
+      this.render();
+      const signed = await this.signer.signEvent(unsigned);
+
+      this.statusMsg = `Publishing theme to ${this.userRelays.length} relay${
+        this.userRelays.length === 1 ? "" : "s"
+      }...`;
+      this.render();
+      await nostr.publishToRelays(this.userRelays, signed);
+
+      // Continue to deploy form regardless of publish result
+      this.setState("form");
+    } catch (err) {
+      // Theme copy failure is non-fatal — continue to deploy form
+      console.warn("Failed to copy Ditto theme:", err);
+      this.setState("form");
     }
   }
 
