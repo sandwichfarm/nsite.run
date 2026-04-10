@@ -1,20 +1,29 @@
 <script>
-  import { session } from '../lib/store.js';
-  import { clearAnonymousKey } from '../lib/nostr.js';
-  import LogoutConfirmModal from './LogoutConfirmModal.svelte';
+  import { createEventDispatcher } from 'svelte';
+  import { clearAnonymousKey, downloadNsecFile } from '@nsite/deployer/nostr';
+  import LogoutConfirmModal from '@nsite/deployer/components/LogoutConfirmModal.svelte';
+
+  const dispatch = createEventDispatcher();
+
+  // Session data props (received from App.svelte via DeployerWidget auth-change events)
+  export let pubkey = null;
+  export let displayName = null;
+  export let avatar = null;
+  export let npub = null;
+  export let signerType = null;
+  export let deployNsec = null;
 
   export let onLoginClick = () => {};
-  export let deployNsec = null;
 
   let showLogoutConfirm = false;
 
-  function truncateNpub(npub) {
-    if (!npub) return '';
-    return npub.slice(0, 8) + '...' + npub.slice(-4);
+  function truncateNpub(npubStr) {
+    if (!npubStr) return '';
+    return npubStr.slice(0, 8) + '...' + npubStr.slice(-4);
   }
 
   function logout() {
-    if ($session.signerType === 'anonymous') {
+    if (signerType === 'anonymous') {
       showLogoutConfirm = true;
       return;
     }
@@ -23,14 +32,8 @@
 
   function doLogout() {
     clearAnonymousKey();
-    session.set({
-      pubkey: null,
-      signerType: null,
-      displayName: null,
-      avatar: null,
-      npub: null,
-    });
     showLogoutConfirm = false;
+    dispatch('logout');
   }
 </script>
 
@@ -43,28 +46,28 @@
 
     <!-- Right: auth state -->
     <div class="flex items-center gap-3">
-      {#if $session.pubkey}
+      {#if pubkey}
         <!-- Logged in state -->
         <div class="flex items-center gap-2">
-          {#if $session.avatar}
+          {#if avatar}
             <img
-              src={$session.avatar}
-              alt={$session.displayName || 'avatar'}
+              src={avatar}
+              alt={displayName || 'avatar'}
               class="w-8 h-8 rounded-full object-cover border border-slate-600"
             />
           {:else}
             <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-              {($session.displayName || $session.npub || 'A').slice(0, 1).toUpperCase()}
+              {(displayName || npub || 'A').slice(0, 1).toUpperCase()}
             </div>
           {/if}
           <div class="flex flex-col leading-tight">
-            {#if $session.displayName}
-              <span class="text-sm text-white font-medium">{$session.displayName}</span>
+            {#if displayName}
+              <span class="text-sm text-white font-medium">{displayName}</span>
             {/if}
-            {#if $session.npub}
-              <span class="text-xs text-slate-400 font-mono">{truncateNpub($session.npub)}</span>
+            {#if npub}
+              <span class="text-xs text-slate-400 font-mono">{truncateNpub(npub)}</span>
             {/if}
-            {#if $session.signerType === 'anonymous'}
+            {#if signerType === 'anonymous'}
               <span class="text-[10px] font-medium text-amber-400 bg-amber-900/40 px-1.5 py-0.5 rounded-full">Anonymous</span>
             {/if}
           </div>
@@ -91,7 +94,7 @@
 <LogoutConfirmModal
   show={showLogoutConfirm}
   nsec={deployNsec || ''}
-  npub={$session.npub || ''}
+  npub={npub || ''}
   on:close={() => (showLogoutConfirm = false)}
   on:confirm={doLogout}
 />

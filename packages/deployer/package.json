@@ -1,0 +1,82 @@
+{
+  "name": "@nsite/deployer",
+  "version": "0.1.0",
+  "type": "module",
+  "private": false,
+  "svelte": "./src/index.js",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.js",
+      "import": "./dist/deployer.mjs",
+      "default": "./dist/deployer.js"
+    },
+    "./components/*": {
+      "svelte": "./src/components/*"
+    },
+    "./store": {
+      "svelte": "./src/lib/store.js",
+      "import": "./src/lib/store.js",
+      "default": "./src/lib/store.js"
+    },
+    "./nostr": {
+      "svelte": "./src/lib/nostr.js",
+      "import": "./src/lib/nostr.js",
+      "default": "./src/lib/nostr.js"
+    },
+    "./upload": {
+      "svelte": "./src/lib/upload.js",
+      "import": "./src/lib/upload.js",
+      "default": "./src/lib/upload.js"
+    },
+    "./publish": {
+      "svelte": "./src/lib/publish.js",
+      "import": "./src/lib/publish.js",
+      "default": "./src/lib/publish.js"
+    },
+    "./crypto": {
+      "svelte": "./src/lib/crypto.js",
+      "import": "./src/lib/crypto.js",
+      "default": "./src/lib/crypto.js"
+    },
+    "./files": {
+      "svelte": "./src/lib/files.js",
+      "import": "./src/lib/files.js",
+      "default": "./src/lib/files.js"
+    },
+    "./scanner": {
+      "svelte": "./src/lib/scanner.js",
+      "import": "./src/lib/scanner.js",
+      "default": "./src/lib/scanner.js"
+    },
+    "./base36": {
+      "svelte": "./src/lib/base36.js",
+      "import": "./src/lib/base36.js",
+      "default": "./src/lib/base36.js"
+    }
+  },
+  "main": "dist/deployer.js",
+  "module": "dist/deployer.mjs",
+  "scripts": {
+    "build:widget": "vite build --config vite.widget.config.js",
+    "dev:widget": "vite build --config vite.widget.config.js --watch",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@std/media-types": "npm:@jsr/std__media-types@^1.1.0",
+    "applesauce-relay": "^5.1.0",
+    "applesauce-signers": "^5.1.0",
+    "fflate": "^0.8.2",
+    "nanotar": "^0.1.1",
+    "nostr-tools": "^2.10.0",
+    "qrcode": "^1.5.4"
+  },
+  "peerDependencies": {
+    "svelte": "^4.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "publint": "^0.3.18",
+    "vite": "^5.4.0",
+    "vitest": "^3.0.0"
+  }
+}

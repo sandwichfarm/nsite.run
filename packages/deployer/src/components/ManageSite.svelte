@@ -1,11 +1,11 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { publishDeletionEvent } from '../lib/publish.js';
-  import { deleteBlobs } from '../lib/upload.js';
-  import { base36Encode } from '../lib/base36.js';
+  import { publishDeletionEvent } from '@nsite/deployer/publish';
+  import { deleteBlobs } from '@nsite/deployer/upload';
+  import { base36Encode } from '@nsite/deployer/base36';
   import { hexToBytes } from 'nostr-tools/utils';
   import { npubEncode } from 'nostr-tools/nip19';
-  import { getManifestDTag, getManifestTitle, getManifestDescription, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '../lib/nostr.js';
+  import { getManifestDTag, getManifestTitle, getManifestDescription, NSITE_GATEWAY_HOST, NSITE_GATEWAY_PROTOCOL } from '@nsite/deployer/nostr';
 
   const dispatch = createEventDispatcher();
 

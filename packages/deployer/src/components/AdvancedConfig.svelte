@@ -1,6 +1,8 @@
 <script>
-  import { serverConfig } from '../lib/store.js';
-  import { NSITE_RELAY, NSITE_BLOSSOM } from '../lib/nostr.js';
+  import { getContext } from 'svelte';
+  import { NSITE_RELAY, NSITE_BLOSSOM } from '@nsite/deployer/nostr';
+
+  const { serverConfig } = getContext('deployer-stores');
 
   let relayInput = '';
   let blossomInput = '';
