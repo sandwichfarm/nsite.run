@@ -192,7 +192,7 @@ export async function uploadBlobs(files, existing, signer, blossomUrls, onProgre
   // Sign auth in batches — BUD-11 allows multiple x tags per auth event.
   // Each signed event covers up to AUTH_BATCH_SIZE hashes; the same auth header
   // is reused for every PUT whose hash appears in that batch.
-  const AUTH_BATCH_SIZE = 50;
+  const AUTH_BATCH_SIZE = 350;
   const authHeaders = new Map();
   for (let i = 0; i < filesToUploadList.length; i += AUTH_BATCH_SIZE) {
     const batch = filesToUploadList.slice(i, i + AUTH_BATCH_SIZE);
@@ -373,7 +373,7 @@ export async function deleteBlobs(signer, sha256List, blossomUrls, onProgress) {
   let completedOps = 0;
 
   // Pre-sign auth headers in batches — BUD-11 allows multiple x tags per auth event.
-  const AUTH_BATCH_SIZE = 50;
+  const AUTH_BATCH_SIZE = 350;
   const perHashAuth = new Map();
   for (let i = 0; i < sha256List.length; i += AUTH_BATCH_SIZE) {
     const batch = sha256List.slice(i, i + AUTH_BATCH_SIZE);
