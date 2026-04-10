@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { downloadNsecFile } from '../lib/nostr.js';
+  import { downloadNsecFile } from '@nsite/deployer/nostr';
 
   export let show = false;
   export let nsec = '';
