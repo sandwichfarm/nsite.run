@@ -17,6 +17,14 @@ categories:
         url: "https://nsite.run"
         description: "reference implementation for nsite V2"
         versions: [v2]
+      - name: "nsite.cloud"
+        url: "https://nsite.run"
+        description: "reference implementation for nsite V2"
+        versions: [v2]
+      - name: "shakespeare.to"
+        url: "https://nsite.run"
+        description: "reference implementation for nsite V2"
+        versions: [v2]
 
   - name: "Gateway Projects"
     items:
