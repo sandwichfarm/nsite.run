@@ -4,6 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
+    "declaration": true,
+    "isolatedDeclarations": true,
     "noEmit": true,
     "skipLibCheck": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"]
