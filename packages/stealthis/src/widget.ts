@@ -6,6 +6,7 @@ import {
   DEFAULT_NIP46_RELAY,
   extensionSigner,
   hasExtension,
+  type NostrConnectHandle,
   prepareNostrConnect,
   type Signer,
 } from "./signer";
@@ -23,7 +24,7 @@ type State =
   | "error";
 
 export class NsiteDeployButton extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes: readonly string[] = [
     "button-text",
     "stat-text",
     "no-trail",
@@ -41,25 +42,25 @@ export class NsiteDeployButton extends HTMLElement {
   private ctx: nostr.NsiteContext | null = null;
   private manifest: nostr.SignedEvent | null = null;
   private signer: Signer | null = null;
-  private userPubkey = "";
+  private userPubkey: string = "";
   private userRelays: string[] = [];
-  private deployedUrl = "";
-  private errorMsg = "";
-  private statusMsg = "";
-  private slug = "";
-  private siteTitle = "";
-  private siteDescription = "";
-  private deployAsRoot = true;
+  private deployedUrl: string = "";
+  private errorMsg: string = "";
+  private statusMsg: string = "";
+  private slug: string = "";
+  private siteTitle: string = "";
+  private siteDescription: string = "";
+  private deployAsRoot: boolean = true;
   private hasRootSite: boolean | null = null; // null = still checking
-  private nostrConnectUri = "";
-  private nip46Relay = DEFAULT_NIP46_RELAY;
+  private nostrConnectUri: string = "";
+  private nip46Relay: string = DEFAULT_NIP46_RELAY;
   private qrAbort: AbortController | null = null;
-  private ncConnect: ReturnType<typeof prepareNostrConnect> | null = null;
+  private ncConnect: NostrConnectHandle | null = null;
   private manifestPromise: Promise<nostr.SignedEvent | null> | null = null;
   private relaysPromise: Promise<string[]> | null = null;
   private muses: nostr.Muse[] = [];
-  private museProfiles = new Map<string, nostr.MuseProfile>();
-  private musesExpanded = false;
+  private museProfiles: Map<string, nostr.MuseProfile> = new Map<string, nostr.MuseProfile>();
+  private musesExpanded: boolean = false;
   private dittoThemePromise: Promise<nostr.DittoTheme | null> | null = null;
   private _dittoTheme: nostr.DittoTheme | null = null;
   private hasExistingTheme: boolean | null = null;
@@ -111,7 +112,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  attributeChangedCallback(name: string) {
+  attributeChangedCallback(name: string): void {
     if (
       name === "accent" || name === "background" ||
       name === "text" || name === "radius"
@@ -121,7 +122,7 @@ export class NsiteDeployButton extends HTMLElement {
     if (this.state === "idle") this.render();
   }
 
-  private applyThemeVars() {
+  private applyThemeVars(): void {
     const accent = this.getAttribute("accent");
     const background = this.getAttribute("background");
     const text = this.getAttribute("text");
@@ -200,7 +201,7 @@ export class NsiteDeployButton extends HTMLElement {
     return `<div class="nd-overlay"><div class="nd-modal">${body}</div></div>`;
   }
 
-  private render() {
+  private render(): void {
     this.preserveFormValues();
     let html = `<style>${STYLES}</style>`;
 
@@ -563,7 +564,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Bindings ---
 
-  private bind() {
+  private bind(): void {
     this.shadow
       .querySelector(".nd-trigger:not([disabled])")
       ?.addEventListener("click", () => this.open());
@@ -640,7 +641,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private preserveFormValues() {
+  private preserveFormValues(): void {
     if (this.state !== "form") return;
     const slug = this.shadow.querySelector("#nd-slug") as
       | HTMLInputElement
@@ -656,32 +657,32 @@ export class NsiteDeployButton extends HTMLElement {
     if (desc) this.siteDescription = desc.value;
   }
 
-  private setState(s: State) {
+  private setState(s: State): void {
     this.state = s;
     this.render();
   }
 
-  private close() {
+  private close(): void {
     this.cancelQr();
     this.signer?.close();
     this.signer = null;
     this.setState("idle");
   }
 
-  private cancelQr() {
+  private cancelQr(): void {
     this.qrAbort?.abort();
     this.qrAbort = null;
     this.ncConnect = null;
   }
 
-  private showError(msg: string) {
+  private showError(msg: string): void {
     this.errorMsg = msg;
     this.setState("error");
   }
 
   // --- Nostrconnect lifecycle ---
 
-  private startNostrConnect() {
+  private startNostrConnect(): void {
     this.cancelQr();
 
     this.ncConnect = prepareNostrConnect(this.nip46Relay);
@@ -711,7 +712,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Auth ---
 
-  private async open() {
+  private async open(): Promise<void> {
     // Manifest fetch started in constructor; ensure it's running
     if (!this.manifestPromise && this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
@@ -721,7 +722,7 @@ export class NsiteDeployButton extends HTMLElement {
     this.startNostrConnect();
   }
 
-  private async authExtension() {
+  private async authExtension(): Promise<void> {
     this.cancelQr();
     try {
       this.signer = extensionSigner();
@@ -731,7 +732,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async authBunker() {
+  private async authBunker(): Promise<void> {
     const input = (this.shadow.querySelector("#nd-bunker") as HTMLInputElement)
       ?.value.trim();
     if (!input) return;
@@ -748,7 +749,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async copyUri() {
+  private async copyUri(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.nostrConnectUri);
       const btn = this.shadow.querySelector(
@@ -767,7 +768,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Post-auth ---
 
-  private async onAuthenticated() {
+  private async onAuthenticated(): Promise<void> {
     this.setState("loading");
 
     try {
@@ -815,7 +816,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Ditto theme copy ---
 
-  private async copyDittoTheme() {
+  private async copyDittoTheme(): Promise<void> {
     if (!this._dittoTheme || !this.signer) return;
 
     this.statusMsg = "Creating theme event...";
@@ -853,7 +854,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Deploy ---
 
-  private readFormValues() {
+  private readFormValues(): void {
     if (!this.deployAsRoot) {
       const slugEl = this.shadow.querySelector("#nd-slug") as
         | HTMLInputElement
@@ -870,7 +871,7 @@ export class NsiteDeployButton extends HTMLElement {
     if (descEl) this.siteDescription = descEl.value.trim();
   }
 
-  private async onDeploy() {
+  private async onDeploy(): Promise<void> {
     this.readFormValues();
 
     if (!this.deployAsRoot) {
@@ -916,7 +917,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async executeDeploy() {
+  private async executeDeploy(): Promise<void> {
     this.statusMsg = "Creating event...";
     this.setState("deploying");
 
