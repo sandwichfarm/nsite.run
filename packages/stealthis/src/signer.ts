@@ -24,6 +24,25 @@ export interface Signer {
   close(): void;
 }
 
+/**
+ * Handle returned by `prepareNostrConnect` — a pair of (QR-encodable URI, awaitable signer promise).
+ * Consumers render the `uri` as a QR code / bunker URI and await `connect(abortSignal)` in the
+ * background; when the remote signer scans the QR and authorises, the returned `Signer`
+ * resolves. Pass an `AbortSignal` to cancel the await (widget.ts does this via its
+ * `qrAbort: AbortController` field when the modal is closed).
+ */
+export interface NostrConnectHandle {
+  /** The `nostrconnect://` URI to render as a QR code / copy-to-clipboard string. */
+  uri: string;
+  /**
+   * Await the remote signer connection. Resolves when the user's signer app
+   * completes the NIP-46 handshake. Reject via `abort.abort()` from caller.
+   *
+   * @param abort - Optional AbortSignal; if omitted, a 300_000ms (5 min) timeout is used instead.
+   */
+  connect(abort?: AbortSignal): Promise<Signer>;
+}
+
 declare global {
   interface Window {
     nostr?: {
@@ -58,7 +77,7 @@ export async function bunkerConnect(input: string): Promise<Signer> {
   return wrap(signer);
 }
 
-export function prepareNostrConnect(relay: string) {
+export function prepareNostrConnect(relay: string): NostrConnectHandle {
   const sk = generateSecretKey();
   const clientPubkey = getPublicKey(sk);
   const secret = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
