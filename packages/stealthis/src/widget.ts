@@ -1,4 +1,4 @@
-import STYLES from "./styles.css?inline";
+import { STYLES } from "./styles";
 import * as nostr from "./nostr";
 import { toSvg } from "./qr";
 import {
