@@ -1,18 +1,30 @@
 {
   "name": "@nsite/stealthis",
-  "version": "0.7.0",
+  "version": "0.8.0",
+  "license": "MIT",
   "type": "module",
   "main": "dist/stealthis.js",
   "module": "dist/stealthis.mjs",
   "exports": {
     ".": {
-      "import": "./src/index.ts",
+      "import": "./dist/stealthis.mjs",
       "default": "./dist/stealthis.js"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "check-version-sync": "node ../../scripts/check-version-sync.mjs"
   },
   "dependencies": {
     "@libs/qrcode": "jsr:^3.0.1",
