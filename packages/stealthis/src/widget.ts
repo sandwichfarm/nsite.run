@@ -23,7 +23,40 @@ type State =
   | "success"
   | "error";
 
+/**
+ * Web component `<steal-this>` that lets a visitor re-publish (borrow) the current
+ * nsite to their own Nostr identity. Registered automatically at module load —
+ * users only need `import '@nsite/stealthis'` and optionally a `<steal-this>` tag
+ * in their HTML (if the tag is absent, one is auto-injected with class `nd-fixed`).
+ *
+ * The widget reads the page's current hostname to discover the nsite owner's
+ * pubkey, fetches the site manifest over Nostr relays, presents a sign-in UI
+ * (NIP-07 extension, NIP-46 bunker, or QR-scan), then re-publishes the same
+ * manifest under the signed-in user's pubkey.
+ *
+ * Themed via HTML attributes (`accent`, `background`, `text`, `radius`) that
+ * map to CSS custom properties on the host element; also accepts a Ditto theme
+ * via the `copy-ditto-theme` attribute which resolves a kind-36767 event and
+ * offers a one-click copy step during the deploy flow.
+ *
+ * See the package README for a full attribute reference and usage examples.
+ */
 export class NsiteDeployButton extends HTMLElement {
+  /**
+   * HTML attributes observed by the custom element — changes trigger
+   * {@link NsiteDeployButton.attributeChangedCallback}.
+   *
+   * - `button-text` — text on the trigger button (default "Borrow this nsite")
+   * - `stat-text` — paper-trail legend template; `%s` is replaced with the muse count
+   * - `no-trail` — when present, hides the paper-trail UI entirely
+   * - `obfuscate-npubs` — when present, truncates npubs in the trail and omits links
+   * - `do-not-fetch-muse-data` — when present, skips kind-0 profile enrichment
+   * - `accent` / `background` / `text` — hex color values for theming (drive CSS custom properties)
+   * - `radius` — CSS length (e.g. `8px`, `1em`) for border radius theming
+   * - `copy-ditto-theme` — naddr of a kind-36767 Ditto theme event to offer as a copy step on deploy
+   *
+   * See README.md for per-attribute semantics and visual examples.
+   */
   static readonly observedAttributes: readonly string[] = [
     "button-text",
     "stat-text",
@@ -65,6 +98,14 @@ export class NsiteDeployButton extends HTMLElement {
   private _dittoTheme: nostr.DittoTheme | null = null;
   private hasExistingTheme: boolean | null = null;
 
+  /**
+   * The resolved Ditto theme, if one was loaded via the `copy-ditto-theme`
+   * attribute — otherwise `null`. Consumers (e.g. external scripts observing
+   * the element) may read this to mirror the resolved theme into their own UI.
+   *
+   * Null until the theme event has been fetched and parsed; null persists if
+   * the attribute was not set or if the referenced event could not be resolved.
+   */
   get dittoTheme(): nostr.DittoTheme | null {
     return this._dittoTheme;
   }
@@ -112,6 +153,15 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
+  /**
+   * Standard custom-element lifecycle callback — invoked when one of
+   * {@link NsiteDeployButton.observedAttributes} changes. Re-applies theme
+   * CSS custom properties (for `accent`/`background`/`text`/`radius` changes)
+   * and re-renders the current view if the element is idle. Not intended to
+   * be called directly.
+   *
+   * @param name - The name of the attribute that changed (one of the observed set).
+   */
   attributeChangedCallback(name: string): void {
     if (
       name === "accent" || name === "background" ||
