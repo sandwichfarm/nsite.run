@@ -106,7 +106,15 @@ export function isValidDTag(s: string): boolean {
 
 // --- Relay communication ---
 
-interface RelayEvent {
+/**
+ * A Nostr relay event as returned from WebSocket queries — the raw event shape
+ * with `id` and `sig` already present (distinct from `EventTemplate` which is
+ * pre-signing, and from `SignedEvent` which is structurally compatible but
+ * used by the signer API). This interface is re-exported so that consumers
+ * (and the type-graph) can reason about `fetchManifest`'s return value and
+ * the parameters of `extractMuses` / `createDeployEvent`.
+ */
+export interface RelayEvent {
   id: string;
   pubkey: string;
   created_at: number;
