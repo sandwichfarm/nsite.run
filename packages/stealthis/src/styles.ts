@@ -2,14 +2,14 @@
  * Widget stylesheet for <steal-this>, exported as a string for injection into
  * the shadow-DOM root via a <style> tag in widget.ts#render().
  *
- * This file replaces the Vite-only virtual-module CSS import pattern
- * (import STYLES from "./styles.css?inline") which JSR rejects because
- * the "?" path character is on JSR's forbidden list and the ambient
- * "declare module" for it is a slow-types trigger. The content below is
- * the verbatim text of the former packages/stealthis/src/styles.css,
- * wrapped in a template literal.
+ * This file replaces a Vite-only virtual-module CSS import pattern that
+ * relied on a bundler-specific query suffix in the specifier. JSR's module
+ * resolver rejects query characters in paths, and the companion ambient
+ * "declare module" declaration was a slow-types trigger. The content below
+ * is the verbatim text of the former hand-authored CSS, wrapped in a
+ * template literal — single source of truth, no codegen.
  *
- * Source of truth: edit this file directly. styles.css has been deleted.
+ * Edit this file directly to change widget styles.
  */
 export const STYLES: string = `
 :host {
