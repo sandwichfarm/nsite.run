@@ -5,6 +5,11 @@ import {
   createNostrConnectURI
 } from 'nostr-tools/nip46';
 
+/**
+ * An unsigned Nostr event — the input shape passed to a signer to produce a
+ * {@link SignedEvent}. Mirrors the subset of Nostr event fields that consumers
+ * are expected to populate; `id`, `pubkey`, and `sig` are derived by the signer.
+ */
 export interface EventTemplate {
   kind: number;
   created_at: number;
@@ -12,12 +17,22 @@ export interface EventTemplate {
   content: string;
 }
 
+/**
+ * A fully-signed Nostr event — {@link EventTemplate} plus the signer-computed
+ * `id`, `pubkey`, and `sig`. Ready for publication to a relay via `EVENT` frame.
+ */
 export interface SignedEvent extends EventTemplate {
   id: string;
   pubkey: string;
   sig: string;
 }
 
+/**
+ * A unified signer interface covering NIP-07 browser extensions, NIP-46 bunker
+ * connections, and the returned handle from {@link prepareNostrConnect}.
+ * Consumers call `getPublicKey()` once, then `signEvent(template)` per event;
+ * when done, `close()` releases any underlying WebSocket or session state.
+ */
 export interface Signer {
   getPublicKey(): Promise<string>;
   signEvent(event: EventTemplate): Promise<SignedEvent>;
@@ -52,12 +67,23 @@ declare global {
   }
 }
 
+/**
+ * The default NIP-46 nostrconnect relay used when the widget has no user-provided
+ * `wss://` URL. Set to `wss://bucket.coracle.social`, which operates a public
+ * nostrconnect rendezvous channel; consumers may override per-widget via the
+ * `relay` input shown in the auth UI.
+ */
 export const DEFAULT_NIP46_RELAY = 'wss://bucket.coracle.social';
 
+/** Return `true` if a NIP-07 browser-extension signer is available on `window.nostr`. */
 export function hasExtension(): boolean {
   return !!window.nostr;
 }
 
+/**
+ * Wrap the NIP-07 `window.nostr` extension as a {@link Signer}. Throws if no
+ * extension is installed — call {@link hasExtension} first to probe availability.
+ */
 export function extensionSigner(): Signer {
   if (!window.nostr) throw new Error('No Nostr signer extension found');
   const ext = window.nostr;
@@ -68,6 +94,14 @@ export function extensionSigner(): Signer {
   };
 }
 
+/**
+ * Parse a `bunker://…` URI and establish a NIP-46 connection to the remote
+ * signer. The returned {@link Signer} delegates `getPublicKey` and `signEvent`
+ * over WebSocket to the bunker; `close()` terminates the session.
+ *
+ * @param input - A `bunker://` URI string as emitted by a NIP-46-compatible signer app.
+ * @throws Error when the URI is malformed or the bunker fails to respond.
+ */
 export async function bunkerConnect(input: string): Promise<Signer> {
   const sk = generateSecretKey();
   const bp = await parseBunkerInput(input);
@@ -77,6 +111,15 @@ export async function bunkerConnect(input: string): Promise<Signer> {
   return wrap(signer);
 }
 
+/**
+ * Build a `nostrconnect://…` URI for the client-initiated NIP-46 handshake and
+ * return a {@link NostrConnectHandle} the caller can render as a QR code AND
+ * simultaneously await — when the remote signer app completes the handshake,
+ * the handle's `connect(abort)` promise resolves with a {@link Signer}.
+ *
+ * @param relay - The `wss://` NIP-46 rendezvous relay (e.g. {@link DEFAULT_NIP46_RELAY}).
+ * @returns A handle exposing the QR-encodable `uri` string and an awaitable `connect` method.
+ */
 export function prepareNostrConnect(relay: string): NostrConnectHandle {
   const sk = generateSecretKey();
   const clientPubkey = getPublicKey(sk);
