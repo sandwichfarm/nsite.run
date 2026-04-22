@@ -3,7 +3,8 @@
     "./apps/relay",
     "./apps/blossom",
     "./apps/gateway",
-    "./packages/shared"
+    "./packages/shared",
+    "./packages/stealthis"
   ],
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.19"
