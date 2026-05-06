@@ -5,7 +5,6 @@ import { ALLOWED_KINDS } from "@nsite/shared/constants";
 interface Nip11Document {
   name: string;
   description: string;
-  // TODO: Replace PLACEHOLDER_NPUB with the operator's actual npub before deploy
   pubkey: string;
   contact: string;
   supported_nips: number[];
@@ -38,8 +37,8 @@ export function buildNip11Response(): Response {
     name: "nsite.run relay",
     description: "nsite-only relay for kind 15128/35128/10002/10063 events",
     // TODO: Replace with operator's actual npub before deploying to production
-    pubkey: "PLACEHOLDER_NPUB",
-    contact: "mailto:operator@nsite.run",
+    pubkey: "e771af0b05c8e95fcdf6feb3500544d2fb1ccd384788e9f490bb3ee28e8ed66f",
+    contact: "nostr@sandwich.farm",
     supported_nips: [1, 9, 11, 33],
     software: "https://github.com/sandwichfarm/nsite.run",
     version: "0.1.0",
