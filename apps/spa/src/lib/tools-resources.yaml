@@ -18,11 +18,11 @@ categories:
         description: "reference implementation for nsite V2"
         versions: [v2]
       - name: "nsite.cloud"
-        url: "https://nsite.run"
+        url: "https://nsite.cloud"
         description: "reference implementation for nsite V2"
         versions: [v2]
       - name: "shakespeare.to"
-        url: "https://nsite.run"
+        url: "https://shakespeare.to"
         description: "reference implementation for nsite V2"
         versions: [v2]
 
