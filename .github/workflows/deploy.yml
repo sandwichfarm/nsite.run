@@ -36,40 +36,99 @@ jobs:
           npm ci
           npm run build
 
-      - name: Clean old SPA files from Bunny Storage
-        run: |
-          # List existing files and delete them before uploading new ones
-          FILES=$(curl -s -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
-            "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/assets/")
-          echo "$FILES" | jq -r '.[].ObjectName' 2>/dev/null | while read -r name; do
-            echo "Deleting old asset: $name"
-            curl -s -X DELETE \
-              -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
-              "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/assets/$name"
-          done
-
+      # Upload the new build FIRST so index.html and its hashed bundles are
+      # always present together. The previous delete-then-upload order could
+      # leave index.html pointing at a deleted bundle if any upload was skipped.
       - name: Deploy SPA to Bunny Storage
+        env:
+          STORAGE: "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa"
+          ACCESS_KEY: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
         run: |
+          set -euo pipefail
           cd apps/spa/dist
-          for file in $(find . -type f); do
+          while IFS= read -r file; do
             path="${file#./}"
-            curl -s -X PUT \
-              -H "AccessKey: ${{ secrets.BUNNY_STORAGE_PASSWORD }}" \
-              -H "Content-Type: $(file --mime-type -b "$file")" \
+            case "$path" in
+              *.js)   ct="application/javascript" ;;
+              *.mjs)  ct="application/javascript" ;;
+              *.css)  ct="text/css" ;;
+              *.html) ct="text/html; charset=utf-8" ;;
+              *.json) ct="application/json" ;;
+              *.svg)  ct="image/svg+xml" ;;
+              *.ico)  ct="image/x-icon" ;;
+              *.wasm) ct="application/wasm" ;;
+              *)      ct="$(file --mime-type -b "$file")" ;;
+            esac
+            echo "Uploading: $path ($ct)"
+            curl -sS --fail-with-body -X PUT \
+              -H "AccessKey: $ACCESS_KEY" \
+              -H "Content-Type: $ct" \
               --data-binary "@$file" \
-              "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa/$path"
+              "$STORAGE/$path"
+          done < <(find . -type f)
+
+      # Now prune only the stale asset files (anything in storage's assets/ that
+      # this build did not produce). index.html and root files are never pruned.
+      - name: Prune stale SPA assets from Bunny Storage
+        env:
+          STORAGE: "https://${{ secrets.BUNNY_STORAGE_HOSTNAME }}/${{ secrets.BUNNY_STORAGE_USERNAME }}/nsite-spa"
+          ACCESS_KEY: ${{ secrets.BUNNY_STORAGE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          cd apps/spa/dist
+          keep="$(find assets -type f -printf '%f\n' 2>/dev/null | sort -u || true)"
+          remote="$(curl -sS --fail-with-body -H "AccessKey: $ACCESS_KEY" "$STORAGE/assets/" | jq -r '.[].ObjectName')"
+          for name in $remote; do
+            if ! grep -qxF "$name" <<< "$keep"; then
+              echo "Pruning stale asset: $name"
+              curl -sS --fail-with-body -X DELETE \
+                -H "AccessKey: $ACCESS_KEY" \
+                "$STORAGE/assets/$name"
+            fi
           done
 
       - name: Purge CDN caches
         run: |
-          # Purge SPA assets CDN (next-nsite-run pull zone — where edge script fetches SPA from)
-          echo "Purging SPA assets CDN..."
-          curl -s -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_PULLZONE_ID }}/purgeCache" \
+          set -euo pipefail
+          # Purge SPA assets pull zone (where the gateway edge script fetches the SPA from)
+          echo "Purging SPA assets pull zone..."
+          curl -sS --fail-with-body -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_PULLZONE_ID }}/purgeCache" \
             -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
-          # Purge gateway CDN (nsite-gateway pull zone — what users hit)
-          echo "Purging gateway CDN..."
-          curl -s -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_GATEWAY_PULLZONE_ID }}/purgeCache" \
+          # Purge gateway pull zone (what users hit)
+          echo "Purging gateway pull zone..."
+          curl -sS --fail-with-body -X POST "https://api.bunny.net/pullzone/${{ secrets.BUNNY_GATEWAY_PULLZONE_ID }}/purgeCache" \
             -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+          # Synchronously force-purge the entry document so it can never serve a stale bundle reference
+          echo "Force-purging root document (synchronous)..."
+          curl -sS --fail-with-body -X POST "https://api.bunny.net/purge?url=https%3A%2F%2Fnsite.run%2F&async=false" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+          curl -sS --fail-with-body -X POST "https://api.bunny.net/purge?url=https%3A%2F%2Fnsite.run%2Findex.html&async=false" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      # Fail the deploy loudly if the live site is broken — the served index.html
+      # must reference a bundle that actually returns JavaScript (not the SPA
+      # HTML fallback, which is what a missing/stale bundle returns).
+      - name: Verify SPA is live and consistent
+        run: |
+          set -uo pipefail
+          ok=0
+          for i in $(seq 1 12); do
+            html="$(curl -fsS "https://nsite.run/?cb=$i$RANDOM" 2>/dev/null || true)"
+            bundle="$(grep -oE '/assets/index-[A-Za-z0-9_-]+\.(m?js)' <<< "$html" | head -1 || true)"
+            if [ -n "$bundle" ]; then
+              ct="$(curl -fsS -o /dev/null -w '%{content_type}' "https://nsite.run$bundle?cb=$i$RANDOM" 2>/dev/null || true)"
+              echo "Attempt $i: bundle=$bundle content-type=$ct"
+              if grep -qiE 'javascript' <<< "$ct"; then ok=1; break; fi
+            else
+              echo "Attempt $i: no JS bundle reference found in served index.html"
+            fi
+            sleep 10
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::SPA verification failed — served index.html does not reference a live JavaScript bundle"
+            exit 1
+          fi
+          echo "SPA verified: served index.html references a live JavaScript bundle."
 
       - name: Deploy relay
         uses: BunnyWay/actions/deploy-script@main
