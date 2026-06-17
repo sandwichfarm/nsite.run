@@ -63,14 +63,14 @@
     </p>
   </section>
 
-  <!-- How it works -->
+  <!-- How the protocol works -->
   <section>
-    <h2 class="text-2xl font-semibold text-white mb-4">How it works</h2>
+    <h2 class="text-2xl font-semibold text-white mb-4">How the protocol works</h2>
     <ol class="space-y-4">
       {#each [
-        { n: '1', title: 'Choose your files', desc: 'Drop a folder or archive containing your site. A tool scans for sensitive files and warns you before uploading.' },
-        { n: '2', title: 'Hash & upload', desc: 'Each file is SHA-256 hashed and uploaded to Blossom servers. Files already present are skipped — only changes are uploaded.' },
-        { n: '3', title: 'Publish manifest', desc: 'A signed nostr event (kind 15128) maps your file paths to their hashes. Gateways query this event to serve your site.' },
+        { n: '1', title: 'Files as content-addressed blobs', desc: 'Each file is identified by the SHA-256 hash of its contents and stored on one or more Blossom servers. The same bytes have the same address everywhere, so any server can hold a copy.' },
+        { n: '2', title: 'A signed manifest event', desc: 'A nostr event maps each path in the site (e.g. /index.html) to the hash of its file. Because the event is signed by the author’s key, anyone can verify the site is authentic and unmodified.' },
+        { n: '3', title: 'Resolution by npub', desc: 'An author’s npub is the address of their site. A gateway looks up the latest manifest for that key, fetches the referenced blobs from Blossom, and serves the files — no central host required.' },
       ] as item}
         <li class="flex gap-4">
           <div class="w-8 h-8 rounded-full bg-purple-700/60 flex items-center justify-center text-purple-200 font-bold text-sm flex-shrink-0">
@@ -93,7 +93,7 @@
         { title: 'Censorship-resistant', desc: 'No single server controls your site. It lives on multiple Blossom servers simultaneously.' },
         { title: 'Self-sovereign identity', desc: 'Your npub is your domain. You own your site the same way you own your nostr identity.' },
         { title: 'Portable', desc: 'Works across any gateway. If one goes down, another serves the same content.' },
-        { title: 'No accounts needed', desc: 'Deploy anonymously with a generated key, or use your existing nostr identity.' },
+        { title: 'No accounts needed', desc: 'A site is owned by a nostr keypair, not a hosting account. Any key — new or existing — can publish a site.' },
       ] as item}
         <div class="bg-slate-800 rounded-lg p-4">
           <p class="font-medium text-white mb-1">{item.title}</p>
