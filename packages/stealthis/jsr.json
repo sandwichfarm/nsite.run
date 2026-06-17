@@ -1,0 +1,25 @@
+{
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
+  "name": "@nsite/stealthis",
+  "version": "0.8.0",
+  "license": "MIT",
+  "exports": "./src/index.ts",
+  "imports": {
+    "@libs/qrcode": "jsr:@libs/qrcode@^3.0.1"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "README.md",
+      "LICENSE",
+      "jsr.json",
+      "package.json"
+    ],
+    "exclude": [
+      "dist/**",
+      "node_modules/**",
+      "pnpm-lock.yaml",
+      "**/*.test.ts"
+    ]
+  }
+}

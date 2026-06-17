@@ -3,18 +3,33 @@ import type { EventTemplate, SignedEvent } from "./signer";
 
 export type { EventTemplate, SignedEvent };
 
+/**
+ * Parsed nsite context derived from the current hostname: the owner's pubkey,
+ * the optional slug (d-tag) for named sub-sites, and the base domain for URL
+ * construction. `null` when the hostname does not match either an `npub1…`
+ * subdomain or a base36-encoded named-site label.
+ */
 export interface NsiteContext {
   pubkey: string;
   identifier?: string;
   baseDomain: string;
 }
 
+/**
+ * A single step in an nsite's "paper trail" — one previous deployer identified
+ * by pubkey, their position in the chain (`index`), and their write relays.
+ */
 export interface Muse {
   index: number;
   pubkey: string;
   relays: string[];
 }
 
+/**
+ * Progressive-enrichment metadata for a {@link Muse}: their npub, their
+ * display name from kind-0 if resolved, and a URL to their own nsite if one
+ * is discoverable on bootstrap relays.
+ */
 export interface MuseProfile {
   npub: string;
   name?: string;
@@ -39,6 +54,7 @@ const NAMED_LABEL_RE = /^[0-9a-z]{50}[a-z0-9-]{1,13}$/;
 
 // --- Base36 ---
 
+/** Encode a hex pubkey as its 50-character base36 representation (the named-site label prefix). */
 export function pubkeyToBase36(hex: string): string {
   return BigInt("0x" + hex)
     .toString(36)
@@ -63,10 +79,16 @@ function npubDecode(npub: string): string | null {
   }
 }
 
+/** Encode a hex pubkey into its NIP-19 npub form. Thin re-export of `nostr-tools/nip19`. */
 export { npubEncode };
 
 // --- Context ---
 
+/**
+ * Parse the current `window.location.hostname` into an {@link NsiteContext},
+ * supporting both `npub1…` subdomain form and base36-encoded named-site labels.
+ * Returns `null` if the hostname does not match either pattern.
+ */
 export function parseContext(): NsiteContext | null {
   const parts = window.location.hostname.split(".");
 
@@ -100,13 +122,22 @@ export function parseContext(): NsiteContext | null {
   return null;
 }
 
+/** Return `true` if `s` is a valid d-tag for a named nsite (1-13 chars, lowercase a-z/0-9/hyphen, not trailing hyphen). */
 export function isValidDTag(s: string): boolean {
   return D_TAG_RE.test(s) && !s.endsWith("-");
 }
 
 // --- Relay communication ---
 
-interface RelayEvent {
+/**
+ * A Nostr relay event as returned from WebSocket queries — the raw event shape
+ * with `id` and `sig` already present (distinct from `EventTemplate` which is
+ * pre-signing, and from `SignedEvent` which is structurally compatible but
+ * used by the signer API). This interface is re-exported so that consumers
+ * (and the type-graph) can reason about `fetchManifest`'s return value and
+ * the parameters of `extractMuses` / `createDeployEvent`.
+ */
+export interface RelayEvent {
   id: string;
   pubkey: string;
   created_at: number;
@@ -182,6 +213,14 @@ async function publishRelay(url: string, event: SignedEvent): Promise<boolean> {
   return ok;
 }
 
+/**
+ * Publish a signed Nostr event to an array of relay URLs in parallel. Resolves
+ * with the count of relays that accepted the event (`OK` response with `true`).
+ *
+ * @param urls - Array of `wss://` relay URLs.
+ * @param event - A fully-signed Nostr event ready for `EVENT` frame transmission.
+ * @returns The number of relays that responded with a successful `OK` within the per-relay 5-second timeout.
+ */
 export async function publishToRelays(
   urls: string[],
   event: SignedEvent,
@@ -209,6 +248,14 @@ function extractWriteRelays(events: RelayEvent[]): string[] {
   return [...relays];
 }
 
+/**
+ * Fetch the nsite manifest (kind 15128 for root sites, kind 35128 for named
+ * sites) for the given {@link NsiteContext} — tries bootstrap relays first,
+ * then falls back to the owner's NIP-65 write relays if the manifest is not
+ * found on bootstrap.
+ *
+ * @returns The most-recent matching manifest event, or `null` if none is found on any tried relay.
+ */
 export async function fetchManifest(
   ctx: NsiteContext,
 ): Promise<RelayEvent | null> {
@@ -241,6 +288,11 @@ export async function fetchManifest(
   return events.sort((a, b) => b.created_at - a.created_at)[0] ?? null;
 }
 
+/**
+ * Fetch the given pubkey's NIP-65 (kind 10002) relay list from bootstrap relays
+ * and return the subset marked as write-capable. Falls back to `[relay.damus.io,
+ * nos.lol]` if no list is found so callers always have a non-empty array.
+ */
 export async function getWriteRelays(pubkey: string): Promise<string[]> {
   const events = await queryRelays(BOOTSTRAP_RELAYS, {
     kinds: [10002],
@@ -253,6 +305,11 @@ export async function getWriteRelays(pubkey: string): Promise<string[]> {
     : BOOTSTRAP_RELAYS.filter((r) => r !== "wss://purplepag.es");
 }
 
+/**
+ * Query the given relays for an existing nsite manifest owned by `pubkey`.
+ * With `slug`, checks for a named-site (kind 35128 with matching `d` tag);
+ * without, checks for a root site (kind 15128). Returns `true` if found.
+ */
 export async function checkExistingSite(
   relays: string[],
   pubkey: string,
@@ -267,6 +324,11 @@ export async function checkExistingSite(
 
 const MAX_MUSE_TAGS = 9;
 
+/**
+ * Extract the `muse` tags from a {@link RelayEvent} into a sorted array of
+ * {@link Muse} records (sorted ascending by `index`). Filters out malformed
+ * tags (missing index or pubkey).
+ */
 export function extractMuses(event: RelayEvent): Muse[] {
   return event.tags
     .filter((t) => t[0] === "muse" && t[1] && t[2])
@@ -278,6 +340,15 @@ export function extractMuses(event: RelayEvent): Muse[] {
     .sort((a, b) => a.index - b.index);
 }
 
+/**
+ * Build an unsigned deploy event (kind 15128 for root, kind 35128 for named)
+ * from a source manifest — copies `path` and `server` tags, optionally appends
+ * the caller as a new `muse` tag while enforcing the 9-tag max (originator
+ * preserved, middle entries FIFO-truncated), and attaches title/description.
+ *
+ * @param source - The source manifest event being re-published.
+ * @param options - Deploy options (slug, title, description, deployer identity, trail toggle).
+ */
 export function createDeployEvent(
   source: RelayEvent,
   options: {
@@ -335,6 +406,16 @@ export function createDeployEvent(
 
 // --- Muse profile enrichment (streaming, non-blocking) ---
 
+/**
+ * Stream kind-0 profile events and nsite manifests for each unique pubkey in
+ * `muses`, invoking `onUpdate` progressively as profile names and nsite URLs
+ * are discovered. Non-blocking — the returned `void` is immediate; enrichment
+ * happens asynchronously in the background.
+ *
+ * @param muses - The paper-trail entries whose profiles should be enriched.
+ * @param baseDomain - Used to construct nsite URLs when a deployer's manifest is found.
+ * @param onUpdate - Called once per resolved piece of profile data (name first, then nsiteUrl if found).
+ */
 export function fetchMuseProfiles(
   muses: Muse[],
   baseDomain: string,
@@ -418,6 +499,10 @@ export function fetchMuseProfiles(
   });
 }
 
+/**
+ * Construct the canonical public URL for an nsite: `https://<npub>.<baseDomain>`
+ * for root sites, or `https://<base36pubkey><slug>.<baseDomain>` for named sites.
+ */
 export function buildSiteUrl(
   baseDomain: string,
   pubkey: string,
@@ -431,12 +516,19 @@ export function buildSiteUrl(
 
 // --- Ditto theme resolution ---
 
+/**
+ * One font in a Ditto theme — family, URL for @font-face, and role (body or title).
+ */
 export interface DittoThemeFont {
   family: string;
   url: string;
   role: "body" | "title";
 }
 
+/**
+ * Background-image metadata from a Ditto theme — URL, display mode (cover or
+ * tile), MIME type, plus optional dimension hint and blurhash placeholder.
+ */
 export interface DittoThemeBg {
   url: string;
   mode: "cover" | "tile";
@@ -445,6 +537,10 @@ export interface DittoThemeBg {
   blurhash?: string;
 }
 
+/**
+ * A fully-resolved Ditto theme (kind 36767 or kind 16767) — colors, fonts,
+ * optional background, and the originating {@link RelayEvent} for traceability.
+ */
 export interface DittoTheme {
   title?: string;
   colors: { primary: string; background: string; text: string };
@@ -453,6 +549,13 @@ export interface DittoTheme {
   event: RelayEvent;
 }
 
+/**
+ * Resolve a Ditto theme from a Nostr `naddr` — decodes the NIP-19 address,
+ * fetches the referenced event from naddr-hint and bootstrap relays, parses
+ * its `c`/`f`/`bg`/`title` tags, and returns a {@link DittoTheme}. Returns
+ * `null` if the naddr is malformed, references a non-theme kind, or cannot
+ * be fetched from any relay.
+ */
 export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null> {
   if (!naddr) return null;
   try {
@@ -533,6 +636,11 @@ export async function fetchDittoTheme(naddr: string): Promise<DittoTheme | null>
   }
 }
 
+/**
+ * Build an unsigned kind-16767 active-theme event from a resolved
+ * {@link DittoTheme} — ready for signing and publishing to the user's write
+ * relays to set (or replace) their Ditto profile theme.
+ */
 export function createActiveThemeEvent(theme: DittoTheme): EventTemplate {
   const tags: string[][] = [];
   // Colors (required)
@@ -563,6 +671,10 @@ export function createActiveThemeEvent(theme: DittoTheme): EventTemplate {
   };
 }
 
+/**
+ * Return `true` if the given `pubkey` already has an active (kind-16767)
+ * Ditto theme event published on any of the specified relays.
+ */
 export async function checkExistingTheme(
   relays: string[],
   pubkey: string,

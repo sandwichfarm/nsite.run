@@ -1,4 +1,17 @@
-
+/**
+ * Widget stylesheet for <steal-this>, exported as a string for injection into
+ * the shadow-DOM root via a <style> tag in widget.ts#render().
+ *
+ * This file replaces a Vite-only virtual-module CSS import pattern that
+ * relied on a bundler-specific query suffix in the specifier. JSR's module
+ * resolver rejects query characters in paths, and the companion ambient
+ * "declare module" declaration was a slow-types trigger. The content below
+ * is the verbatim text of the former hand-authored CSS, wrapped in a
+ * template literal — single source of truth, no codegen.
+ *
+ * Edit this file directly to change widget styles.
+ */
+export const STYLES: string = `
 :host {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -503,3 +516,4 @@
 	vertical-align: middle;
 	margin-right: 8px;
 }
+`;

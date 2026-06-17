@@ -29,13 +29,13 @@
 
   import Navbar from './components/Navbar.svelte';
   import NIP5ABanner from './components/NIP5ABanner.svelte';
+  import LandingPage from './components/LandingPage.svelte';
   import DeployZone from './components/DeployZone.svelte';
   import FileTree from './components/FileTree.svelte';
   import ProgressIndicator from './components/ProgressIndicator.svelte';
   import SuccessPanel from './components/SuccessPanel.svelte';
   import LoginModal from './components/LoginModal.svelte';
   import AdvancedConfig from './components/AdvancedConfig.svelte';
-  import ToolsResources from './components/ToolsResources.svelte';
   import ManageSite from './components/ManageSite.svelte';
   import OperationBanner from './components/OperationBanner.svelte';
 
@@ -44,6 +44,24 @@
   // ---------------------------------------------------------------------------
 
   let showLoginModal = false;
+
+  // ---------------------------------------------------------------------------
+  // Routing: '/' -> informational landing, '/deploy' -> web deployer
+  // ---------------------------------------------------------------------------
+  let path = typeof window !== 'undefined' ? window.location.pathname : '/';
+  $: route = path.replace(/\/+$/, '') || '/';
+  $: isDeploy = route === '/deploy';
+
+  function navigate(to) {
+    if (to === path) return;
+    window.history.pushState({}, '', to);
+    path = to;
+    window.scrollTo(0, 0);
+  }
+
+  function handlePopState() {
+    path = window.location.pathname;
+  }
 
   // Page navigation: 'deploy' | 'manage'
   let currentPage = 'deploy';
@@ -161,6 +179,8 @@
   // ---------------------------------------------------------------------------
 
   onMount(async () => {
+    window.addEventListener('popstate', handlePopState);
+
     // Restore anonymous session from sessionStorage
     const sess = get(session);
     if (sess.signerType === 'anonymous' && !currentSigner) {
@@ -237,6 +257,7 @@
 
   onDestroy(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('popstate', handlePopState);
   });
 
   $: dTagValid = siteType === 'root' || /^[a-z0-9](?:[a-z0-9-]{0,11}[a-z0-9])?$/.test(dTag);
@@ -604,12 +625,19 @@
 
   <main>
 
+   {#if isDeploy}
     <!-- ===== IDLE / SELECTING: Hero with tabs ===== -->
     {#if step === 'idle' || step === 'selecting'}
 
       <!-- Hero: full viewport -->
       <section class="min-h-screen flex flex-col items-center justify-center px-4">
         <div class="text-center mb-10">
+          <button
+            on:click={() => navigate('/')}
+            class="text-sm text-slate-400 hover:text-purple-300 transition-colors mb-6 inline-flex items-center gap-1"
+          >
+            ← Back to nsite.run
+          </button>
           <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-4">
             Deploy to the <span class="text-purple-400">decentralized web</span>
           </h1>
@@ -741,75 +769,7 @@
           {/if}
         {/if}
 
-        <!-- Scroll nudge -->
-        <button
-          on:click={() => document.getElementById('what')?.scrollIntoView({ behavior: 'smooth' })}
-          class="mt-10 flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors animate-bounce-subtle"
-        >
-          <span class="text-sm">What is an nsite?</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </button>
       </section>
-
-      <!-- Educational content (only in idle) -->
-      <div class="max-w-3xl mx-auto px-4 space-y-16 py-16" id="what">
-        <!-- What are nsites? -->
-        <section>
-          <h2 class="text-2xl font-semibold text-white mb-4">What are nsites?</h2>
-          <p class="text-slate-300 leading-relaxed">
-            nsites are static websites hosted on the nostr network. Your site's files are stored as
-            cryptographic blobs on blossom servers and made discoverable via signed nostr events. Anyone
-            running a gateway can serve your site — no central host controls it.
-          </p>
-        </section>
-
-        <!-- How it works -->
-        <section>
-          <h2 class="text-2xl font-semibold text-white mb-4">How it works</h2>
-          <ol class="space-y-4">
-            {#each [
-              { n: '1', title: 'Choose your files', desc: 'Drop a folder or archive containing your site. The tool scans for sensitive files and warns you before uploading.' },
-              { n: '2', title: 'Hash & upload', desc: 'Each file is SHA-256 hashed and uploaded to Blossom servers. Files already present are skipped — only changes are uploaded.' },
-              { n: '3', title: 'Publish manifest', desc: 'A signed nostr event (kind 15128) maps your file paths to their hashes. Gateways query this event to serve your site.' },
-            ] as step}
-              <li class="flex gap-4">
-                <div class="w-8 h-8 rounded-full bg-purple-700/60 flex items-center justify-center text-purple-200 font-bold text-sm flex-shrink-0">
-                  {step.n}
-                </div>
-                <div>
-                  <p class="font-medium text-white">{step.title}</p>
-                  <p class="text-slate-400 text-sm mt-1">{step.desc}</p>
-                </div>
-              </li>
-            {/each}
-          </ol>
-        </section>
-
-        <!-- Why nostr? -->
-        <section>
-          <h2 class="text-2xl font-semibold text-white mb-4">Why nostr?</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {#each [
-              { title: 'Censorship-resistant', desc: 'No single server controls your site. It lives on multiple Blossom servers simultaneously.' },
-              { title: 'Self-sovereign identity', desc: 'Your npub is your domain. You own your site the same way you own your nostr identity.' },
-              { title: 'Portable', desc: 'Works across any gateway. If one goes down, another serves the same content.' },
-              { title: 'No accounts needed', desc: 'Deploy anonymously with a generated key, or use your existing nostr identity.' },
-            ] as item}
-              <div class="bg-slate-800 rounded-lg p-4">
-                <p class="font-medium text-white mb-1">{item.title}</p>
-                <p class="text-slate-400 text-sm">{item.desc}</p>
-              </div>
-            {/each}
-          </div>
-        </section>
-
-        <!-- Tools & Resources -->
-        <section id="tools">
-          <ToolsResources />
-        </section>
-      </div>
 
     <!-- ===== REVIEWING: File tree + options ===== -->
     {:else if step === 'reviewing'}
@@ -1187,6 +1147,9 @@
         </div>
       </section>
     {/if}
+   {:else}
+    <LandingPage {navigate} />
+   {/if}
 
   </main>
 

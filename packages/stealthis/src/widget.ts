@@ -1,4 +1,4 @@
-import STYLES from "./styles.css?inline";
+import { STYLES } from "./styles";
 import * as nostr from "./nostr";
 import { toSvg } from "./qr";
 import {
@@ -6,6 +6,7 @@ import {
   DEFAULT_NIP46_RELAY,
   extensionSigner,
   hasExtension,
+  type NostrConnectHandle,
   prepareNostrConnect,
   type Signer,
 } from "./signer";
@@ -22,8 +23,41 @@ type State =
   | "success"
   | "error";
 
+/**
+ * Web component `<steal-this>` that lets a visitor re-publish (borrow) the current
+ * nsite to their own Nostr identity. Registered automatically at module load —
+ * users only need `import '@nsite/stealthis'` and optionally a `<steal-this>` tag
+ * in their HTML (if the tag is absent, one is auto-injected with class `nd-fixed`).
+ *
+ * The widget reads the page's current hostname to discover the nsite owner's
+ * pubkey, fetches the site manifest over Nostr relays, presents a sign-in UI
+ * (NIP-07 extension, NIP-46 bunker, or QR-scan), then re-publishes the same
+ * manifest under the signed-in user's pubkey.
+ *
+ * Themed via HTML attributes (`accent`, `background`, `text`, `radius`) that
+ * map to CSS custom properties on the host element; also accepts a Ditto theme
+ * via the `copy-ditto-theme` attribute which resolves a kind-36767 event and
+ * offers a one-click copy step during the deploy flow.
+ *
+ * See the package README for a full attribute reference and usage examples.
+ */
 export class NsiteDeployButton extends HTMLElement {
-  static observedAttributes = [
+  /**
+   * HTML attributes observed by the custom element — changes trigger
+   * {@link NsiteDeployButton.attributeChangedCallback}.
+   *
+   * - `button-text` — text on the trigger button (default "Borrow this nsite")
+   * - `stat-text` — paper-trail legend template; `%s` is replaced with the muse count
+   * - `no-trail` — when present, hides the paper-trail UI entirely
+   * - `obfuscate-npubs` — when present, truncates npubs in the trail and omits links
+   * - `do-not-fetch-muse-data` — when present, skips kind-0 profile enrichment
+   * - `accent` / `background` / `text` — hex color values for theming (drive CSS custom properties)
+   * - `radius` — CSS length (e.g. `8px`, `1em`) for border radius theming
+   * - `copy-ditto-theme` — naddr of a kind-36767 Ditto theme event to offer as a copy step on deploy
+   *
+   * See README.md for per-attribute semantics and visual examples.
+   */
+  static readonly observedAttributes: readonly string[] = [
     "button-text",
     "stat-text",
     "no-trail",
@@ -41,29 +75,37 @@ export class NsiteDeployButton extends HTMLElement {
   private ctx: nostr.NsiteContext | null = null;
   private manifest: nostr.SignedEvent | null = null;
   private signer: Signer | null = null;
-  private userPubkey = "";
+  private userPubkey: string = "";
   private userRelays: string[] = [];
-  private deployedUrl = "";
-  private errorMsg = "";
-  private statusMsg = "";
-  private slug = "";
-  private siteTitle = "";
-  private siteDescription = "";
-  private deployAsRoot = true;
+  private deployedUrl: string = "";
+  private errorMsg: string = "";
+  private statusMsg: string = "";
+  private slug: string = "";
+  private siteTitle: string = "";
+  private siteDescription: string = "";
+  private deployAsRoot: boolean = true;
   private hasRootSite: boolean | null = null; // null = still checking
-  private nostrConnectUri = "";
-  private nip46Relay = DEFAULT_NIP46_RELAY;
+  private nostrConnectUri: string = "";
+  private nip46Relay: string = DEFAULT_NIP46_RELAY;
   private qrAbort: AbortController | null = null;
-  private ncConnect: ReturnType<typeof prepareNostrConnect> | null = null;
+  private ncConnect: NostrConnectHandle | null = null;
   private manifestPromise: Promise<nostr.SignedEvent | null> | null = null;
   private relaysPromise: Promise<string[]> | null = null;
   private muses: nostr.Muse[] = [];
-  private museProfiles = new Map<string, nostr.MuseProfile>();
-  private musesExpanded = false;
+  private museProfiles: Map<string, nostr.MuseProfile> = new Map<string, nostr.MuseProfile>();
+  private musesExpanded: boolean = false;
   private dittoThemePromise: Promise<nostr.DittoTheme | null> | null = null;
   private _dittoTheme: nostr.DittoTheme | null = null;
   private hasExistingTheme: boolean | null = null;
 
+  /**
+   * The resolved Ditto theme, if one was loaded via the `copy-ditto-theme`
+   * attribute — otherwise `null`. Consumers (e.g. external scripts observing
+   * the element) may read this to mirror the resolved theme into their own UI.
+   *
+   * Null until the theme event has been fetched and parsed; null persists if
+   * the attribute was not set or if the referenced event could not be resolved.
+   */
   get dittoTheme(): nostr.DittoTheme | null {
     return this._dittoTheme;
   }
@@ -111,7 +153,16 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  attributeChangedCallback(name: string) {
+  /**
+   * Standard custom-element lifecycle callback — invoked when one of
+   * {@link NsiteDeployButton.observedAttributes} changes. Re-applies theme
+   * CSS custom properties (for `accent`/`background`/`text`/`radius` changes)
+   * and re-renders the current view if the element is idle. Not intended to
+   * be called directly.
+   *
+   * @param name - The name of the attribute that changed (one of the observed set).
+   */
+  attributeChangedCallback(name: string): void {
     if (
       name === "accent" || name === "background" ||
       name === "text" || name === "radius"
@@ -121,7 +172,7 @@ export class NsiteDeployButton extends HTMLElement {
     if (this.state === "idle") this.render();
   }
 
-  private applyThemeVars() {
+  private applyThemeVars(): void {
     const accent = this.getAttribute("accent");
     const background = this.getAttribute("background");
     const text = this.getAttribute("text");
@@ -200,7 +251,7 @@ export class NsiteDeployButton extends HTMLElement {
     return `<div class="nd-overlay"><div class="nd-modal">${body}</div></div>`;
   }
 
-  private render() {
+  private render(): void {
     this.preserveFormValues();
     let html = `<style>${STYLES}</style>`;
 
@@ -563,7 +614,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Bindings ---
 
-  private bind() {
+  private bind(): void {
     this.shadow
       .querySelector(".nd-trigger:not([disabled])")
       ?.addEventListener("click", () => this.open());
@@ -640,7 +691,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private preserveFormValues() {
+  private preserveFormValues(): void {
     if (this.state !== "form") return;
     const slug = this.shadow.querySelector("#nd-slug") as
       | HTMLInputElement
@@ -656,32 +707,32 @@ export class NsiteDeployButton extends HTMLElement {
     if (desc) this.siteDescription = desc.value;
   }
 
-  private setState(s: State) {
+  private setState(s: State): void {
     this.state = s;
     this.render();
   }
 
-  private close() {
+  private close(): void {
     this.cancelQr();
     this.signer?.close();
     this.signer = null;
     this.setState("idle");
   }
 
-  private cancelQr() {
+  private cancelQr(): void {
     this.qrAbort?.abort();
     this.qrAbort = null;
     this.ncConnect = null;
   }
 
-  private showError(msg: string) {
+  private showError(msg: string): void {
     this.errorMsg = msg;
     this.setState("error");
   }
 
   // --- Nostrconnect lifecycle ---
 
-  private startNostrConnect() {
+  private startNostrConnect(): void {
     this.cancelQr();
 
     this.ncConnect = prepareNostrConnect(this.nip46Relay);
@@ -711,7 +762,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Auth ---
 
-  private async open() {
+  private async open(): Promise<void> {
     // Manifest fetch started in constructor; ensure it's running
     if (!this.manifestPromise && this.ctx) {
       this.manifestPromise = nostr.fetchManifest(this.ctx);
@@ -721,7 +772,7 @@ export class NsiteDeployButton extends HTMLElement {
     this.startNostrConnect();
   }
 
-  private async authExtension() {
+  private async authExtension(): Promise<void> {
     this.cancelQr();
     try {
       this.signer = extensionSigner();
@@ -731,7 +782,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async authBunker() {
+  private async authBunker(): Promise<void> {
     const input = (this.shadow.querySelector("#nd-bunker") as HTMLInputElement)
       ?.value.trim();
     if (!input) return;
@@ -748,7 +799,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async copyUri() {
+  private async copyUri(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.nostrConnectUri);
       const btn = this.shadow.querySelector(
@@ -767,7 +818,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Post-auth ---
 
-  private async onAuthenticated() {
+  private async onAuthenticated(): Promise<void> {
     this.setState("loading");
 
     try {
@@ -815,7 +866,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Ditto theme copy ---
 
-  private async copyDittoTheme() {
+  private async copyDittoTheme(): Promise<void> {
     if (!this._dittoTheme || !this.signer) return;
 
     this.statusMsg = "Creating theme event...";
@@ -853,7 +904,7 @@ export class NsiteDeployButton extends HTMLElement {
 
   // --- Deploy ---
 
-  private readFormValues() {
+  private readFormValues(): void {
     if (!this.deployAsRoot) {
       const slugEl = this.shadow.querySelector("#nd-slug") as
         | HTMLInputElement
@@ -870,7 +921,7 @@ export class NsiteDeployButton extends HTMLElement {
     if (descEl) this.siteDescription = descEl.value.trim();
   }
 
-  private async onDeploy() {
+  private async onDeploy(): Promise<void> {
     this.readFormValues();
 
     if (!this.deployAsRoot) {
@@ -916,7 +967,7 @@ export class NsiteDeployButton extends HTMLElement {
     }
   }
 
-  private async executeDeploy() {
+  private async executeDeploy(): Promise<void> {
     this.statusMsg = "Creating event...";
     this.setState("deploying");
 
