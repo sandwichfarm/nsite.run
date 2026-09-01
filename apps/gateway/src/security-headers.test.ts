@@ -31,6 +31,12 @@ Deno.test("securityHeaders - CSP includes unsafe-inline for scripts", () => {
   assert(csp.includes("unsafe-inline"));
 });
 
+Deno.test("securityHeaders - CSP permits site-owned application frames", () => {
+  const csp = securityHeaders()["Content-Security-Policy"];
+  assert(csp.includes("frame-src 'self' blob: https:"));
+  assert(!csp.includes("frame-src 'none'"));
+});
+
 Deno.test("securityHeaders - has all 5 required headers", () => {
   const headers = securityHeaders();
   const keys = Object.keys(headers);
